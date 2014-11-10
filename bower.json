@@ -1,0 +1,26 @@
+{
+  "name": "myApp",
+  "description": "A starter project for AngularJS",
+  "version": "0.0.0",
+  "homepage": "https://github.com/valkirilov/angular-bootstrap-seed",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "1.2.x",
+    "angular-route": "1.2.x",
+    "angular-loader": "1.2.x",
+    "angular-cookies": "1.2.x",
+    "angular-mocks": "~1.2.x",
+    "angular-gettext": "~0.2.8",
+    "angular-animate": "~1.2.x",
+    "html5-boilerplate": "~4.3.0",
+    "restangular": "~1.4.0",
+    "sass-bootstrap": "~3.0.x",
+    "angular-bootstrap": "~0.11.0",
+    "angular-loading-bar": "~0.4.1",
+    "animate.css": "~3.2.0",
+    "firebase": "~1.0.21",
+    "firebase-simple-login": "~1.6.3",
+    "angular-socket-io": "~0.6.0"
+  }
+}

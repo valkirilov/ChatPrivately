@@ -1,0 +1,17 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: angular-app\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Valentin Kirilov <val.kirilov@gmail.com>\n"
+"Language-Team: Team <ram@mail.com>\n"
+"MIME-Version: 1.0\n"
+"Language: bg\n"
+"Country: BULGARIA\n"
+
+#: app/index.html
+msgid "Bootstrap starter template"
+msgstr "Добре долши!"
+
