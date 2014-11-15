@@ -14,6 +14,8 @@ module.exports = function(grunt) {
           },
           files: {
             'app/styles/app.css': 'app/styles/scss/app.scss',
+            'app/styles/login.css': 'app/styles/scss/login.scss',
+            'app/styles/chat.css': 'app/styles/scss/chat.scss',
           }
         }
       },
@@ -119,7 +121,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-angular-gettext');
     grunt.loadNpmTasks('grunt-docular');
 
-    grunt.registerTask('default', ['connect', 
+    grunt.registerTask('default', [
       'nggettext_extract', 
       'nggettext_compile', 
       'sass', 

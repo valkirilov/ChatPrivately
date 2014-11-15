@@ -11,6 +11,8 @@ var express = require('express'),
 
 // MongoDB reference
 users = require('./routes/users');
+rooms = require('./routes/rooms');
+messages = require('./routes/messages');
 
 MongoClient.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm', function(err, db) {
     if (err) {
@@ -18,10 +20,10 @@ MongoClient.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:270
         return;
     }
 
-    setup_express(users(db));
+    setup_express(users(db), rooms(db), messages(db));
 });
 
-function setup_express(users) {
+function setup_express(users, rooms, messages) {
     app.use(bodyParser.json());
     app.use(express.static(path.join(__dirname, '../app')));
 
@@ -33,7 +35,13 @@ function setup_express(users) {
     app.use(function(req, res, next) {
       console.log(req.url);
       if (req.url === '/api/users/login' ||
-        req.url === '/api/users/register') {
+        req.url === '/api/users/register' ||
+        req.url.indexOf('api' === -1)) {
+        next();
+      }
+      else if(req.url === '/api/messages') {
+        console.log('HERE');
+        //console.log(req);
         next();
       }
       else if(!req.user.user_id) {
@@ -48,6 +56,8 @@ function setup_express(users) {
     });
 
     app.use('/api/users', users);
+    app.use('/api/rooms', rooms);
+    app.use('/api/messages', messages);
 
     require('./sockets/base')(io);
 

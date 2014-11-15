@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 var server = require('./server/index');
+var port = process.env.PORT || 9999;
 
-server.listen(3000);
-console.log('Express server listening on port ' + server.address().port);
+server.listen(port);
+console.log('Express server listening on port ' + server.address().port + ' / or ' + port);
 
 // var http = require('http'),
 //     socketio = require('socket.io');

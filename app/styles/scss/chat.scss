@@ -1,0 +1,47 @@
+.tabsdemoDynamicTabs .remove-tab {
+  margin-bottom: 40px; }
+.tabsdemoDynamicTabs .md-button {
+  display: block; }
+.tabsdemoDynamicTabs .demo-tab {
+  height: 300px;
+  text-align: center; }
+.tabsdemoDynamicTabs .tab0 {
+  background-color: #E3F2FD; }
+.tabsdemoDynamicTabs .tab1 {
+  background-color: #E1F5FE; }
+.tabsdemoDynamicTabs .tab2 {
+  background-color: #E0F7FA; }
+.tabsdemoDynamicTabs .tab3 {
+  background-color: #E0F2F1; }
+.tabsdemoDynamicTabs .title {
+  padding-top: 8px;
+  padding-right: 8px;
+  text-align: left;
+  text-transform: uppercase;
+  color: #888;
+  margin-top: 24px; }
+.tabsdemoDynamicTabs [layout-align] > * {
+  margin-left: 8px; }
+.tabsdemoDynamicTabs form > [layout] > * {
+  margin-left: 8px; }
+.tabsdemoDynamicTabs .long > input {
+  width: 264px; }
+.tabsdemoDynamicTabs .md-button {
+  max-height: 30px; }
+.tabsdemoDynamicTabs .md-button.add-tab {
+  margin-top: 20px;
+  max-height: 30px !important; }
+
+form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+
+ul.chat-messages {
+  width: 100%;
+  padding: 0;
+
+  li { 
+    padding: 5px 10px; 
+    list-style: none;
+  }
+  li:nth-child(odd) { background: #eee; }
+}

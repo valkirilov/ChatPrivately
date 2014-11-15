@@ -17,6 +17,9 @@
   <link href="bower_components/sass-bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="bower_components/sass-bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
 
+  <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/default-theme.css">
+
   <link rel="stylesheet" href="styles/templates/starter-template.css">
   <link rel="stylesheet" href="styles/app.css">
   
@@ -25,7 +28,7 @@
 <body ng-controller="GlobalController">
 
   <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
+    <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
           <span class="sr-only">Toggle navigation</span>
@@ -33,12 +36,12 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Project name</a>
+        <a class="navbar-brand" href="#">Chat Privately</a>
       </div>
       <div class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          <li><a href="#/view1">Home</a></li>
-          <li><a href="#/view2">About</a></li>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a ng-click="toggleSidenav('left')">Show</a></li>
+          <li><a ng-click="logout()">Logout</a></li>
         </ul>
       </div><!--/.nav-collapse -->
     </div>
@@ -48,11 +51,63 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
-  <div class="container-fluid">
+  <section layout="horizontal" flex>
 
-    <div ng-view></div>
+    <md-sidenav class="md-sidenav-left md-whiteframe-z2" ng-hide="route === '/login'" component-id="left" is-locked-open="$media('md')">
 
-  </div><!-- /.container -->
+      <md-toolbar class="md-theme-indigo">
+        <h1 class="md-toolbar-tools">Sidenav Left</h1>
+      </md-toolbar>
+      <md-content class="md-padding">
+        <md-button ng-click="closeSidenav('left')" class="md-primary" hide-md>
+          Close Sidenav Left
+        </md-button>
+      </md-content>
+
+      <md-toolbar class="md-theme-light">
+        <h1 class="md-toolbar-tools">
+          <span>Your Friends</span>
+        </h1>
+      </md-toolbar>
+
+      <md-list>
+        <md-item ng-repeat="friend in friends" ng-hide="friend.id === user.id">
+          <md-item-content>
+            <!-- <div class="md-tile-left">
+                <img ng-src="{{ friend.avatar }}" class="face" alt="{{ friend.username }}">
+            </div> -->
+            <div class="md-tile-content">
+              <h3 class="pull-left">{{ friend.username }}</h3>
+              <md-button ng-click="chatFriend(friend.id)" class="pull-right">Chat</md-button>
+            </div>
+          </md-item-content>
+        </md-item>
+      </md-list>
+
+      <md-toolbar class="md-theme-light">
+        <h1 class="md-toolbar-tools">
+          <span>Recent conversations</span>
+        </h1>
+      </md-toolbar>
+
+      <md-list>
+        <md-item ng-repeat="room in rooms" ng-click="chatOpen(room.id)">
+          <md-item-content>
+            <div class="md-tile-left">
+                <img ng-src="{{ room.image }}" class="face" alt="{{ room.title }}">
+            </div>
+            <div class="md-tile-content">
+              <h3>{{ room.participants }} asfasf</h3>
+            </div>
+          </md-item-content>
+        </md-item>
+      </md-list>
+
+    </md-sidenav>
+
+    <div style="width: 100%" ng-view></div>
+
+  </section>
 
 
   <!-- In production use:
@@ -66,10 +121,16 @@
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
   <script src="bower_components/angular-animate/angular-animate.js"></script>
+  <script src="bower_components/angular-aria/angular-aria.js"></script>    
+  <script src="bower_components/hammerjs/hammer.js"></script>
+  <script src="bower_components/angular-material/angular-material.js"></script>
 
   <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
   <script src="bower_components/angular-socket-io/socket.js"></script>
   <script src="bower_components/angular-cookie/angular-cookie.js"></script>
+
+  <script src="bower_components/lodash/dist/lodash.min.js"></script>
+  <script src="bower_components/restangular/dist/restangular.min.js"></script>
 
   <script src="app.js"></script>
   <script src="login/login.js"></script>
@@ -78,6 +139,7 @@
   <script src="components/services/services.js"></script>
   <script src="components/services/chat-socket.js"></script>
   <script src="components/services/user-service.js"></script>
+  <script src="components/services/rooms-service.js"></script>
   <script src="components/version/version.js"></script>
   <script src="components/version/version-directive.js"></script>
   <script src="components/version/interpolate-filter.js"></script>

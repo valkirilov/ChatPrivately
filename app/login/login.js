@@ -31,6 +31,7 @@ angular.module('myApp.login', ['ngRoute'])
     
     UserService.login(name, password).then(function(response) {
       $rootScope.user = {
+        id: response.data.id,
         username: response.data.username,
         email: response.data.email,
         access_token: response.data.access_token

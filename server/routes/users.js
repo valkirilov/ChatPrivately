@@ -71,6 +71,7 @@ module.exports = function(database) {
             });
             res.write(JSON.stringify({
                 'success': 'true',
+                'id': user.id,
                 'username': user.username,
                 'email': user.email,
                 'access_token': authenticate.serializeToken(client_id, user_id, extra_data) // extra data is optional

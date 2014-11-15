@@ -1,8 +1,16 @@
 'use strict';
 
 angular.module('myApp.services.user-service', [])
-.factory('UserService', function ($http, ipCookie) {
+.factory('UserService', function ($http, ipCookie, Restangular) {
   
+  var users;
+  var baseUsers = Restangular.all('api/users');
+
+  var fetchFriends = function() {
+    users = baseUsers.getList().$object;
+    return users;
+  };
+
   var login = function(name, password) {
 
     // TODO: Validate the input
@@ -14,13 +22,18 @@ angular.module('myApp.services.user-service', [])
 
     promise.then(function(response) {
       if (response.data.success === 'true') {
-        console.log('Set up token');
         $http.defaults.headers.common['x-access-token'] = response.data.access_token;
         ipCookie('user', response.data, { expires: 21 });
       }
     });
 
     return promise;
+  };
+
+  var logout = function(callback) {
+    $http.defaults.headers.common['x-access-token'] = '';
+    ipCookie.remove('user');
+    callback();
   };
 
   var register = function(username, email, password) {
@@ -38,6 +51,8 @@ angular.module('myApp.services.user-service', [])
 
   return {
     login: login,
-    register: register
+    register: register,
+    logout: logout,
+    fetchFriends: fetchFriends
   };
 });

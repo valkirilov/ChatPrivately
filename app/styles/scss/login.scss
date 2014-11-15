@@ -1,0 +1,31 @@
+
+.form-signin {
+  background: #efefef;
+  max-width: 330px;
+  
+  padding: 30px;
+  margin-top: 50px;
+
+  .form-signin-heading,
+  .checkbox {
+  margin-bottom: 10px;
+  }
+
+  .checkbox {
+    font-weight: normal;
+    text-align: left;
+  }
+
+  .md-form {
+    width: 100%;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  .md-block {
+    width: 100%;
+    padding: 10px;
+  }
+}

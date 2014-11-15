@@ -1,18 +1,19 @@
- 
+
+<link href="styles/login.css" rel="stylesheet" />
+
 <div class="container">
  <form class="form-signin" role="form">
-    <h2 class="form-signin-heading">Please sign in</h2>
-    <label for="inputEmail" class="sr-only">Email address</label>
-    <input type="text" ng-model="input.name" class="form-control" placeholder="Email address" required autofocus>
+    <h1>Chat Privately</h1>
+
+    <md-text-float label="E-mail / Username" ng-model="input.name" class="md-form" p></md-text-float>
+    <md-text-float label="Password" ng-model="input.password" class="md-form" type="password" p></md-text-float>
     
-    <label for="inputPassword" class="sr-only">Password</label>
-    <input type="password" ng-model="input.password" class="form-control" placeholder="Password" required>
-    <div class="checkbox">
-      <label>
-        <input type="checkbox" value="remember-me"> Remember me
-      </label>
-    </div>
-    <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="login()">Sign in</button>
-    <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="test()">Test</button>
+    <!-- <md-checkbox ng-model="data.cb1" aria-label="Checkbox 1">
+      Remember me (NB: Still not working)
+    </md-checkbox> -->
+
+    <br />
+
+    <md-button class="md-raised md-primary md-block" ng-click="login()">Log me in</md-button>
   </form>
 </div>

@@ -2,11 +2,3 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: app/index.html
-msgid "Bootstrap starter template"
-msgstr ""
-
-#: app/view1/view1.html
-msgid "This is the partial for view 1."
-msgstr ""
