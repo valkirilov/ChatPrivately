@@ -28,6 +28,7 @@
     "karma-jasmine-html-reporter": "^0.1.5",
     "karma-jasmine-html-reporter-livereload": "^1.0.0",
     "karma-junit-reporter": "^0.2.2",
+    "mongodb": "^1.4.20",
     "mongoose": "^3.8.19",
     "path": "^0.4.9",
     "protractor": "^1.1.1",

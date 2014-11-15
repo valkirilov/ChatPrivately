@@ -6,37 +6,20 @@ var express = require('express'),
     server = http.createServer(app),
     io = io.listen(server),
     bodyParser = require('body-parser'),
-    //MongoClient = require('mongodb').MongoClient,
-    mongoose = require('mongoose'),
+    MongoClient = require('mongodb').MongoClient,
     authenticate = require("authenticate");
 
 // MongoDB reference
 users = require('./routes/users');
 
-// 
-
-// var db = mongoose.createConnection(
-//   'mongodb://user:pass@proximus.modulusmongo.net:27017/enyrO4ma'
-// );
-
-mongoose.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm');
-
-var db = mongoose.connection;
-db.on('error', function(err) {
-    console.error('Cannot connect to the database', err);
+MongoClient.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm', function(err, db) {
+    if (err) {
+        console.error('Cannot connect to the database', err);
         return;
+    }
+
+    setup_express(users(db));
 });
-
-db.once('open', function callback () {
-  setup_express(users(db));
-});
-
-// mongoose.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm', function(err, db) {
-//     if (err) {
-        
-//     }
-
-// });
 
 function setup_express(users) {
     app.use(bodyParser.json());
