@@ -9,18 +9,20 @@ angular.module('myApp.view1', ['ngRoute'])
   });
 }])
 
-.controller('View1Ctrl', ['$scope', 'chatSocket', function($scope, chatSocket) {
+.controller('View1Ctrl', ['$scope', '$rootScope', 'chatSocket', function($scope, $rootScope, chatSocket) {
 
   $scope.messages = [];
 
-  $scope.send = function() {
+  $scope.send = function($event) {
+    if ($event && $event.keyCode !== 13) {
+      return;
+    }
 
     $scope.username = 'nick';
     var message = angular.copy($scope.message);
 
 
-    chatSocket.emit('message', $scope.username, message);
-    console.log('Sending: ' + message);
+    chatSocket.emit('message', $rootScope.user.username, message);
     $scope.message = '';
   };
 
@@ -29,7 +31,7 @@ angular.module('myApp.view1', ['ngRoute'])
       return;
     }
 
-    console.log(data);
+    //console.log(data);
 
     $scope.messages.push(data);
   });

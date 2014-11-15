@@ -11,8 +11,9 @@
 </style>
 
 <ul id="messages">
-    <li ng-repeat="message in messages">Message: {{ message.content }}</li>
+    <li ng-repeat="message in messages"><strong>{{ message.username }}</strong>: {{ message.content }}</li>
 </ul>
 <form action="">
-  <input id="m" autocomplete="off" ng-model="message" /><button ng-click="send()">Send</button>
+  <input autocomplete="off" ng-model="message" ng-keypress="send($event)" autofocus />
+  <button ng-click="send()">Send</button>
 </form>

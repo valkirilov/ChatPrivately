@@ -21,6 +21,7 @@
     "animate.css": "~3.2.0",
     "firebase": "~1.0.21",
     "firebase-simple-login": "~1.6.3",
-    "angular-socket-io": "~0.6.0"
+    "angular-socket-io": "~0.6.0",
+    "angular-cookie": "~4.0.6"
   }
 }
