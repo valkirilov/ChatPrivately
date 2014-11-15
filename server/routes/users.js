@@ -80,6 +80,20 @@ module.exports = function(database) {
         });
     });
 
+    router.post('/register', function(req, res) {
+
+        var user = to_database(req.body);
+
+        users.insert(user, function(err) {
+            if (err) {
+                console.error('Cannot insert user', err);
+                return res.status(500).send({'success':'false', 'message':'Cannot add this user.'});
+            }
+
+            res.status(200).send({'success':'true'});
+        });
+    });
+
     /******************************************
      * UTILS methods
      ******************************************/

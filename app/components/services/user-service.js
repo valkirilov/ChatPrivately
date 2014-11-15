@@ -4,7 +4,6 @@ angular.module('myApp.services.user-service', [])
 .factory('UserService', function ($http, ipCookie) {
   
   var login = function(name, password) {
-    console.log('TODO ' + name + ' ' + password);
 
     // TODO: Validate the input
 
@@ -24,7 +23,21 @@ angular.module('myApp.services.user-service', [])
     return promise;
   };
 
+  var register = function(username, email, password) {
+
+    // TODO: Validate the input
+
+    var promise = $http.post('/api/users/register', {
+      username: username,
+      email: email,
+      password: password
+    });
+
+    return promise;
+  };
+
   return {
-    login: login
+    login: login,
+    register: register
   };
 });

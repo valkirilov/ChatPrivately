@@ -7,6 +7,11 @@ angular.module('myApp.login', ['ngRoute'])
     templateUrl: 'login/login.html',
     controller: 'LoginCtrl'
   });
+
+  $routeProvider.when('/register', {
+    templateUrl: 'login/register.html',
+    controller: 'LoginCtrl'
+  });
 }])
 
 .controller('LoginCtrl', ['$scope', '$rootScope', '$http', '$location', 'UserService', 'ipCookie',
@@ -14,7 +19,9 @@ angular.module('myApp.login', ['ngRoute'])
 
   $scope.input = {
     name: null,
-    password: null
+    password: null,
+    username: null,
+    email: null
   };
 
   $scope.login = function() {
@@ -33,6 +40,16 @@ angular.module('myApp.login', ['ngRoute'])
     });
 
   };
+
+  $scope.register = function() {
+    var username = angular.copy($scope.input.username),
+        email = angular.copy($scope.input.email),
+        password = angular.copy($scope.input.password);
+    
+    UserService.register(username, email, password).then(function(response) {
+      $location.path('login');
+    });
+  }
 
   $scope.test = function () {
     $http.get('/api/users/').then(function(response) {

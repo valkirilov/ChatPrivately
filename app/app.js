@@ -33,9 +33,10 @@ config(['$routeProvider', function($routeProvider) {
   };
 
   $scope.$on('$routeChangeStart', function(next, current) { 
-    //console.log(current.$$route.originalPath);
+    console.log(current.$$route.originalPath);
 
-    if (current.$$route.originalPath !== '/login' && !$scope.isLogged()) {
+    if ((current.$$route.originalPath !== '/login' &&
+        current.$$route.originalPath !== '/register') && !$scope.isLogged()) {
       $location.path('login');
     }
   });

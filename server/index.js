@@ -12,7 +12,7 @@ var express = require('express'),
 // MongoDB reference
 users = require('./routes/users');
 
-MongoClient.connect('mongodb://localhost/chatp', function(err, db) {
+MongoClient.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm', function(err, db) {
     if (err) {
         console.error('Cannot connect to the database', err);
         return;
@@ -32,7 +32,8 @@ function setup_express(users) {
 
     app.use(function(req, res, next) {
       console.log(req.url);
-      if (req.url === '/api/users/login') {
+      if (req.url === '/api/users/login' ||
+        req.url === '/api/users/register') {
         next();
       }
       else if(!req.user.user_id) {
