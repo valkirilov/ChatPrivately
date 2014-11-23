@@ -14,14 +14,15 @@ angular.module('myApp.view1', ['ngRoute'])
 
   $scope.messages = [];
   $scope.tabs = [];
-  $scope.selectedIndex = 0;
+  $scope.selectedIndex = -1;
+  $scope.messagesHeight = 300;
 
   $scope.addTab = function (roomId, callback) {
-    var room = $rootScope.rooms[$rootScope.getItemFromArray($rootScope.rooms, roomId, true)],
-        title = roomId;
+    var room = $rootScope.rooms[$rootScope.getItemFromArray($rootScope.rooms, roomId, { isIndex: true })];
+    var title = room.title;
 
     room.messages = [];
-    $scope.tabs.push({ title: title, room: room});
+    $scope.tabs.push({ title: title, room: room, roomId: roomId });
     callback(room);
   };
 
@@ -62,19 +63,48 @@ angular.module('myApp.view1', ['ngRoute'])
     }
     
     if (data.action === 'chatOpen') {
-      console.log('Opening room');
+      if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
+        return;
+      }
+
       $scope.addTab(data.roomId, function(room) {
-        console.log('Fetchiing messages');
-        room.messages = RoomsService.fetchMessages(data.roomId);
+        
+        RoomsService.fetchMessages(data.roomId).then(function(response) {
+          room.messages = response;  
+
+          setTimeout(function() {
+            setMessagesHeight();
+            scrollMessages(room);
+          }, 1000);
+        });
       });
     }
     else if (data.action === 'message') {
-      console.log('Message received');
-      console.log(data);
+      // console.log('Message received');
+      // console.log(data);
 
-      var room = $rootScope.rooms[$rootScope.getItemFromArray($rootScope.rooms, data.roomId, true)];
-      room.messages.push({ username: data.username, content: data.message });
+      var room = $rootScope.rooms[$rootScope.getItemFromArray($rootScope.rooms, data.roomId, { isIndex: true })];
+      room.messages.push({ user: data.user, username: data.username, content: data.message });
+
+      //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
+      scrollMessages(room);
     }
   });
+
+  function scrollMessages(room) {
+    if (!room.contentElement) {
+      room.contentElement = angular.element('#room-'+room.id);
+    }
+    room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
+  }
+
+  function setMessagesHeight() {
+    var messages = angular.element('.messages');
+    var body = angular.element('body');
+
+    $scope.messagesHeight = (parseInt(body.height()) - 200)+'px';
+  }
+  setMessagesHeight();
+
 
 }]);

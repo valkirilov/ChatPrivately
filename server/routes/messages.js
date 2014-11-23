@@ -38,8 +38,6 @@ module.exports = function(database) {
                 return res.status(500).send({'success':'false', 'message':'Cannot get messages'});
             }
 
-            console.log('Messages respone');
-            console.log(messages);
             res.json(messages.map(from_database));
         });
     });
@@ -48,16 +46,15 @@ module.exports = function(database) {
      * POST methods
      ******************************************/
     router.post('/', function(req, res) {
-        console.log('Saving');
-        console.log(req.body);
+        console.log('Saver req received');
         var message = req.body;
         message.roomId = new ObjectID(message.roomId);
         message.userId = new ObjectID(message.userId);
 
         messages.insert(message, function(err, response) {
             if (err) {
-                console.error('Cannot insert room', err);
-                return res.status(500).send({'success':'false', 'message':'Cannot create room.'});
+                console.error('Cannot insert message', err);
+                return res.status(500).send({'success':'false', 'message':'Cannot insert message.'});
             }
 
             res.status(200).send({'success':'true'});

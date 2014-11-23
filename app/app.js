@@ -29,8 +29,15 @@ config(['$routeProvider', function($routeProvider) {
   $rootScope.user = null;
   $scope.route;
 
-  $scope.friends = UserService.fetchFriends();
-  $rootScope.rooms = RoomsService.fetch();
+  $rootScope.friends = {};
+  $rootScope.rooms = $rootScope.user ? RoomsService.fetch($rootScope.user.id) : null;
+
+  UserService.fetchFriends().then(function(data) {
+    console.log(data);
+    data.forEach(function(friend) {
+      $rootScope.friends[friend.id] = friend;
+    });
+  });
 
   $scope.setLanguage = function(language) {
     $scope.lang = language;
@@ -80,9 +87,10 @@ config(['$routeProvider', function($routeProvider) {
 
   $scope.chatFriend = function(friendId) {
     var participants = [$scope.user.id, friendId];
-    RoomsService.create(participants).then(function() {
-      if (response.status === 'true') {
-        $rootScope.rooms.push(response.room);
+    RoomsService.create(participants, $rootScope.user.id, $rootScope.friends).then(function(response) {
+      console.log(response);
+      if (response.data.success === 'true') {
+        $rootScope.rooms.push(response.data.room);
       }
     });
   };
@@ -91,6 +99,7 @@ config(['$routeProvider', function($routeProvider) {
     console.log('Chat open buttin');
 
     var room = $rootScope.getItemFromArray($rootScope.rooms, roomId);
+    console.log(room);
     chatSocket.emit('chatOpen', room.id, room.participants);
   };
 
@@ -98,12 +107,22 @@ config(['$routeProvider', function($routeProvider) {
    * UTILS
    *************************************/
 
-  $rootScope.getItemFromArray = function (array, id, isIndex) {
+  $rootScope.getItemFromArray = function (array, id, properties) {
     var found = null,
         foundIndex = null;
 
+    var selector = 'id';
+    if (properties && properties.id) {
+      selector = properties.id;
+    }
+
+    var isIndex = false;
+    if (properties && properties.isIndex) {
+      isIndex = properties.isIndex;
+    }
+
     array.forEach(function(item, index) {
-      if (item.id === id) {
+      if (item[selector] === id) {
         found = item;
         foundIndex = index;
       }

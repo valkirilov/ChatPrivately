@@ -1,21 +1,21 @@
-angular-bootstrap-seed
+Chat Privately
 ======================
 
-Seed for my Angular projects. Bootstrap and Grunt configuration included.
+This is a simple chat project.
+For now the project is under dev.
 
 # Setup
 
-    git clone https://github.com/valkirilov/angular-bootstrap-seed.git
+    git clone repo
     npm install
     bower install
 
 # Run
 
+    node server
+  > Express server listening on port 9999 / or 9999
+
     grunt
-
-    > Running "connect:server" (connect) task
-	> Started connect web server on http://0.0.0.0:8000
-
 	> Running "nggettext_extract:pot" (nggettext_extract) task
 
 	> Running "nggettext_compile:all" (nggettext_compile) task

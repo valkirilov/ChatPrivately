@@ -19,6 +19,7 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-docular": "^0.2.2",
     "grunt-ngmin": "~0.0.3",
+    "http-post": "^0.1.1",
     "http-server": "^0.6.1",
     "karma": "^0.12.24",
     "karma-chrome-launcher": "^0.1.5",
@@ -32,7 +33,9 @@
     "mongoose": "^3.8.19",
     "path": "^0.4.9",
     "protractor": "^1.1.1",
+    "querystring": "^0.2.0",
     "request": "^2.48.0",
+    "requestify": "^0.1.16",
     "shelljs": "^0.2.6",
     "socket.io": "^1.2.0"
   },

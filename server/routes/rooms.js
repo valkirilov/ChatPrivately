@@ -39,19 +39,30 @@ module.exports = function(database) {
         });
     });
 
-    router.get('/:name', function(req, res) {
-        var name = req.param('name');
+    router.get('/:userId', function(req, res) {
+        var userId = new ObjectID(req.param('userId'));
+
+        rooms.find({
+            participants: { $in : [ userId ] },
+        }).toArray(function(err, rooms) {
+            if (err) {
+                console.error('Cannot get rooms', err);
+                return res.status(500).send({'success':'false', 'message':'Cannot get rooms'});
+            }
+
+            res.json(rooms.map(from_database));
+        });
     });
 
     /******************************************
      * POST methods
      ******************************************/
     router.post('/create', function(req, res) {
-        console.log(req.body.participants);
         var room = {};
         room.participants = req.body.participants.map(function(item) {
             return new ObjectID(item);
         });
+        room.title = req.body.title;
 
         // TODO: Add only one room 
 
@@ -60,8 +71,8 @@ module.exports = function(database) {
                 console.error('Cannot insert room', err);
                 return res.status(500).send({'success':'false', 'message':'Cannot create room.'});
             }
-
-            res.status(200).send({'success':'true', 'room':response});
+            var fixed = from_database(response[0]);
+            res.status(200).send({'success':'true', 'room':fixed });
         });
     });
 

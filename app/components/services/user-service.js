@@ -7,7 +7,7 @@ angular.module('myApp.services.user-service', [])
   var baseUsers = Restangular.all('api/users');
 
   var fetchFriends = function() {
-    users = baseUsers.getList().$object;
+    users = baseUsers.getList();
     return users;
   };
 

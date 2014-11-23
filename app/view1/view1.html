@@ -3,32 +3,52 @@
 <link href="styles/chat.css" rel="stylesheet" />
 
 
-<md-content flex class="md-padding">
+<!-- <div layout="vertical" layout-fill="" layout-align="start end"> -->
 
-  <div layout="vertical" layout-fill layout-align="center center">
+  <md-tabs flex selected="selectedIndex">
+    <md-tab ng-repeat="tab in tabs" label="{{tab.title}}">
 
-    <md-tabs selected="selectedIndex">
-      <md-tab ng-repeat="tab in tabs" ng-disabled="false" label="{{tab.title}}">
-        <div class="demo-tab tab{{$index%4}}" layout="vertical" layout-fill layout-align="space-around center">
-          <ul class="chat-messages">
-            <li ng-repeat="message in tab.room.messages">
-              <strong>{{ message.username }}</strong>: {{ message.content }}
-            </li>
-          </ul>
+        <div class="demo-tab tab{{$index%4}}" layout="vertical" layout-align="space-around center">
+
+        <md-content scroll-y layout-fill="" flex id="room-{{ tab.roomId }}" class="messages md-padding" style="height: {{ messagesHeight }}">
+
+          <md-list>
+
+            <md-item ng-repeat="message in tab.room.messages" class="message">
+              <md-item-content class="md-item-content">
+                <div class="md-tile-left">
+                  <img ng-src="{{ friends[message.user].avatar }}" class="face" alt="{{item.who}}">
+                </div>
+                <div class="md-tile-content">
+                  <h3><strong>{{ message.username }}</strong></h3>
+                  <p>{{ message.content }}</p>
+                </div>
+              </md-item-content>
+            </md-item>
+            <div class="clearfix"></div>
+          </md-list>
+
+        </md-content>
+
         </div>
-      </md-tab>
-    </md-tabs>
-    
-    
-    <form action="">
-      <input autocomplete="off" ng-model="message" ng-keypress="send($event)" autofocus />
-    </form>
 
-  </div>
+    </md-tab>
+  </md-tabs>
+<!-- </div> -->
 
-</md-content>
+<form flex ng-hide="selectedIndex < 0">
+  <textarea ng-model="message" ng-keypress="send($event)" placeholder="Write something..." autofocus />
 
-<md-sidenav class="md-sidenav-right md-whiteframe-z2" component-id="right">
+  <md-button class="md-fab md-primary" ng-click="send()">
+    <span class="glyphicon glyphicon-pencil"></span>
+  </md-button>
+
+</form>
+
+
+
+
+<!-- <md-sidenav class="md-sidenav-right md-whiteframe-z2" component-id="right">
 
   <md-toolbar class="md-theme-light">
     <h1 class="md-toolbar-tools">Sidenav Right</h1>
@@ -40,3 +60,4 @@
   </md-content>
 
 </md-sidenav>
+ -->

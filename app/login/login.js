@@ -14,8 +14,8 @@ angular.module('myApp.login', ['ngRoute'])
   });
 }])
 
-.controller('LoginCtrl', ['$scope', '$rootScope', '$http', '$location', 'UserService', 'ipCookie',
-  function($scope, $rootScope, $http, $location, UserService, ipCookie) {
+.controller('LoginCtrl', ['$scope', '$rootScope', '$http', '$location', 'UserService', 'ipCookie', 'RoomsService',
+  function($scope, $rootScope, $http, $location, UserService, ipCookie, RoomsService) {
 
   $scope.input = {
     name: null,
@@ -62,6 +62,7 @@ angular.module('myApp.login', ['ngRoute'])
     var rememberedUser = ipCookie('user');
     if (rememberedUser) {
       $rootScope.user = rememberedUser;
+      $rootScope.rooms = RoomsService.fetch($rootScope.user.id);
       $location.path('view1');
     }
   };

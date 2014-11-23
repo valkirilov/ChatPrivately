@@ -1,6 +1,9 @@
 
 var request = require('request'),
-    ObjectID = require('mongodb').ObjectID;
+    ObjectID = require('mongodb').ObjectID,
+    http = require('http'),
+    querystring = require('querystring'),
+    requestify = require('requestify'); 
 
 module.exports = function (io) {
   'use strict';
@@ -20,34 +23,63 @@ module.exports = function (io) {
         io.sockets.emit('user'+item, {
           action: 'message',
           roomId: room.id,
+          user: user.id,
           username: user.username,
           message: message
         });
       });
 
       // Save the message to the db
-      var data = JSON.stringify({
-        "roomId": room.id,
-        "user": user.id,
-        "username": user.username,
-        "content": message
-      });
-      console.log(data);
+      var data = {
+          "roomId": room.id,
+          "user": user.id,
+          "username": user.username,
+          "content": message
+        },
+        dataString = JSON.stringify(data),
+          headers = {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(dataString) 
+        },
+        options = {
+          //host: 'chat-privately-40399.onmodulus.net',
+          host: 'localhost',
+          port: process.env.PORT || 9999,
+          path: '/api/messages/',
+          method: 'POST',
+          headers: headers
+        };
 
-      request.post('http://localhost:9999/api/messages', { 
-        body: data, 
-        headers: {
-        'socket': 'my-header',
-        'Content-Type': 'application/json',
-        'Content-Length': data.length
-      }}, function(error, response, body) {
-        console.log('ERROR');
-        console.log(error);
-        //console.log(response);
-        console.log('BODY');
-        console.log(body);
-        console.log('Response here');
+      console.log('lets save it');
+      console.log(dataString);
+      console.log(options);
+
+    
+      var reqSave = http.request(options, function(res) {
+        res.setEncoding('utf-8');
+
+        var responseString = '';
+
+        res.on('data', function(data) {
+          console.log('Response here');
+          responseString += data;
+        });
+
+        res.on('end', function() {
+          var resultObject = JSON.parse(responseString);
+          console.log('Saved');
+          console.log(resultObject);
+        });
       });
+
+      reqSave.on('error', function(e) {
+        console.log('Error on saving.');
+        console.log(e);
+      });
+
+      console.log('Send req');
+      reqSave.write(dataString);
+      reqSave.end();
 
     });
 
