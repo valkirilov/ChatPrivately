@@ -74,7 +74,9 @@ module.exports = function(database) {
                 'id': user.id,
                 'username': user.username,
                 'email': user.email,
-                'access_token': authenticate.serializeToken(client_id, user_id, extra_data) // extra data is optional
+                'access_token': authenticate.serializeToken(client_id, user_id, extra_data), // extra data is optional,
+                'privateKey': user.privateKey,
+                'publicKey': user.publicKey
             }));
             res.end();
             

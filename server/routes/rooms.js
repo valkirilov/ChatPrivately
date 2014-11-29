@@ -39,6 +39,21 @@ module.exports = function(database) {
         });
     });
 
+    router.get('/id/:roomId', function(req, res) {
+        var roomId = new ObjectID(req.param('roomId'));
+
+        rooms.findOne({
+            _id: roomId,
+        }, function(err, room) {
+            if (err) {
+                console.error('Cannot get room', err);
+                return res.status(500).send({'success':'false', 'message':'Cannot get room'});
+            }
+
+            res.json(room);
+        });
+    });
+
     router.get('/:userId', function(req, res) {
         var userId = new ObjectID(req.param('userId'));
 

@@ -23,6 +23,8 @@
     "firebase-simple-login": "~1.6.3",
     "angular-socket-io": "~0.6.0",
     "angular-cookie": "~4.0.6",
-    "angular-material": "~0.5.1"
+    "angular-material": "~0.5.1",
+    "moment": "~2.8.4",
+    "travist/jsencrypt": "~2.1.0"
   }
 }

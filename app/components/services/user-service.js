@@ -36,14 +36,15 @@ angular.module('myApp.services.user-service', [])
     callback();
   };
 
-  var register = function(username, email, password) {
+  var register = function(username, email, password, keys) {
 
     // TODO: Validate the input
 
     var promise = $http.post('/api/users/register', {
       username: username,
       email: email,
-      password: password
+      password: password,
+      keys: keys
     });
 
     return promise;

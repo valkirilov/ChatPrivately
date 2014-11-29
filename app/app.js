@@ -25,34 +25,45 @@ config(['$routeProvider', function($routeProvider) {
 .controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', 'chatSocket',
   function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, chatSocket) {
 
+  /***********************************************
+   * Init variables
+   ***********************************************/
+
   $scope.lang = "en";
   $rootScope.user = null;
   $scope.route;
 
-  $rootScope.friends = {};
-  $rootScope.rooms = $rootScope.user ? RoomsService.fetch($rootScope.user.id) : null;
+  $scope.viewsNotLogged = ['/login', '/register'];
 
+  $rootScope.friends = {};
+  $rootScope.rooms = {};
+
+  // Getting the friends an listing them as object
   UserService.fetchFriends().then(function(data) {
-    console.log(data);
     data.forEach(function(friend) {
       $rootScope.friends[friend.id] = friend;
     });
   });
+
+  // Getting rooms an listing them as object
+  $rootScope.initRooms = function () {
+    var userId = $rootScope.user ? $rootScope.user.id : undefined;
+    RoomsService.fetch(userId).then(function(data) {
+      $rootScope.rooms = {};
+      data.forEach(function(room) {
+        $rootScope.rooms[room.id] = room;
+      });
+    });
+  };
 
   $scope.setLanguage = function(language) {
     $scope.lang = language;
     gettextCatalog.currentLanguage = language;
   };
 
-  $scope.$on('$routeChangeStart', function(next, current) { 
-    //console.log(current.$$route.originalPath);
-    $scope.route = current.$$route.originalPath;
-
-    if ((current.$$route.originalPath !== '/login' &&
-        current.$$route.originalPath !== '/register') && !$scope.isLogged()) {
-      $location.path('login');
-    }
-  });
+  /***********************************************
+   * Public methods
+   ***********************************************/
 
   $scope.logout = function() {
     UserService.logout(function() {
@@ -73,6 +84,7 @@ config(['$routeProvider', function($routeProvider) {
     return true;
   };
 
+
   $rootScope.closeSidenav = function(position) {
     $mdSidenav(position).close();
   };
@@ -88,20 +100,36 @@ config(['$routeProvider', function($routeProvider) {
   $scope.chatFriend = function(friendId) {
     var participants = [$scope.user.id, friendId];
     RoomsService.create(participants, $rootScope.user.id, $rootScope.friends).then(function(response) {
-      console.log(response);
       if (response.data.success === 'true') {
-        $rootScope.rooms.push(response.data.room);
+        var responseRoom = response.data.room;
+        $rootScope.rooms[responseRoom.id] = responseRoom;
+        $scope.chatOpen(responseRoom.id);
       }
     });
   };
 
   $scope.chatOpen = function(roomId) {
-    console.log('Chat open buttin');
-
-    var room = $rootScope.getItemFromArray($rootScope.rooms, roomId);
-    console.log(room);
+    var room = $rootScope.rooms[roomId];
     chatSocket.emit('chatOpen', room.id, room.participants);
   };
+
+  /**************************************
+   * Watchers
+   *************************************/
+
+  $scope.isLoggedView = function() {
+    return $scope.viewsNotLogged.indexOf($scope.route) > -1 ? false : true;
+  };
+
+  $scope.$on('$locationChangeStart', function(event, next, current) { 
+    // console.log(current);
+    // console.log(next);
+    $scope.route =  next.slice(current.indexOf('#')+1, current.length);
+
+    if (($scope.isLoggedView()) && !$scope.isLogged()) {
+      $location.path('login');
+    }
+  });
 
   /**************************************
    * UTILS

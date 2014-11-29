@@ -17,12 +17,28 @@ angular.module('myApp.view1', ['ngRoute'])
   $scope.selectedIndex = -1;
   $scope.messagesHeight = 300;
 
+  $rootScope.initRooms();
+
+  /* Add tab is preparing and calling addRoom tab to finish the job */
   $scope.addTab = function (roomId, callback) {
-    var room = $rootScope.rooms[$rootScope.getItemFromArray($rootScope.rooms, roomId, { isIndex: true })];
+    var room = $rootScope.rooms[roomId];
+    if (!room) {
+      RoomsService.fetchOne(roomId).then(function(room) {
+        room.messages = [];
+        $rootScope.rooms[room.id] = room;
+        $scope.addRoomTab(room, callback);
+      });
+    }
+    else {
+      $scope.addRoomTab(room, callback);
+    }
+  };
+  $scope.addRoomTab = function(room, callback) {
     var title = room.title;
 
     room.messages = [];
-    $scope.tabs.push({ title: title, room: room, roomId: roomId });
+    $scope.tabs.push({ title: title, room: room, roomId: room.id });
+    //$scope.selectedIndex = $scope.tabs.length-1;
     callback(room);
   };
 
@@ -63,14 +79,15 @@ angular.module('myApp.view1', ['ngRoute'])
     }
     
     if (data.action === 'chatOpen') {
-      if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
-        return;
-      }
+      console.log('Chat open received');
+      // if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
+      //   console.log('Already opened');
+      //   return;
+      // }
 
       $scope.addTab(data.roomId, function(room) {
-        
         RoomsService.fetchMessages(data.roomId).then(function(response) {
-          room.messages = response;  
+          room.messages = response.length === 0 ? [] : response;  
 
           setTimeout(function() {
             setMessagesHeight();
@@ -83,7 +100,7 @@ angular.module('myApp.view1', ['ngRoute'])
       // console.log('Message received');
       // console.log(data);
 
-      var room = $rootScope.rooms[$rootScope.getItemFromArray($rootScope.rooms, data.roomId, { isIndex: true })];
+      var room = $rootScope.rooms[data.roomId];
       room.messages.push({ user: data.user, username: data.username, content: data.message });
 
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
@@ -92,10 +109,13 @@ angular.module('myApp.view1', ['ngRoute'])
   });
 
   function scrollMessages(room) {
-    if (!room.contentElement) {
+    if (!room.contentElement || room.contentElement.length === 0) {
+      console.log('Attach');
+      console.log(room);
       room.contentElement = angular.element('#room-'+room.id);
     }
-    room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
+
+    room.contentElement.animate({ scrollTop: room.contentElement.find('.bottom').get(0).offsetTop+'px' }, "slow");
   }
 
   function setMessagesHeight() {

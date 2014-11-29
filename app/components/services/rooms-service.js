@@ -7,9 +7,14 @@ angular.module('myApp.services.rooms-service', [])
   var baseRooms = Restangular.all('api/rooms');
 
   var fetch = function(user) {
-    rooms = Restangular.all('api/rooms/'+user).getList().$object;
+    rooms = Restangular.all('api/rooms/'+user).getList();
     return rooms;
   };
+  var fetchOne = function(roomId) {
+    var room = Restangular.oneUrl('api/rooms/id/'+roomId).get();
+    return room;
+  };
+
   var fetchMessages = function(roomId) {
     var messages = Restangular.all('api/messages/'+roomId).getList();
     return messages;
@@ -23,9 +28,10 @@ angular.module('myApp.services.rooms-service', [])
     var users = participants;
 
     var friendsNames = {};
-    friends.forEach(function(item) {
-      friendsNames[item.id] = item.username;
-    });
+    for (var friendIndex in friends) {
+      var friend = friends[friendIndex];
+      friendsNames[friend.id] = friend.username;
+    }
 
     var names = [];
     users.forEach(function(item) {
@@ -45,6 +51,7 @@ angular.module('myApp.services.rooms-service', [])
 
   return {
     fetch: fetch,
+    fetchOne: fetchOne,
     create: create,
     fetchMessages: fetchMessages,
     getRoomName: getRoomName
