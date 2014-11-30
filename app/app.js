@@ -9,6 +9,7 @@ angular.module('myApp', [
   'myApp.login',
   'myApp.view1',
   'myApp.view2',
+  'myApp.message-options',
   'myApp.services',
   'myApp.version',
 
@@ -90,6 +91,7 @@ config(['$routeProvider', function($routeProvider) {
   };
 
   $rootScope.toggleSidenav = function(position) {
+    console.log(position);
     $mdSidenav(position).toggle();
   };
 

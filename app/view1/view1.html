@@ -40,11 +40,12 @@
 <form flex ng-hide="selectedIndex < 0">
   <textarea ng-model="message" ng-keypress="send($event)" placeholder="Write something..." autofocus />
 
-  <md-button class="md-fab md-primary" ng-click="send()">
+  <md-button class="md-fab md-primary" ng-click="showGridBottomSheet($event)">
     <span class="glyphicon glyphicon-pencil"></span>
   </md-button>
 
 </form>
+
 
 
 

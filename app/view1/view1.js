@@ -9,8 +9,8 @@ angular.module('myApp.view1', ['ngRoute'])
   });
 }])
 
-.controller('View1Ctrl', ['$scope', '$rootScope', 'chatSocket', 'UserService', 'RoomsService',
-  function($scope, $rootScope, chatSocket, UserService, RoomsService) {
+.controller('View1Ctrl', ['$scope', '$rootScope', 'chatSocket', 'UserService', 'RoomsService', '$mdBottomSheet',
+  function($scope, $rootScope, chatSocket, UserService, RoomsService, $mdBottomSheet) {
 
   $scope.messages = [];
   $scope.tabs = [];
@@ -40,6 +40,17 @@ angular.module('myApp.view1', ['ngRoute'])
     $scope.tabs.push({ title: title, room: room, roomId: room.id });
     //$scope.selectedIndex = $scope.tabs.length-1;
     callback(room);
+  };
+
+  $scope.showGridBottomSheet = function($event) {
+    $scope.alert = '';
+    $mdBottomSheet.show({
+      templateUrl: 'message-options/message-options.html',
+      controller: 'MessageOptionsCtrl',
+      targetEvent: $event
+    }).then(function(clickedItem) {
+      $scope.alert = clickedItem.name + ' clicked!';
+    });
   };
 
 
