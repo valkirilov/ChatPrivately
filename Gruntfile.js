@@ -50,14 +50,14 @@ module.exports = function(grunt) {
         },
         html: {
           files: ['app/index.html', 'app/*/*.html'],
-          tasks: ['nggettext_extract']
+          tasks: ['nggettext_extract', 'notify:watchHTML']
         },
         sass: {
           options: {
             livereload: false
           },
           files: ['app/styles/scss/*.scss'],
-          tasks: ['sass', 'concat:css'],
+          tasks: ['sass', 'concat:css', 'notify:watchSASS'],
         },
         css: {
           files: [],
@@ -111,6 +111,31 @@ module.exports = function(grunt) {
             ]
           }
         ]
+      },
+
+      notify_hooks: {
+        options: {
+          enabled: true,
+          max_jshint_notifications: 5, // maximum number of notifications from jshint output
+          title: "Clutterboard", // defaults to the name in package.json, or will use project directory's name
+          success: false, // whether successful grunt executions should be notified automatically
+          duration: 1 // the duration of notification in seconds, for `notify-send only
+        }
+      },
+
+      notify: {
+        watchHTML: {
+          options: {
+            title: 'HTML partials changed', 
+            message: 'Gettext finished.',
+          }
+        },
+        watchSASS: {
+          options: {
+            title: 'SASS changed', 
+            message: 'Complie finished.',
+          }
+        }
       }
     });
 
@@ -120,6 +145,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-angular-gettext');
     grunt.loadNpmTasks('grunt-docular');
+    grunt.loadNpmTasks('grunt-notify');
+
+    grunt.task.run('notify_hooks');
 
     grunt.registerTask('default', [
       'nggettext_extract', 

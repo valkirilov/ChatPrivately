@@ -19,6 +19,7 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-docular": "^0.2.2",
     "grunt-ngmin": "~0.0.3",
+    "grunt-notify": "^0.4.1",
     "http-post": "^0.1.1",
     "http-server": "^0.6.1",
     "karma": "^0.12.24",

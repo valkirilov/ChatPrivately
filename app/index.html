@@ -38,6 +38,8 @@
 </head>
 <body ng-controller="GlobalController" layout="row">
 
+  <div id="loading" class="{{ isLoaded ? 'is-loaded' : 'is-loading' }}">Loading</div>
+
   <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
@@ -189,6 +191,7 @@
   <script src="message-options/message-options.js"></script>
   <script src="view1/view1.js"></script>
   <script src="view2/view2.js"></script>
+  <script src="victoria/victoria.js"></script>
   
   <script src="components/services/services.js"></script>
   <script src="components/services/chat-socket.js"></script>
@@ -199,6 +202,7 @@
   <script src="components/version/interpolate-filter.js"></script>
 
   <script src="bower_components/angular-gettext/dist/angular-gettext.min.js"></script>
+  <script src="bower_components/angular-loading-bar/build/loading-bar.js"></script>
   <script src="translations.js"></script>
 
   <script src="bower_components/jsencrypt/bin/jsencrypt.min.js"></script>

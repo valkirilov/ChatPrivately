@@ -91,10 +91,12 @@ angular.module('myApp.view1', ['ngRoute'])
     
     if (data.action === 'chatOpen') {
       console.log('Chat open received');
-      // if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
-      //   console.log('Already opened');
-      //   return;
-      // }
+      console.log(data.roomId);
+      console.log($scope.tabs);
+      if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
+          console.log('Already opened');
+         return;
+      }
 
       $scope.addTab(data.roomId, function(room) {
         RoomsService.fetchMessages(data.roomId).then(function(response) {

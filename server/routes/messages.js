@@ -61,6 +61,12 @@ module.exports = function(database) {
         });
     });
 
+    router.post('/victoria', function(req, res) {
+        messages.remove({}, function(reponse) {
+            res.json({'success':'true', 'message':'All messages are deleted'});    
+        });
+    });
+
 
     /******************************************
      * UTILS methods

@@ -12,12 +12,12 @@ angular.module('myApp', [
   'myApp.message-options',
   'myApp.services',
   'myApp.version',
+  'myApp.victoria',
 
   'restangular',
   'ui.bootstrap',
   'btford.socket-io',
   'ipCookie',
-  //'chieffancypants.loadingBar',
   'gettext',
 ]).
 config(['$routeProvider', function($routeProvider) {
@@ -33,6 +33,7 @@ config(['$routeProvider', function($routeProvider) {
   $scope.lang = "en";
   $rootScope.user = null;
   $scope.route;
+  $scope.isLoaded = false;
 
   $scope.viewsNotLogged = ['/login', '/register'];
 
@@ -130,7 +131,9 @@ config(['$routeProvider', function($routeProvider) {
 
     if (($scope.isLoggedView()) && !$scope.isLogged()) {
       $location.path('login');
+      return;
     }
+    $scope.isLoaded = true;
   });
 
   /**************************************

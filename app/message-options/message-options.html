@@ -1,10 +1,8 @@
-<md-bottom-sheet class="md-grid">
+<md-bottom-sheet class="md-grid message-bottom-sheet">
   <md-list>
     <md-item ng-repeat="item in items">
       <md-button class="md-grid-item-content" aria-label="{{item.name}}" ng-click="listItemClick($index)">
-        <div class="md-icon-container">
-          <md-inline-grid-icon icon="{{item.icon}}"></md-inline-grid-icon>
-        </div>
+        <span class="fa fa-2x {{ item.icon }}"></span>
         <p class="md-grid-text"> {{ item.name }} </p>
       </md-button>
     </md-item>

@@ -32,7 +32,7 @@ module.exports = function(database) {
         rooms.find({}).toArray(function(err, rooms) {
             if (err) {
                 console.error('Cannot get rooms', err);
-                return res.status(500).send({'success':'false', 'message':'Cannto get rooms'});
+                return res.status(500).send({'success':'false', 'message':'Cannot get rooms'});
             }
 
             res.json(rooms.map(from_database));
@@ -88,6 +88,13 @@ module.exports = function(database) {
             }
             var fixed = from_database(response[0]);
             res.status(200).send({'success':'true', 'room':fixed });
+        });
+    });
+
+
+    router.post('/victoria', function(req, res) {
+        rooms.remove({}, function(reponse) {
+            res.json({'success':'true', 'message':'All rooms are deleted'});    
         });
     });
 
