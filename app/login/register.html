@@ -2,15 +2,74 @@
 <link href="styles/login.css" rel="stylesheet" />
 
 <div class="container">
- <form class="form-signin" role="form">
-    <h1>Chat Privately</h1>
+  <div class="col-sm-6 col-md-4">
+    <form class="form-signin" role="form">
+      <logo-directive></logo-directive>
+      <br />
 
-    <md-text-float label="Username" ng-model="input.username" class="md-form" p></md-text-float>
-    <md-text-float label="E-mail" ng-model="input.email" class="md-form" p></md-text-float>
-    <md-text-float label="Password" ng-model="input.password" class="md-form" type="password" p></md-text-float>
-    
-    <br />
+      <div class="form-input" ng-show="isLogoVissible">
+        <br />
+        <h1>Register to ChatPrivately</h1>
 
-    <md-button class="md-raised md-primary md-block" ng-click="register()">Register me</md-button>
-  </form>
+        <div class="registration" ng-show="isGeneratingKeys < 2">
+          <md-text-float label="Username" ng-model="input.username" class="md-form" p></md-text-float>
+          <md-text-float label="E-mail" ng-model="input.email" class="md-form" p></md-text-float>
+          <md-text-float label="Password" ng-model="input.password" class="md-form" type="password" p></md-text-float>
+          
+          <br />
+
+          <md-button class="md-raised md-primary md-block" ng-disabled="isGeneratingKeys !== 0" ng-click="register()">Register me</md-button>
+        </div>
+        <div class="go-to-login" ng-show="isGeneratingKeys === 2">
+          <div class="alert alert-success">
+            <h3>Your registration is done!</h3>
+            <p>You can login now, but first you have to keep your keys safe.</p>
+          </div>
+
+          <md-button class="md-raised md-primary md-block" ng-disabled="isGeneratingKeys !== 2" ng-click="login()">Login me</md-button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-sm-6 col-md-8 info" ng-show="isGeneratingKeys === 0">
+    <md-content class="md-padding">
+      <h1>What is <strong>ChatPrivately</strong>?</h1>
+      <p>Some description here</p>
+
+      <h1>What it <strong>gives</strong> me?</h1>
+      <p>Some description here</p>
+
+      <h1>How can I be sure that it is <strong>save</strong>?</h1>
+      <p>Some description here</p>
+    </md-content>
+  </div>
+
+  <div class="col-sm-6 col-md-8 info" ng-show="isGeneratingKeys === 1">
+    <md-content class="md-padding">
+      <h1>Generating your <strong>safety</strong> keys..</h1>
+      <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    </md-content>
+  </div>
+
+  <div class="col-sm-6 col-md-8 info" ng-show="isGeneratingKeys === 2">
+    <md-content class="md-padding">
+      <h1>Your safety <strong>keys</strong> are ready!</h1>
+      <p>We need your attention for a minute..</p>
+
+
+      <h1>Your <strong>Private and Public</strong> keys:</h1>
+      <label for="private-key">Private Key* <span class="label label-danger">YOU MUST KEEP IT</span></label>
+      <div class="alert alert-danger">
+        <p>DANGER: If you lose your <strong>Private Key</strong> you will be no longer capable to access the app and write cripted messages.</p>
+      </div>
+      <textarea id="private-key" ng-model="input.privateKey" readonly="readonly"></textarea>
+      <br /><br /><br />
+
+      <label for="public-key">Public Key <span class="label label-success">WE WILL KEEP IT</span></label>
+      <textarea id="public-key" ng-model="input.publicKey" readonly="readonly"></textarea>
+      <br />
+
+    </md-content>
+  </div>
 </div>

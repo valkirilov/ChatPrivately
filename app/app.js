@@ -11,6 +11,7 @@ angular.module('myApp', [
   'myApp.view2',
   'myApp.message-options',
   'myApp.services',
+  'myApp.directives',
   'myApp.version',
   'myApp.victoria',
 
@@ -35,7 +36,7 @@ config(['$routeProvider', function($routeProvider) {
   $scope.route;
   $scope.isLoaded = false;
 
-  $scope.viewsNotLogged = ['/login', '/register'];
+  $scope.viewsNotLogged = ['/login', '/register', '/logo'];
 
   $rootScope.friends = {};
   $rootScope.rooms = {};
@@ -125,9 +126,10 @@ config(['$routeProvider', function($routeProvider) {
   };
 
   $scope.$on('$locationChangeStart', function(event, next, current) { 
+    //console.log('Changing direction');
     // console.log(current);
-    // console.log(next);
-    $scope.route =  next.slice(current.indexOf('#')+1, current.length);
+    //console.log(next);
+    $scope.route =  next.slice(next.indexOf('#')+1, next.length);
 
     if (($scope.isLoggedView()) && !$scope.isLogged()) {
       $location.path('login');

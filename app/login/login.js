@@ -12,10 +12,15 @@ angular.module('myApp.login', ['ngRoute'])
     templateUrl: 'login/register.html',
     controller: 'LoginCtrl'
   });
+
+  $routeProvider.when('/logo', {
+    templateUrl: 'login/logo.html',
+    controller: 'LoginCtrl'
+  });
 }])
 
-.controller('LoginCtrl', ['$scope', '$rootScope', '$http', '$location', 'UserService', 'ipCookie', 'RoomsService',
-  function($scope, $rootScope, $http, $location, UserService, ipCookie, RoomsService) {
+.controller('LoginCtrl', ['$scope', '$rootScope', '$http', '$location', '$timeout', 'UserService', 'ipCookie', 'RoomsService',
+  function($scope, $rootScope, $http, $location, $timeout, UserService, ipCookie, RoomsService) {
 
   $scope.input = {
     name: null,
@@ -23,10 +28,19 @@ angular.module('myApp.login', ['ngRoute'])
     username: null,
     email: null
   };
+  $scope.isGeneratingKeys = 0;
+  $scope.isLogoVissible = false;
+
+  $scope.init = function() {
+    $timeout(function() {
+      $scope.isLogoVissible = true;   
+      angular.element('.form-input').addClass('bounceInUp').addClass('animated');
+    }, 4500);
+  };
 
   $scope.login = function() {
 
-    var name = angular.copy($scope.input.name),
+    var name = ($scope.input.name !== null) ? angular.copy($scope.input.name) : angular.copy($scope.input.username),
         password = angular.copy($scope.input.password);
     
     UserService.login(name, password).then(function(response) {
@@ -52,17 +66,16 @@ angular.module('myApp.login', ['ngRoute'])
     var keys = generatePrivateAndPublicKeys();
     
     UserService.register(username, email, password, keys).then(function(response) {
-      $location.path('login');
-    });
-  };
+      $scope.isGeneratingKeys = 2;
 
-  $scope.test = function () {
-    $http.get('/api/users/').then(function(response) {
-      console.log(response);
+      $scope.input.privateKey = keys.privateKey;
+      $scope.input.publicKey = keys.publicKey;
+      //$location.path('login');
     });
-  };
+  };  
 
   var generatePrivateAndPublicKeys = function() {
+    $scope.isGeneratingKeys = 1;
     var keys = {},
         keySize = 8,
         crypt = new JSEncrypt({default_key_size: keySize});
@@ -86,5 +99,6 @@ angular.module('myApp.login', ['ngRoute'])
   };
   $scope.checkForLogin();
 
+  $scope.init();
 
 }]);

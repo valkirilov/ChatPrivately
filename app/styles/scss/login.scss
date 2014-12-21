@@ -1,7 +1,8 @@
 
+@import "mixins";
+
 .form-signin {
   background: #efefef;
-  max-width: 330px;
   
   padding: 30px;
   margin-top: 50px;
@@ -28,4 +29,129 @@
     width: 100%;
     padding: 10px;
   }
+}
+
+.info {
+  margin-top: 50px;
+
+  textarea {
+    width: 100%;
+    height: 100px;
+    overflow: hidden;
+  }
+}
+
+
+
+.logo {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+
+  background: #2980b9;
+
+  position: relative;
+  z-index: 10;
+  display: none;
+  @include transition(0.6s);
+
+  .inner {
+    background: #3498db;
+    width: 100%;
+    height: 100%;
+
+    @include transition(0.6s);
+
+    p {
+      font-size: 128px;
+      line-height: 100px;
+      color: #ffffff;
+      text-align: center;
+
+      @include transition(1s);
+      padding-left: 20%;
+      font-family: sertif;
+
+      span {
+        display: none;
+        overflow: hidden;
+        @include transition(0.3s);
+        float: left;
+      }
+    }
+  }
+
+  @include transform(rotate(180deg));
+
+  &:after {
+    top: 80%;
+    left: 80%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(136, 183, 213, 0);
+    border-top-color: #3498db;
+    border-width: 20px;
+    margin-left: 0px;
+    display: none;
+
+    @include transform(rotate(-44deg));
+    z-index: 0;
+  }
+
+  &.start {
+    display: block;
+  }
+
+  &.zoomIn {
+    @include transform(rotate(180deg));
+  }
+
+  &.rounded {
+    @include border-radius(50%);
+    @include transition(0.3s);
+
+    &:after {
+      display: block;
+    }
+
+    .inner {
+      @include border-radius(50%);
+    }
+  }
+
+  &.rotate {
+    @include transition(1s);
+    @include transform(rotate(0deg));
+  }
+
+  &.border {
+    padding: 5%;
+
+    .inner {
+      width: 90%;
+      height: 90%;
+    }
+
+    &:after {
+      border-top-color: #2980b9;
+    }
+  }
+
+  &.textify {
+    .inner {
+      p {
+        display: block;
+
+        span.dot-show {
+          display: block;
+        }
+      }
+    }
+  }
+
+
 }

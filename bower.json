@@ -19,13 +19,12 @@
     "angular-bootstrap": "~0.11.0",
     "angular-loading-bar": "~0.4.1",
     "animate.css": "~3.2.0",
-    "firebase": "~1.0.21",
-    "firebase-simple-login": "~1.6.3",
     "angular-socket-io": "~0.6.0",
     "angular-cookie": "~4.0.6",
     "angular-material": "~0.5.1",
     "moment": "~2.8.4",
     "jsencrypt": "~2.1.0",
     "font-awesome": "~4.2.0",
+    "q": "1.0.1"
   }
 }
