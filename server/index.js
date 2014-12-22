@@ -7,6 +7,7 @@ var express = require('express'),
     io = io.listen(server),
     bodyParser = require('body-parser'),
     MongoClient = require('mongodb').MongoClient,
+    mongoose = require('mongoose'),
     authenticate = require("authenticate");
 
 // MongoDB reference
@@ -14,13 +15,13 @@ users = require('./routes/users');
 rooms = require('./routes/rooms');
 messages = require('./routes/messages');
 
-MongoClient.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm', function(err, db) {
-    if (err) {
-        console.error('Cannot connect to the database', err);
-        return;
-    }
+mongoose.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm');
 
-    setup_express(users(db), rooms(db), messages(db));
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function (callback) {
+
+  setup_express(users(db), rooms(db), messages(db));
 });
 
 function setup_express(users, rooms, messages) {

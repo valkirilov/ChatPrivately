@@ -7,7 +7,7 @@ angular.module('myApp', [
   'ngMaterial',
 
   'myApp.login',
-  'myApp.view1',
+  'myApp.dashboard',
   'myApp.view2',
   'myApp.message-options',
   'myApp.services',
@@ -22,10 +22,10 @@ angular.module('myApp', [
   'gettext',
 ]).
 config(['$routeProvider', function($routeProvider) {
-  $routeProvider.otherwise({redirectTo: '/view1'});
+  $routeProvider.otherwise({redirectTo: '/dashboard'});
 }])
-.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', 'chatSocket',
-  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, chatSocket) {
+.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket',
+  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket) {
 
   /***********************************************
    * Init variables
@@ -33,6 +33,7 @@ config(['$routeProvider', function($routeProvider) {
 
   $scope.lang = "en";
   $rootScope.user = null;
+  $rootScope.profile = null;
   $scope.route;
   $scope.isLoaded = false;
 
@@ -70,6 +71,8 @@ config(['$routeProvider', function($routeProvider) {
 
   $scope.logout = function() {
     UserService.logout(function() {
+      $rootScope.closeSidenav('left');
+      $rootScope.closeSidenav('right');
       $location.path('login');
     });
   };
@@ -93,8 +96,19 @@ config(['$routeProvider', function($routeProvider) {
   };
 
   $rootScope.toggleSidenav = function(position) {
-    console.log(position);
     $mdSidenav(position).toggle();
+  };
+  $scope.openKeys = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'alerts/alert-keys.tmpl.html',
+      targetEvent: ev,
+    })
+    .then(function(answer) {
+      $scope.alert = 'You said the information was "' + answer + '".';
+    }, function() {
+      $scope.alert = 'You cancelled the dialog.';
+    });
   };
 
   /************************************
@@ -115,6 +129,29 @@ config(['$routeProvider', function($routeProvider) {
   $scope.chatOpen = function(roomId) {
     var room = $rootScope.rooms[roomId];
     chatSocket.emit('chatOpen', room.id, room.participants);
+  };
+
+  /************************************
+   * SETTINGS
+   ************************************/
+
+  $scope.settingsSaveProfileDetails = function() {
+    var newProfileDetails = {
+      id: $rootScope.user.id,
+      email: $rootScope.profile.email,
+      lastName: $rootScope.profile.firstName,
+      firstName: $rootScope.profile.lastName,
+    };
+    UserService.saveProfileDetails(newProfileDetails).then(function(response) {
+      if (response.status !== 200) {
+        $rootScope.showError(response.data.message);
+        return;
+      }
+
+      $rootScope.showToastMessage(response.data.message);
+      $rootScope.user.firstName = $rootScope.profile.firstName;
+      $rootScope.user.lastName = $rootScope.profile.lastName;
+    });
   };
 
   /**************************************
@@ -164,6 +201,29 @@ config(['$routeProvider', function($routeProvider) {
     });
 
     return isIndex ? foundIndex : found;
+  };
+
+  $rootScope.showError = function(error) {
+    $mdDialog.show(
+      $mdDialog.alert()
+        .title('This is an alert title')
+        .content('You can specify some description text in here.')
+        .ariaLabel('Password notification')
+        .ok('Got it!')
+    );
+
+    console.error(error);
+
+  };
+
+  $rootScope.showToastMessage = function(message) {
+    console.log(message);
+    $mdToast.show(
+      $mdToast.simple()
+        .content(message)
+        .position('bottom left')
+        .hideDelay(2100)
+    );
   };
 
 }]);

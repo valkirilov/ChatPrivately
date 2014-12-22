@@ -13,12 +13,13 @@
 
         <div class="registration" ng-show="isGeneratingKeys < 2">
           <md-text-float label="Username" ng-model="input.username" class="md-form" p></md-text-float>
-          <md-text-float label="E-mail" ng-model="input.email" class="md-form" p></md-text-float>
+          <md-text-float label="E-mail" ng-model="input.email" class="md-form" p type="email"></md-text-float>
           <md-text-float label="Password" ng-model="input.password" class="md-form" type="password" p></md-text-float>
           
           <br />
 
           <md-button class="md-raised md-primary md-block" ng-disabled="isGeneratingKeys !== 0" ng-click="register()">Register me</md-button>
+          <div class="text-center">or go to <a href="#/login">Login</a></div>
         </div>
         <div class="go-to-login" ng-show="isGeneratingKeys === 2">
           <div class="alert alert-success">

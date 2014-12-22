@@ -50,10 +50,22 @@ angular.module('myApp.services.user-service', [])
     return promise;
   };
 
+  var saveProfileDetails = function(user) {
+    var promise = $http.post('/api/users/update/profile', {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName
+    });
+
+    return promise;
+  };
+
   return {
     login: login,
     register: register,
     logout: logout,
-    fetchFriends: fetchFriends
+    fetchFriends: fetchFriends,
+    saveProfileDetails: saveProfileDetails
   };
 });

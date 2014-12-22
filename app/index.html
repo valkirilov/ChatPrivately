@@ -18,8 +18,6 @@
   <link href="bower_components/sass-bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
 
   <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
-  <link rel="stylesheet" href="bower_components/angular-material/themes/default-theme.css">
-
   <!-- extra, overriding theme files -->
   <link rel="stylesheet" href="bower_components/angular-material/themes/indigo-theme.css">
   <link rel="stylesheet" href="bower_components/angular-material/themes/green-theme.css">
@@ -45,13 +43,19 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
-  <md-sidenav layout="vertical" class="md-sidenav-left md-whiteframe-z2" md-theme="teal"
-    ng-hide="!isLoggedView()" component-id="left" is-locked-open="$media('md')" tabindex="-1">
+  <md-sidenav layout="vertical" class="md-sidenav-left md-whiteframe-z2 sidenav-contacts" md-theme="teal"
+    ng-hide="!isLoggedView()" md-component-id="left" md-is-locked-open="$media('gt-md')" tabindex="-1">
 
     <md-toolbar class="md-medium-tall md-default-theme">
       <h1 class="md-toolbar-tools" style="padding-top:25px;">
         <p ng-click="goHome()" tabindex="0" class="">
-          {{user.firstName}} {{ user.lastName }}<br>{{ user.username }}
+          {{user.firstName}} {{ user.lastName }}
+          <br>
+          <span class="label-crypted-status label {{ isKeysLoaded ? 'label-success' : 'label-danger' }}"
+                ng-click="openKeys($event)">
+            <span class="fa {{ isKeysLoaded ? 'fa-thumbs-up' : 'fa-warning' }}"></span>
+          </span>
+          {{ user.username }}
         </p>
       </h1>
     </md-toolbar>
@@ -126,12 +130,12 @@
 
   </md-sidenav>
 
-  <div layout="vertical" layout-fill="" tabindex="-1" role="main" md-theme="indigo">
+  <div layout="column" layout-fill="" tabindex="-1" role="main" md-theme="indigo">
     
     <md-toolbar class="app-toolbar">
 
       <div class="md-toolbar-tools" ng-click="toggleSidenav('left')" tabindex="0">
-          <span class="fa fa-reorder" hide="" show-phone="" show-tablet="" ></span>
+          <span class="fa fa-reorder" show-phone="" show-tablet="" ></span>
       </div>
 
       <!-- <div class="md-toolbar-tools api-options-bar with-icon ng-scope">
@@ -146,22 +150,33 @@
 
   </div>
 
-  <md-sidenav class="md-sidenav-right md-whiteframe-z2 sidenav-settings" md-component-id="right" component-id="right" md-theme="teal">
+  <md-sidenav class="md-sidenav-right md-whiteframe-z2 sidenav-settings" md-component-id="right" md-theme="teal">
     <md-toolbar class="md-theme-light">
-      <h1 class="md-toolbar-tools"><span class="fa fa-user"> </span> Settings</h1>
+      <h1 class="md-toolbar-tools">
+        <span class="fa fa-user"> </span> Settings 
+        <span class="setting-close fa fa-close" ng-click="closeSidenav('right')"></span>
+      </h1>
     </md-toolbar>
     <md-content class="md-padding">
-      <md-list class="main-options">
-        <md-item>
-          <md-item-content>
-            <md-button class="btn-block md-primary" ng-click="closeSidenav('right')">
-              <div class="md-tile-content pull-left">
-                <h3>Close it, I'm done</h3>
-              </div>
-            </md-button>
-          </md-item-content>
-        </md-item>
-      </md-list>
+
+      <h3>Profile Details</h3>
+      <md-text-float label="Username"  ng-model="profile.username" class="md-form" disabled></md-text-float>
+      <md-text-float label="Email" ng-model="profile.email" class="md-form" p type="email"></md-text-float>
+      <md-text-float label="First Name" ng-model="profile.firstName" class="md-form"></md-text-float>
+      <md-text-float label="Last Name" ng-model="profile.lastName" class="md-form"></md-text-float>
+      <md-button class="md-raised md-primary btn-block" ng-click="settingsSaveProfileDetails()">Save Details</md-button>
+
+      <br />
+      <h3>Password Details</h3>
+      <md-text-float label="Old Password" ng-model="profile.oldPassword" class="md-form" p type="password"></md-text-float>
+      <md-text-float label="New Password" ng-model="profile.newPassword" class="md-form" p type="password"></md-text-float>
+      <md-text-float label="New Password Repeat" ng-model="profile.newPassword2" class="md-form" p type="password"></md-text-float>
+      <md-button class="md-raised btn-block md-warn">Change Password</md-button>
+
+      <hr />
+
+      <md-button class="btn-block" ng-click="closeSidenav('right')">Close Settings</md-button>
+
     </md-content>
 
     <md-toolbar class="md-theme-light">
@@ -203,10 +218,11 @@
   <script src="bower_components/lodash/dist/lodash.min.js"></script>
   <script src="bower_components/restangular/dist/restangular.min.js"></script>
 
+  <script src="utils.js"></script>
   <script src="app.js"></script>
   <script src="login/login.js"></script>
   <script src="message-options/message-options.js"></script>
-  <script src="view1/view1.js"></script>
+  <script src="dashboard/dashboard.js"></script>
   <script src="view2/view2.js"></script>
   <script src="victoria/victoria.js"></script>
   

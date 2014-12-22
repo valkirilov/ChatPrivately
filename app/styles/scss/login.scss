@@ -6,6 +6,7 @@
   
   padding: 30px;
   margin-top: 50px;
+  @include transition(0.5s height);
 
   .form-signin-heading,
   .checkbox {

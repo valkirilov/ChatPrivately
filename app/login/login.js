@@ -35,7 +35,7 @@ angular.module('myApp.login', ['ngRoute'])
     $timeout(function() {
       $scope.isLogoVissible = true;   
       angular.element('.form-input').addClass('bounceInUp').addClass('animated');
-    }, 4500);
+    }, 1300);
   };
 
   $scope.login = function() {
@@ -47,13 +47,16 @@ angular.module('myApp.login', ['ngRoute'])
       $rootScope.user = {
         id: response.data.id,
         username: response.data.username,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
         email: response.data.email,
         access_token: response.data.access_token,
         privateKey: response.data.privateKey,
         publicKey: response.data.publicKey,
       };
+      $rootScope.profile = angular.copy($rootScope.user);
 
-      $location.path('view1');
+      $location.path('dashboard');
     });
 
   };
@@ -91,8 +94,10 @@ angular.module('myApp.login', ['ngRoute'])
     var rememberedUser = ipCookie('user');
     if (rememberedUser) {
       $rootScope.user = rememberedUser;
+      $rootScope.profile = angular.copy($rootScope.user);
+
       $rootScope.rooms = RoomsService.fetch($rootScope.user.id);
-      $location.path('view1');
+      $location.path('dashboard');
 
       console.log($rootScope.user);
     }

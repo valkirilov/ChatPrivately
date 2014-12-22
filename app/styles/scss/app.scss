@@ -70,8 +70,31 @@ md-bottom-sheet.message-bottom-sheet {
   }
 }
 
+.sidenav-contacts {
+
+  .label-crypted-status {
+     cursor: pointer;
+     margin-right: 5px;
+  }
+
+}
+
 /** Styles used in tme settings sidenav */
 .sidenav-settings {
+
+  .md-form {
+    width: 100%;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  .setting-close {
+    cursor: pointer;
+    margin-left: 150px;
+    right: 0;
+  }
 
   textarea {
     width: 100%;
