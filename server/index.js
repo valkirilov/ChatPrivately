@@ -10,12 +10,24 @@ var express = require('express'),
     mongoose = require('mongoose'),
     authenticate = require("authenticate");
 
+var port = process.env.PORT || 9999;
+var settings = {
+    db: 'mongodb://localhost/chatprivately'
+};
+
+if (port === 9999) {
+    settings = require('./config/local.js');
+}
+else {
+    settings = require('config/live.js');
+}
+
 // MongoDB reference
 users = require('./routes/users');
 rooms = require('./routes/rooms');
 messages = require('./routes/messages');
 
-mongoose.connect('mongodb://valkirilov:password@proximus.modulusmongo.net:27017/d2urezAm');
+mongoose.connect(settings.DB_ADDRESS);
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
