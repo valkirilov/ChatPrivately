@@ -2,7 +2,36 @@ var express = require('express'),
     //moment = require('moment'),
     ObjectID = require('mongodb').ObjectID,
     router = express.Router(),
-    authenticate = require("authenticate");
+    authenticate = require("authenticate"),
+    mongoose = require('mongoose'),
+    Schema = mongoose.Schema;
+
+var userSchema = new Schema({
+    username: String,
+    password: String,
+    email: String,
+    avatar: String,
+    firstName: String,
+    lastName: String,
+    privateKey: String,
+    publicKey: String
+});
+
+userSchema.virtual('id').get(function(){
+    return this._id.toHexString();
+});
+
+// Ensure virtual fields are serialised.
+userSchema.set('toJSON', {
+    virtuals: true,
+    transform: function (doc, ret, options) {
+         ret.id = ret._id;
+         delete ret._id;
+         delete ret.__v;
+     }
+});
+
+var Users = mongoose.model('users', userSchema);
 
 function from_database(user) {
     user.id = user._id;
@@ -29,20 +58,29 @@ module.exports = function(database) {
      ******************************************/
     router.get('/', function(req, res) {
 
-        users.find({}).toArray(function(err, users) {
-            if (err) {
-                console.error('Cannot get users', err);
-                return res.status(500).send();
+        Users.find(function (error, users) {
+            if (error) {
+                return res.status(500).send({ 'success': false, 'message': 'Cannot fetch users.'});
             }
 
-            res.json(users.map(from_database));
+            res.json(users);
         });
+
     });
 
     router.get('/:name', function(req, res) {
         var name = req.param('name');
 
-        getUser(req, res, name, function(user) {
+        Users.findOne({ $or: [
+            { username: name },
+            { email: name}]
+        }, function(error, user) {
+            if (error) {
+                return res.status(500).send({ 'success': false, 'message': 'Cannot find user with provided name.'});   
+            }
+
+            delete user.password;
+
             res.json(user);
         });
     });
@@ -54,15 +92,24 @@ module.exports = function(database) {
 
         var name = req.body.name,
             password = req.body.password;
+        console.log('Login');
+        Users.findOne({ 
+            $or: [
+                { username: name },
+                { email: name} 
+            ]
+        }, function(error, user) {
+            if (error) {
+                return res.status(500).send({ 'success': false, 'message': 'Error in searching for user.'});   
+            }
 
-        getUser(req, res, name, function(user) {
             var client_id = 'client-id-victoria',
                 user_id = user.id,
                 extra_data = 'extra-data-victoria';
 
             // Check the input password validity
             if (user.password !== password) {
-                return res.status(200).send({'success':'false', 'message':'Incorrect password'});
+                return res.status(500).send({'success': false, 'message': 'Incorrect password'});
             }
 
             // Insert user auth logic here
@@ -73,13 +120,16 @@ module.exports = function(database) {
                 'success': 'true',
                 'id': user.id,
                 'username': user.username,
+                'avatar': user.avatar,
                 'email': user.email,
+                'firstName': user.firstName,
+                'lastName': user.lastName,
                 'access_token': authenticate.serializeToken(client_id, user_id, extra_data), // extra data is optional,
                 'privateKey': user.privateKey,
                 'publicKey': user.publicKey
             }));
-            res.end();
-            
+            console.log('Result end');
+            res.end(); 
         });
     });
 
@@ -87,27 +137,37 @@ module.exports = function(database) {
 
         var user = to_database(req.body);
 
-        users.insert(user, function(err) {
-            if (err) {
-                console.error('Cannot insert user', err);
-                return res.status(500).send({'success':'false', 'message':'Cannot add this user.'});
+        var newUser = new Users({
+            username: user.username,
+            password: user.password,
+            email: user.email,
+            avatar: "",
+            firstName: "Your",
+            lastName: "Name",
+            privateKey: user.privateKey,
+            publicKey: user.publicKey
+        });
+
+        newUser.save(function(error) {
+            if (error) {
+                return res.status(500).send({ 'success': false, 'message': 'Cannot register user.'});   
             }
 
-            res.status(200).send({'success':'true'});
+            res.status(200).send({'success': true});
         });
     });
 
     router.post('/update/profile', function(req, res) {
         var user = req.body;
 
-        users.update({
+        Users.update({
             _id: ObjectID(user.id)
         }, {
             email: user.email,
             firstName: user.firstName,
-            lastName: user.lastName,
-        }, function(err) {
-            if (err) {
+            lastName: user.lastName
+        }, function(error) {
+            if (error) {
                 console.error('Cannot update user priofile', err);
                 return res.status(500).send({'success':'false', 'message':'Cannot update user profile.'});
             }

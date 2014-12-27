@@ -8,7 +8,7 @@ angular.module('myApp', [
 
   'myApp.login',
   'myApp.dashboard',
-  'myApp.view2',
+  'myApp.profile',
   'myApp.message-options',
   'myApp.services',
   'myApp.directives',
@@ -24,8 +24,8 @@ angular.module('myApp', [
 config(['$routeProvider', function($routeProvider) {
   $routeProvider.otherwise({redirectTo: '/dashboard'});
 }])
-.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket',
-  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket) {
+.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket', 'ipCookie',
+  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket, ipCookie) {
 
   /***********************************************
    * Init variables
@@ -36,6 +36,9 @@ config(['$routeProvider', function($routeProvider) {
   $rootScope.profile = null;
   $scope.route;
   $scope.isLoaded = false;
+  $rootScope.isKeysLoaded = false;
+  $rootScope.crypt = null;
+  $rootScope.selectedIndex = 0;
 
   $scope.viewsNotLogged = ['/login', '/register', '/logo'];
 
@@ -104,10 +107,12 @@ config(['$routeProvider', function($routeProvider) {
       templateUrl: 'alerts/alert-keys.tmpl.html',
       targetEvent: ev,
     })
-    .then(function(answer) {
-      $scope.alert = 'You said the information was "' + answer + '".';
+    .then(function(callback) {
+      if (callback) {
+        callback(); 
+      }
     }, function() {
-      $scope.alert = 'You cancelled the dialog.';
+      // canceled event
     });
   };
 
@@ -151,7 +156,19 @@ config(['$routeProvider', function($routeProvider) {
       $rootScope.showToastMessage(response.data.message);
       $rootScope.user.firstName = $rootScope.profile.firstName;
       $rootScope.user.lastName = $rootScope.profile.lastName;
+      ipCookie('user', $rootScope.user, { expires: 21 });
     });
+  };
+
+  $rootScope.settingsSaveKeys = function() {
+    $rootScope.showToastMessage("Keys updated");
+    $rootScope.user.privateKey = $rootScope.profile.privateKey;
+    //$rootScope.user.publicKey = $rootScope.profile.publicKey;
+    $rootScope.isKeysLoaded = true;
+    ipCookie($rootScope.username, { 
+      privateKey: $rootScope.user.privateKey,
+      publicKey: $rootScope.user.publicKey
+   }, { expires: 10000 });
   };
 
   /**************************************
@@ -178,6 +195,23 @@ config(['$routeProvider', function($routeProvider) {
   /**************************************
    * UTILS
    *************************************/
+
+  $scope.goToPage = function(page) {
+    $location.path(page);
+  };
+
+  $scope.selectTab = function(index) {
+    if (typeof index === 'number') {
+      $rootScope.selectedIndex = index;
+    }
+    else if (typeof index === 'string') {
+      switch(index) {
+        case 'profile': 
+          $rootScope.$emit('addProfileTab');
+          break;
+      }
+    }
+  };
 
   $rootScope.getItemFromArray = function (array, id, properties) {
     var found = null,
@@ -217,7 +251,6 @@ config(['$routeProvider', function($routeProvider) {
   };
 
   $rootScope.showToastMessage = function(message) {
-    console.log(message);
     $mdToast.show(
       $mdToast.simple()
         .content(message)

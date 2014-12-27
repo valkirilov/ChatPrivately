@@ -44,7 +44,8 @@ angular.module('myApp.services.user-service', [])
       username: username,
       email: email,
       password: password,
-      keys: keys
+      privateKey: keys.privateKey,
+      publicKey: keys.publicKey
     });
 
     return promise;

@@ -53,7 +53,7 @@
           <br>
           <span class="label-crypted-status label {{ isKeysLoaded ? 'label-success' : 'label-danger' }}"
                 ng-click="openKeys($event)">
-            <span class="fa {{ isKeysLoaded ? 'fa-thumbs-up' : 'fa-warning' }}"></span>
+            <i class="fa {{ isKeysLoaded ? 'fa-thumbs-up' : 'fa-warning' }}"></i>
           </span>
           {{ user.username }}
         </p>
@@ -65,7 +65,24 @@
       <md-list class="main-options">
         <md-item>
           <md-item-content>
-            
+            <md-button class="btn-block" ng-click="selectTab(0)">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-home"> </span> Dashboard</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+        <md-item>
+          <md-item-content>
+            <md-button class="btn-block" ng-click="selectTab('profile')">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-user"> </span> Profile</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+        <md-item>
+          <md-item-content>
             <md-button class="btn-block" ng-click="toggleSidenav('right')">
               <div class="md-tile-content pull-left">
                 <h3><span class="fa fa-gear"> </span> Settings</h3>
@@ -186,11 +203,11 @@
 
       <label for="settings-private-key">Private Key</label>
       <br />
-      <textarea id"settings-private-key" readonly="readonly"></textarea>
+      <textarea id"settings-private-key" ng-model="profile.privateKey" ng-click="openKeys($event)" readonly="readonly"></textarea>
 
       <label for="settings-public-key">Public Key</label>
       <br />
-      <textarea id="settings-public-key" readonly="readonly"></textarea>
+      <textarea id="settings-public-key" ng-model="profile.publicKey" readonly="readonly"></textarea>
 
     </md-content>
   </md-sidenav>
@@ -223,7 +240,7 @@
   <script src="login/login.js"></script>
   <script src="message-options/message-options.js"></script>
   <script src="dashboard/dashboard.js"></script>
-  <script src="view2/view2.js"></script>
+  <script src="profile/profile.js"></script>
   <script src="victoria/victoria.js"></script>
   
   <script src="components/services/services.js"></script>

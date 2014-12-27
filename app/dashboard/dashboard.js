@@ -14,10 +14,31 @@ angular.module('myApp.dashboard', ['ngRoute'])
 
   $scope.messages = [];
   $scope.tabs = [];
-  $scope.selectedIndex = -1;
   $scope.messagesHeight = 300;
 
   $rootScope.initRooms();
+
+  $scope.init = function() {
+    $scope.addDashboardTab();
+  };
+
+  $scope.chatOpenHandle = function(data) {
+    if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
+      console.log('Already opened');
+      return;
+    }
+
+    $scope.addTab(data.roomId, function(room) {
+      RoomsService.fetchMessages(data.roomId).then(function(response) {
+        room.messages = response.length === 0 ? [] : response;  
+
+        setTimeout(function() {
+          setMessagesHeight();
+          scrollMessages(room);
+        }, 1000);
+      });
+    });
+  };
 
   /* Add tab is preparing and calling addRoom tab to finish the job */
   $scope.addTab = function (roomId, callback) {
@@ -37,9 +58,24 @@ angular.module('myApp.dashboard', ['ngRoute'])
     var title = room.title;
 
     room.messages = [];
-    $scope.tabs.push({ title: title, room: room, roomId: room.id });
-    //$scope.selectedIndex = $scope.tabs.length-1;
+    $scope.tabs.push({ template: "dashboard/room.tmpl.html", title: title, room: room, roomId: room.id, type: 'room' });
+    $rootScope.selectedIndex = $scope.tabs.length - 1;
     callback(room);
+  };
+
+  $scope.addDashboardTab = function() {
+    $scope.tabs.push({ template: "dashboard/dashboard.tmpl.html", title: 'Dashboard', type: 'dashboard' });
+    $rootScope.selectedIndex = 0;
+  };
+  $scope.addProfileTab = function() {
+    var indexOfProfileTab = $rootScope.getItemFromArray($scope.tabs, 'Profile', { isIndex: true, id: 'title' });
+    if (indexOfProfileTab === null) {
+      $scope.tabs.push({ template: "dashboard/profile.tmpl.html", title: 'Profile', type: 'profile' });
+      $rootScope.selectedIndex = $scope.tabs.length - 1;
+    }
+    else {
+     $rootScope.selectedIndex = indexOfProfileTab; 
+    }
   };
 
   $scope.showGridBottomSheet = function($event) {
@@ -84,36 +120,27 @@ angular.module('myApp.dashboard', ['ngRoute'])
     $scope.messages.push(data);
   });
 
+  $rootScope.$on('addProfileTab', function() {
+    $scope.addProfileTab();
+  });
+
   chatSocket.on('user'+$rootScope.user.id, function(data) {
     if (!data.action) {
       return;
     }
     
     if (data.action === 'chatOpen') {
-      console.log('Chat open received');
-      console.log(data.roomId);
-      console.log($scope.tabs);
-      if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
-          console.log('Already opened');
-         return;
-      }
-
-      $scope.addTab(data.roomId, function(room) {
-        RoomsService.fetchMessages(data.roomId).then(function(response) {
-          room.messages = response.length === 0 ? [] : response;  
-
-          setTimeout(function() {
-            setMessagesHeight();
-            scrollMessages(room);
-          }, 1000);
-        });
-      });
+      $scope.chatOpenHandle(data);
     }
     else if (data.action === 'message') {
       // console.log('Message received');
-      // console.log(data);
+      // console.log(data)
 
       var room = $rootScope.rooms[data.roomId];
+      if (room.messages === undefined) {
+        $scope.chatOpenHandle(data);
+      }
+
       room.messages.push({ user: data.user, username: data.username, content: data.message });
 
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
@@ -138,6 +165,8 @@ angular.module('myApp.dashboard', ['ngRoute'])
     $scope.messagesHeight = (parseInt(body.height()) - 200)+'px';
   }
   setMessagesHeight();
+
+  $scope.init();
 
 
 }]);

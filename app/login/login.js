@@ -51,11 +51,14 @@ angular.module('myApp.login', ['ngRoute'])
         lastName: response.data.lastName,
         email: response.data.email,
         access_token: response.data.access_token,
-        privateKey: response.data.privateKey,
+        privateKey: "",
         publicKey: response.data.publicKey,
       };
-      $rootScope.profile = angular.copy($rootScope.user);
+    
+      $scope.checkPrivateKey();
+      $scope.enableCrypt();
 
+      $rootScope.profile = angular.copy($rootScope.user);
       $location.path('dashboard');
     });
 
@@ -73,6 +76,10 @@ angular.module('myApp.login', ['ngRoute'])
 
       $scope.input.privateKey = keys.privateKey;
       $scope.input.publicKey = keys.publicKey;
+      ipCookie(username, { 
+        privateKey: keys.privateKey,
+        publicKey: keys.publicKey,
+      }, { expires: 10000 });
       //$location.path('login');
     });
   };  
@@ -90,10 +97,22 @@ angular.module('myApp.login', ['ngRoute'])
     return keys;
   };
 
+  $scope.checkPrivateKey = function() {
+    if (ipCookie($rootScope.user.username) && ipCookie($rootScope.user.username).privateKey) {
+      $rootScope.user.privateKey = ipCookie($rootScope.user.username).privateKey;
+      $rootScope.isKeysLoaded = true;
+      $rootScope.showToastMessage('Private Key found and loaded.');
+    }
+  };
+
   $scope.checkForLogin = function() {
     var rememberedUser = ipCookie('user');
     if (rememberedUser) {
       $rootScope.user = rememberedUser;
+
+      $scope.checkPrivateKey();
+      $scope.enableCrypt();
+
       $rootScope.profile = angular.copy($rootScope.user);
 
       $rootScope.rooms = RoomsService.fetch($rootScope.user.id);
@@ -102,6 +121,22 @@ angular.module('myApp.login', ['ngRoute'])
       console.log($rootScope.user);
     }
   };
+
+  $scope.enableCrypt = function() {
+    // $rootScope.crypt = new JSEncrypt();
+
+    // $rootScope.crypt.setPrivateKey($rootScope.user.privateKey);
+    // $rootScope.crypt.setPublicKey($rootScope.user.publicKey);
+
+    // var text = "Test private and public keys";
+    // var encryptedTest = $rootScope.crypt.encrypt(text);
+    // var decriptedTest = $rootScope.crypt.decrypt(encryptedTest);
+
+    // if (text !== decriptedTest) {
+    //   $rootScope.showToastMessage("Error: Private Key is not valid!");
+    // }
+  };
+
   $scope.checkForLogin();
 
   $scope.init();

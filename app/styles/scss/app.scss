@@ -70,7 +70,21 @@ md-bottom-sheet.message-bottom-sheet {
   }
 }
 
+.dashboard-tabs {
+  ng-include {
+    width: 100%;
+  }
+}
+
 .sidenav-contacts {
+
+  button.btn-block {
+    padding: 0;
+
+    .md-tile-content {
+      margin: 0;
+    }
+  }
 
   .label-crypted-status {
      cursor: pointer;
@@ -99,5 +113,14 @@ md-bottom-sheet.message-bottom-sheet {
   textarea {
     width: 100%;
     height: 50px;
+
+    overflow-y: hidden;
   }
+}
+
+.alert-settings-keys {
+  textarea {
+    width: 100%;
+    height: 80px;
+  } 
 }
