@@ -1,10 +1,15 @@
+process.env.TMPDIR = 'tmp';
+
 var express = require('express'),
     //moment = require('moment'),
     ObjectID = require('mongodb').ObjectID,
     router = express.Router(),
     authenticate = require("authenticate"),
     mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
+    Schema = mongoose.Schema,
+    multipart = require('connect-multiparty'),
+    multipartMiddleware = multipart(),
+    flow = require('../other/flow-node.js')('tmp');
 
 var userSchema = new Schema({
     username: String,
@@ -20,6 +25,10 @@ var userSchema = new Schema({
 userSchema.virtual('id').get(function(){
     return this._id.toHexString();
 });
+
+// Configure access control allow origin header stuff
+var ACCESS_CONTROLL_ALLOW_ORIGIN = false;
+
 
 // Ensure virtual fields are serialised.
 userSchema.set('toJSON', {
@@ -83,6 +92,32 @@ module.exports = function(database) {
 
             res.json(user);
         });
+    });
+
+    // Handle status checks on chunks through Flow.js
+    router.get('/update/avatar', function(req, res) {
+      flow.get(req, function(status, filename, original_filename, identifier) {
+        console.log('GET', status);
+        if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+          res.header("Access-Control-Allow-Origin", "*");
+        }
+
+        if (status == 'found') {
+          status = 200;
+        } else {
+          status = 404;
+        }
+
+        res.status(status).send();
+      });
+    });
+
+    router.options('/update/avatar', function(req, res) {
+      console.log('OPTIONS');
+      if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+        res.header("Access-Control-Allow-Origin", "*");
+      }
+      res.status(200).send();
     });
 
     /******************************************
@@ -174,6 +209,17 @@ module.exports = function(database) {
 
             res.status(200).send({'success':true, 'message':'Profile Details updated!'});
         });
+    });
+
+    // Handle uploads through Flow.js
+    router.post('/update/avatar', multipartMiddleware, function(req, res) {
+      flow.post(req, function(status, filename, original_filename, identifier) {
+        console.log('POST', status, original_filename, identifier);
+        if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+          res.header("Access-Control-Allow-Origin", "*");
+        }
+        res.status(status).send();
+      });
     });
 
     router.post('/victoria', function(req, res) {

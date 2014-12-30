@@ -26,7 +26,8 @@
     "jsencrypt": "~2.1.0",
     "font-awesome": "~4.2.0",
     "q": "1.0.1",
-    "cryptojs": "*"
+    "cryptojs": "*",
+    "ng-flow": "~2"
   },
   "resolutions": {
     "angular": "1.3.x",

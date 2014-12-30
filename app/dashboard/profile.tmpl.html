@@ -1,1 +1,18 @@
-Profile tab
+<md-content scroll-y layout-fill="" flex class="md-padding">
+
+  <div class="col-sm-4" flow-init 
+    flow-files-submitted="$flow.upload()"
+    flow-file-added="fileAddedHandle($file)"
+    flow-file-success="$file.msg = $message"
+    flow-attrs="{accept:'image/*'}">
+
+    <img flow-img="$flow.files[0] || profile.avatar" class="img img-responsive img-thumbnail" />
+    <input type="file" flow-btn />
+  </div>
+
+  <div class="col-sm-6">
+    <h1>{{ profile.firstName }} {{ profile.lastName }}</h1>
+    <h3>{{ profile.username }}</h3>
+  </div>
+
+</md-content>

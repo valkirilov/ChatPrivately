@@ -1,12 +1,28 @@
 'use strict';
 
-angular.module('myApp.dashboard', ['ngRoute'])
+angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/dashboard', {
     templateUrl: 'dashboard/dashboard.html',
     controller: 'DashboardCtrl'
   });
+}])
+
+.config(['flowFactoryProvider', function (flowFactoryProvider) {
+  flowFactoryProvider.defaults = {
+    target: '/api/users/update/avatar',
+    permanentErrors: [404, 500, 501],
+    maxChunkRetries: 1,
+    chunkRetryInterval: 5000,
+    simultaneousUploads: 4,
+    singleFile: true
+  };
+  flowFactoryProvider.on('catchAll', function (event) {
+    console.log('catchAll', arguments);
+  });
+  // Can be used with different implementations of Flow.js
+  // flowFactoryProvider.factory = fustyFlowFactory;
 }])
 
 .controller('DashboardCtrl', ['$scope', '$rootScope', 'chatSocket', 'UserService', 'RoomsService', '$mdBottomSheet',
@@ -76,6 +92,13 @@ angular.module('myApp.dashboard', ['ngRoute'])
     else {
      $rootScope.selectedIndex = indexOfProfileTab; 
     }
+  };
+
+  $scope.fileAddedHandle = function($file) {
+    console.log('Here');
+    console.log($file);
+    console.log($file.getExtension);
+    console.log($file.getExtension);
   };
 
   $scope.showGridBottomSheet = function($event) {
