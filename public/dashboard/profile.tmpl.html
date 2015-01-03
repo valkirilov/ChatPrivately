@@ -1,0 +1,29 @@
+<md-content scroll-y layout-fill="" flex class="md-padding">
+
+  <div class="col-sm-4" flow-init 
+    flow-files-submitted="$flow.upload()"
+    flow-file-added="avatarAddedHandle($file)"
+    flow-file-success="avatarSuccessHandle($file, $message)"
+    flow-attrs="{accept:'image/*'}">
+
+    <img src="avatars/{{ user.avatar }}" flow-img="'avatars/'+user.avatar || $flow.files[0]" class="img img-responsive img-thumbnail" flow-btn />
+  </div>
+
+  <div class="col-sm-8">
+    <h1 ng-click="toggleSidenav('right')">
+      {{ profile.firstName }} {{ profile.lastName }}
+    </h1>
+    <h3 ng-click="toggleSidenav('right')">
+      {{ profile.username }}
+    </h3>
+    <br />
+    <p>{{ profile.description }} Description soon..</p>
+    
+  </div>
+
+  <div class="col-xs-12">
+    <h1>Your posts</h1>
+    <p>Under dev</p>
+  </div>
+
+</md-content>

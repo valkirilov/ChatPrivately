@@ -13,34 +13,34 @@ module.exports = function(grunt) {
             style: 'compressed'
           },
           files: {
-            'app/styles/app.css': 'app/styles/scss/app.scss',
-            'app/styles/login.css': 'app/styles/scss/login.scss',
-            'app/styles/chat.css': 'app/styles/scss/chat.scss',
+            'public/styles/app.css': 'public/styles/scss/app.scss',
+            'public/styles/login.css': 'public/styles/scss/login.scss',
+            'public/styles/chat.css': 'public/styles/scss/chat.scss',
           }
         }
       },
       concat: {
         // Setup concat of the components some day
         // components: {
-        //   src: ['app/scripts/directives/directives.header', 'app/scripts/directives/*.js'],
-        //   dest: 'app/scripts/directives.js'
+        //   src: ['public/scripts/directives/directives.header', 'public/scripts/directives/*.js'],
+        //   dest: 'public/scripts/directives.js'
         // },
         css: {
-          src: ['app/styles/app.css'],
-          dest: 'app/styles/app.css'
+          src: ['public/styles/app.css'],
+          dest: 'public/styles/app.css'
         }
       },
       nggettext_extract: {
           pot: {
               files: {
-                  'app/po/template.pot': ['app/*.html', 'app/*/*.html']
+                  'public/po/template.pot': ['public/*.html', 'public/*/*.html']
               }
           },
       },
       nggettext_compile: {
           all: {
               files: {
-                  'app/translations.js': ['app/po/*.po']
+                  'public/translations.js': ['public/po/*.po']
               }
           },
       },
@@ -49,14 +49,14 @@ module.exports = function(grunt) {
           livereload: true,
         },
         html: {
-          files: ['app/index.html', 'app/*/*.html'],
+          files: ['public/index.html', 'publoc/*/*.html'],
           tasks: ['nggettext_extract', 'notify:watchHTML']
         },
         sass: {
           options: {
             livereload: false
           },
-          files: ['app/styles/scss/*.scss'],
+          files: ['public/styles/scss/*.scss'],
           tasks: ['sass', 'concat:css', 'notify:watchSASS'],
         },
         css: {
@@ -81,7 +81,7 @@ module.exports = function(grunt) {
                 title: "Controllers",
                 showSource: true,
                 scripts: [
-                  "app/scripts/controllers.js"
+                  "public/scripts/controllers.js"
                 ],
               },
               {
@@ -89,7 +89,7 @@ module.exports = function(grunt) {
                 title: "Services",
                 showSource: true,
                 scripts: [
-                  "app/scripts/services.js"
+                  "public/scripts/services.js"
                 ],
               },
               {
@@ -97,7 +97,7 @@ module.exports = function(grunt) {
                 title: "Dircetives",
                 showSource: true,
                 scripts: [
-                  "app/scripts/directives.js"
+                  "public/scripts/directives.js"
                 ],
               },
               {
@@ -105,7 +105,7 @@ module.exports = function(grunt) {
                 title: "Filters",
                 showSource: true,
                 scripts: [
-                  "app/scripts/filters.js"
+                  "public/scripts/filters.js"
                 ],
               }
             ]

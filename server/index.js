@@ -19,7 +19,7 @@ if (port === 9999) {
     settings = require('./config/local.js');
 }
 else {
-    settings = require('config/live.js');
+    settings = require('./config/live.js');
 }
 
 // MongoDB reference
@@ -38,7 +38,9 @@ db.once('open', function (callback) {
 
 function setup_express(users, rooms, messages) {
     app.use(bodyParser.json());
-    app.use(express.static(path.join(__dirname, '../app')));
+    app.use(express.static(path.join(__dirname, '../public')));
+    //app.use(express.static(path.join(__dirname, '../uploads/avatars')));
+    app.use(express.static(path.join(__dirname, '../uploads')));
 
     app.use(authenticate.middleware({
         encrypt_key: "my-encription-key-victoria", // Add any key for encrypting data

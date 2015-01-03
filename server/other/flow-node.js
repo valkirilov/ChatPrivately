@@ -19,9 +19,13 @@ module.exports = flow = function(temporaryFolder) {
 
     function getChunkFilename(chunkNumber, identifier) {
         // Clean up the identifier
+        console.log("IDENT BEFORE: " + identifier);
         identifier = cleanIdentifier(identifier);
+
+        console.log("IDENT: " + identifier);
         // What would the file name be?
-        return path.resolve($.temporaryFolder, './flow-' + identifier + '.' + chunkNumber);
+        //return path.resolve($.temporaryFolder, './flow-' + identifier + '.' + chunkNumber);
+        return path.resolve($.temporaryFolder, './flow-' + identifier);
     }
 
     function validateRequest(chunkNumber, chunkSize, totalSize, identifier, filename, fileSize) {
@@ -106,7 +110,9 @@ module.exports = flow = function(temporaryFolder) {
         var original_filename = files[$.fileParameterName]['originalFilename'];
         var validation = validateRequest(chunkNumber, chunkSize, totalSize, identifier, filename, files[$.fileParameterName].size);
         if (validation == 'valid') {
-            var chunkFilename = getChunkFilename(chunkNumber, identifier);
+            console.log('VALID');
+            var extension = filename.substr(filename.lastIndexOf('.')-1);
+            var chunkFilename = getChunkFilename(chunkNumber, identifier) + extension;
 
             // Save the chunk (TODO: OVERWRITE)
             fs.rename(files[$.fileParameterName].path, chunkFilename, function() {
@@ -119,20 +125,22 @@ module.exports = flow = function(temporaryFolder) {
                         if (exists) {
                             currentTestChunk++;
                             if (currentTestChunk > numberOfChunks) {
-                                callback('done', filename, original_filename, identifier);
+                                callback('done', filename, original_filename, identifier, chunkFilename);
                             } else {
                                 // Recursion
                                 testChunkExists();
                             }
                         } else {
-                            callback('partly_done', filename, original_filename, identifier);
+                            callback('partly_done', filename, original_filename, identifier, extension);
                         }
                     });
                 };
                 testChunkExists();
             });
+
         } else {
-            callback(validation, filename, original_filename, identifier);
+            console.log('ELSE');
+            callback(validation, filename, original_filename, identifier, chunkFilename);
         }
     };
 

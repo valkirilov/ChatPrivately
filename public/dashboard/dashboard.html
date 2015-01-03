@@ -1,0 +1,45 @@
+
+
+<link href="styles/chat.css" rel="stylesheet" />
+
+<!-- <div layout="vertical" layout-fill="" layout-align="start end"> -->
+  <md-tabs class="dashboard-tabs" flex md-selected="$root.selectedIndex">
+    
+    <md-tab ng-repeat="tab in tabs" label="{{tab.title}}">
+
+        <div class="demo-tab tab{{$index%4}}" layout="vertical" layout-align="space-around center">
+          <ng-include src="tab.template"></ng-include>
+
+        </div>
+
+    </md-tab>
+  </md-tabs>
+<!-- </div> -->
+
+<form flex ng-show="tabs[selectedIndex].type === 'room'">
+  <textarea ng-model="message" ng-keypress="send($event)" placeholder="Write something..." autofocus />
+
+  <md-button class="md-fab md-primary" ng-click="showGridBottomSheet($event)">
+    <i class="fa fa-paperclip fa-2x"></i>
+  </md-button>
+
+</form>
+
+
+
+
+
+
+<!-- <md-sidenav class="md-sidenav-right md-whiteframe-z2" component-id="right">
+
+  <md-toolbar class="md-theme-light">
+    <h1 class="md-toolbar-tools">Sidenav Right</h1>
+  </md-toolbar>
+  <md-content  class="md-padding">
+    <md-button ng-click="closeSidenav('right')" class="md-primary">
+      Close Sidenav Right
+    </md-button>
+  </md-content>
+
+</md-sidenav>
+ -->

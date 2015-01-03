@@ -1,4 +1,5 @@
-process.env.TMPDIR = 'tmp';
+avatarsDir = 'uploads/avatars';
+process.env.TMPDIR = avatarsDir;
 
 var express = require('express'),
     //moment = require('moment'),
@@ -9,15 +10,17 @@ var express = require('express'),
     Schema = mongoose.Schema,
     multipart = require('connect-multiparty'),
     multipartMiddleware = multipart(),
-    flow = require('../other/flow-node.js')('tmp');
+    flow = require('../other/flow-node.js')(avatarsDir);
 
 var userSchema = new Schema({
     username: String,
     password: String,
+    passphrase: String,
     email: String,
     avatar: String,
     firstName: String,
     lastName: String,
+    description: String,
     privateKey: String,
     publicKey: String
 });
@@ -94,30 +97,50 @@ module.exports = function(database) {
         });
     });
 
-    // Handle status checks on chunks through Flow.js
-    router.get('/update/avatar', function(req, res) {
-      flow.get(req, function(status, filename, original_filename, identifier) {
-        console.log('GET', status);
-        if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
-          res.header("Access-Control-Allow-Origin", "*");
-        }
+    router.get('/profile/:username', function(req, res) {
+        var username = req.param('username');
 
-        if (status == 'found') {
-          status = 200;
-        } else {
-          status = 404;
-        }
+        Users.findOne({ 
+            username: username 
+        }, function(error, user) {
+            if (error) {
+                return res.status(500).send({ 'success': false, 'message': 'Cannot find user with provided name.'});   
+            }
 
-        res.status(status).send();
-      });
+            res.send({ 
+                'success': true,
+                'username': user.username,
+                'firstName': user.firstName,
+                'lastName': user.lastName,
+                'avatar': user.avatar
+            });
+        });
     });
 
-    router.options('/update/avatar', function(req, res) {
-      console.log('OPTIONS');
-      if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
-        res.header("Access-Control-Allow-Origin", "*");
-      }
-      res.status(200).send();
+    // Handle status checks on chunks through Flow.js
+    router.get('/upload/avatar/', function(req, res) {
+        flow.get(req, function(status, filename, original_filename, identifier) {
+            console.log('GET', status);
+            if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+              res.header("Access-Control-Allow-Origin", "*");
+            }
+
+            if (status == 'found') {
+                status = 200;
+            } else {
+                status = 404;
+            }
+
+            res.status(status).send();
+        });
+    });
+
+    router.options('/upload/avatar/', function(req, res) {
+        console.log('OPTIONS');
+        if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+            res.header("Access-Control-Allow-Origin", "*");
+        }
+        res.status(200).send();
     });
 
     /******************************************
@@ -152,7 +175,8 @@ module.exports = function(database) {
                 "Content-Type": "application/json"
             });
             res.write(JSON.stringify({
-                'success': 'true',
+                'success': true
+                ,
                 'id': user.id,
                 'username': user.username,
                 'avatar': user.avatar,
@@ -160,10 +184,10 @@ module.exports = function(database) {
                 'firstName': user.firstName,
                 'lastName': user.lastName,
                 'access_token': authenticate.serializeToken(client_id, user_id, extra_data), // extra data is optional,
+                'passphrase': user.passphrase,
                 'privateKey': user.privateKey,
                 'publicKey': user.publicKey
             }));
-            console.log('Result end');
             res.end(); 
         });
     });
@@ -175,10 +199,12 @@ module.exports = function(database) {
         var newUser = new Users({
             username: user.username,
             password: user.password,
+            passphrase: user.passphrase,
             email: user.email,
-            avatar: "",
+            avatar: "default.png",
             firstName: "Your",
             lastName: "Name",
+            description: "Not entered",
             privateKey: user.privateKey,
             publicKey: user.publicKey
         });
@@ -203,8 +229,8 @@ module.exports = function(database) {
             lastName: user.lastName
         }, function(error) {
             if (error) {
-                console.error('Cannot update user priofile', err);
-                return res.status(500).send({'success':'false', 'message':'Cannot update user profile.'});
+                console.error('Cannot update user priofile', error);
+                return res.status(500).send({'success':false, 'message':'Cannot update user profile.'});
             }
 
             res.status(200).send({'success':true, 'message':'Profile Details updated!'});
@@ -212,44 +238,47 @@ module.exports = function(database) {
     });
 
     // Handle uploads through Flow.js
+    router.post('/upload/avatar', multipartMiddleware, function(req, res) {
+        flow.post(req, function(status, filename, original_filename, identifier, extension) {
+            console.log('POST', status, original_filename, identifier, extension);
+            if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+                res.header("Access-Control-Allow-Origin", "*");
+            }
+            var prefix = 'flow-';
+            res.status(status).send({ 'success': true, 'path': prefix+identifier+extension });
+        });
+    });
+
     router.post('/update/avatar', multipartMiddleware, function(req, res) {
-      flow.post(req, function(status, filename, original_filename, identifier) {
-        console.log('POST', status, original_filename, identifier);
-        if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
-          res.header("Access-Control-Allow-Origin", "*");
-        }
-        res.status(status).send();
-      });
+        var userId = req.body.userId,
+            avatar = req.body.avatar;
+
+        console.log("AVATAR: " + avatar);
+        //avatar = avatar.replace('uploads/', '');
+
+        Users.update({
+            _id: ObjectID(userId)
+        }, {
+            avatar: avatar
+        }, function(error) {
+            if (error) {
+                console.error('Cannot update user avatar', err);
+                return res.status(500).send({'success': false, 'message':'Cannot update avatar.'});
+            }
+
+            res.status(200).send({'success':true, 'message':'Avatar updated!', 'avatar': avatar});
+        });
     });
 
     router.post('/victoria', function(req, res) {
         users.remove({}, function(reponse) {
-            res.json({'success':'true', 'message':'All users are deleted'});    
+            res.json({'success': true, 'message':'All users are deleted'});    
         });
     });
 
     /******************************************
      * UTILS methods
      ******************************************/
-
-    var getUser = function(req, res, name, callback) {
-
-        users.findOne({
-            $or: [
-                { username: name },
-                { email: name }
-            ]
-        }, function(err, user) {
-            if (err || user === null) {
-                console.error('Users.js: Cannot get user with this username or email: '+name, err);
-                return res.status(500).send({'success':'false', 'message':'Cannot find user with profided details.'});
-            }
-
-            console.error('Users.js: User fetched: '+name);
-            callback(from_database(user));
-        });
-
-    };
 
     return router;
 };

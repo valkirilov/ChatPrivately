@@ -1,0 +1,29 @@
+<md-dialog aria-label="Your security Keys" class="alert-settings-keys">
+  <md-content>
+    <md-subheader class="md-sticky-no-effect text-center">Your security Keys</md-subheader>
+
+    <md-text-float label="Pass Phrase" ng-model="profile.passphraseText" type="password"></md-text-float>
+    <br />
+
+    <label for="alert-private-key">
+      Private Key <span class="label label-danger">YOU MUST KEEP IT</span>
+    </label><br />
+    <textarea id="alert-private-key" ng-model="profile.privateKey" placeholder="Paste your Private Key here..."></textarea>
+    
+    <br /><br />
+
+    <label for="alert-public-key">
+      Public Key <span class="label label-success">WE KEEP IT</span>
+    </label><br />
+    <textarea id="alert-public-key" ng-model="profile.publicKey" readonly="readonly" placeholder="Paste your Public Key here..."></textarea>
+  </md-content>
+  <div class="md-actions" layout="row">
+    <span flex></span>
+    <md-button ng-click="hide()">
+     Ignore Changes
+    </md-button>
+    <md-button ng-click="save()" class="md-raised md-primary">
+      Save Changes
+    </md-button>
+  </div>
+</md-dialog>

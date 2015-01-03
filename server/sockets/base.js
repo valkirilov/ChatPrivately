@@ -25,7 +25,9 @@ module.exports = function (io) {
           roomId: room.id,
           user: user.id,
           username: user.username,
-          message: message
+          content: message.content,
+          isCrypted: message.isCrypted,
+          key: message.key
         });
       });
 
@@ -34,7 +36,8 @@ module.exports = function (io) {
           "roomId": room.id,
           "user": user.id,
           "username": user.username,
-          "content": message
+          "content": message.content,
+          "isCrypted": message.isCrypted
         },
         dataString = JSON.stringify(data),
           headers = {

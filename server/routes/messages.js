@@ -2,7 +2,27 @@ var express = require('express'),
     //moment = require('moment'),
     ObjectID = require('mongodb').ObjectID,
     router = express.Router(),
-    authenticate = require("authenticate");
+    authenticate = require("authenticate"),
+    mongoose = require('mongoose'),
+    Schema = mongoose.Schema;
+
+var messageSchema = new Schema({
+    roomId: Schema.ObjectId,
+    user: Schema.ObjectId,
+    username: String,
+    content: String,
+    isCrypted: Boolean,
+});
+
+// Ensure virtual fields are serialised.
+messageSchema.set('toJSON', {
+    virtuals: true,
+    transform: function (doc, ret, options) {
+         ret.id = ret._id;
+         delete ret._id;
+         delete ret.__v;
+     }
+});
 
 function from_database(message) {
     message.id = message._id;
@@ -20,6 +40,8 @@ function to_database(message) {
     return message;
 }
 
+var Messages = mongoose.model('messages', messageSchema);
+
 module.exports = function(database) {
 
     var messages = database.collection('messages');
@@ -30,16 +52,15 @@ module.exports = function(database) {
     router.get('/:roomId', function(req, res) {
         var roomId = new ObjectID(req.param('roomId'));
 
-        messages.find({
-            roomId: roomId
-        }).toArray(function(err, messages) {
-            if (err) {
-                console.error('Cannot get rooms', err);
-                return res.status(500).send({'success':'false', 'message':'Cannot get messages'});
-            }
+        Messages.find(
+            { roomId: roomId },
+            function (error, messages) {
+                if (error) {
+                    return res.status(500).send({ 'success': false, 'message': 'Cannot get messages.'});
+                }
 
-            res.json(messages.map(from_database));
-        });
+                res.json(messages);
+            });
     });
 
     /******************************************

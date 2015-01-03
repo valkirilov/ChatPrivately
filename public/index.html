@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" ng-app="myApp" class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Chat Privately - The best way to keep your conversations save</title>
+  <meta name="author" content="Valentin Kirilov">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="bower_components/html5-boilerplate/css/normalize.css">
+  <link rel="stylesheet" href="bower_components/html5-boilerplate/css/main.css">
+  
+  <link href="bower_components/sass-bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="bower_components/sass-bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
+  <!-- extra, overriding theme files -->
+  <link rel="stylesheet" href="bower_components/angular-material/themes/indigo-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/green-theme.css">
+
+  <link rel="stylesheet" href="bower_components/angular-material/themes/blue-grey-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/brown-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/light-green-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/teal-theme.css">
+  <link rel="stylesheet" href="bower_components/animate.css/animate.min.css">
+
+  <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles/app.css">
+  
+  <script src="bower_components/html5-boilerplate/js/vendor/modernizr-2.6.2.min.js"></script>
+</head>
+<body ng-controller="GlobalController" layout="row">
+
+  <!-- <div id="loading" class="{{ isLoaded ? 'is-loaded' : 'is-loading' }}">Loading</div>
+ -->
+  <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  <md-sidenav layout="vertical" class="md-sidenav-left md-whiteframe-z2 sidenav-contacts" md-theme="teal"
+    ng-hide="!isLoggedView()" md-component-id="left" md-is-locked-open="$media('gt-md')" tabindex="-1">
+
+    <md-toolbar class="md-medium-tall md-default-theme">
+      <h1 class="md-toolbar-tools" style="padding-top:25px;">
+        <p ng-click="selectTab('profile')" tabindex="0" class="">
+          {{user.firstName}} {{ user.lastName }}
+          <br>
+          <span class="label-crypted-status label {{ isKeysLoaded ? 'label-success' : 'label-danger' }}"
+                ng-click="openKeys($event)">
+            <i class="fa {{ isKeysLoaded ? 'fa-thumbs-up' : 'fa-warning' }}"></i>
+          </span>
+          {{ user.username }}
+        </p>
+      </h1>
+    </md-toolbar>
+
+    <md-content flex class="md-default-theme">
+
+      <md-list class="main-options">
+        <md-item>
+          <md-item-content>
+            <md-button class="btn-block" ng-click="selectTab(0)">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-home"> </span> Dashboard</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+        <md-item>
+          <md-item-content>
+            <md-button class="btn-block" ng-click="selectTab('profile')">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-user"> </span> Profile</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+        <md-item>
+          <md-item-content>
+            <md-button class="btn-block" ng-click="toggleSidenav('right')">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-gear"> </span> Settings</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+        <md-item>
+          <md-item-content>
+            <md-button class="btn-block" ng-click="logout()">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-power-off"> </span> Logout</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+      </md-list>
+      
+      <!-- List with friends -->
+      <md-toolbar class="md-theme-light">
+        <h1 class="md-toolbar-tools">
+          <span><span class="fa fa-users"> </span> Friends</span>
+        </h1>
+      </md-toolbar>
+
+      <md-list>
+        <md-item ng-repeat="friend in friends" ng-hide="friend.id === user.id">
+          <md-item-content>
+
+            <md-button class="btn-block" ng-click="chatFriend(friend.id)">
+              <div class="md-tile-left pull-left">
+                <img ng-src="avatars/{{friend.avatar}}" class="face img img-circle" alt="IMG" />
+              </div>
+              <div class="md-tile-content pull-left">
+                <h3>{{ friend.username }}</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+      </md-list>
+
+      <!-- List with recent concersations -->
+      <md-toolbar class="md-theme-light">
+        <h1 class="md-toolbar-tools">
+          <span><span class="fa fa-comment"> </span> Recent conversations</span>
+        </h1>
+      </md-toolbar>
+
+      <md-list class="rooms">
+        <md-item ng-repeat="room in rooms">
+          <md-button class="btn-block" ng-click="chatOpen(room.id)">
+            <md-item-content>
+              <div class="md-tile-content">
+                <h3>{{ room.title }}</h3>
+              </div>
+            </md-item-content>
+          </md-button>
+        </md-item>
+      </md-list>
+
+    </md-content>
+
+  </md-sidenav>
+
+  <div layout="column" layout-fill="" tabindex="-1" role="main" md-theme="indigo">
+    
+    <md-toolbar class="app-toolbar">
+
+      <div class="md-toolbar-tools" ng-click="toggleSidenav('left')" tabindex="0">
+          <span class="fa fa-reorder" show-phone="" show-tablet="" ></span>
+      </div>
+
+      <!-- <div class="md-toolbar-tools api-options-bar with-icon ng-scope">
+        <span flex=""></span>
+        <a class="md-button md-indigo-theme" tabindex="0"></a>
+      </div> -->
+
+    </md-toolbar>
+
+    <ng-view>
+    </ng-view>
+
+  </div>
+
+  <md-sidenav class="md-sidenav-right md-whiteframe-z2 sidenav-settings" md-component-id="right" md-theme="teal">
+    <md-toolbar class="md-theme-light">
+      <h1 class="md-toolbar-tools">
+        <span class="fa fa-user"> </span> Settings 
+        <span class="setting-close fa fa-close" ng-click="closeSidenav('right')"></span>
+      </h1>
+    </md-toolbar>
+    <md-content class="md-padding">
+
+      <h3>Profile Details</h3>
+      <md-text-float label="Username"  ng-model="profile.username" class="md-form" disabled></md-text-float>
+      <md-text-float label="Email" ng-model="profile.email" class="md-form" p type="email"></md-text-float>
+      <md-text-float label="First Name" ng-model="profile.firstName" class="md-form"></md-text-float>
+      <md-text-float label="Last Name" ng-model="profile.lastName" class="md-form"></md-text-float>
+      <md-button class="md-raised md-primary btn-block" ng-click="settingsSaveProfileDetails()">Save Details</md-button>
+
+      <br />
+      <h3>Password Details</h3>
+      <md-text-float label="Old Password" ng-model="profile.oldPassword" class="md-form" p type="password"></md-text-float>
+      <md-text-float label="New Password" ng-model="profile.newPassword" class="md-form" p type="password"></md-text-float>
+      <md-text-float label="New Password Repeat" ng-model="profile.newPassword2" class="md-form" p type="password"></md-text-float>
+      <md-button class="md-raised btn-block md-warn">Change Password</md-button>
+
+      <hr />
+
+      <md-button class="btn-block" ng-click="closeSidenav('right')">Close Settings</md-button>
+
+    </md-content>
+
+    <md-toolbar class="md-theme-light">
+      <h1 class="md-toolbar-tools"><span class="fa fa-user"> </span> Your Keys</h1>
+    </md-toolbar>
+    <md-content class="md-padding">
+
+      <label for="settings-private-key">Private Key</label>
+      <br />
+      <textarea id"settings-private-key" ng-model="profile.privateKey" ng-click="openKeys($event)" readonly="readonly"></textarea>
+
+      <label for="settings-public-key">Public Key</label>
+      <br />
+      <textarea id="settings-public-key" ng-model="profile.publicKey" readonly="readonly"></textarea>
+
+    </md-content>
+  </md-sidenav>
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
+  -->
+
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/sass-bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="libs/socket.io-client/socket.io.js"></script>
+
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="bower_components/angular-animate/angular-animate.js"></script>
+  <script src="bower_components/angular-aria/angular-aria.js"></script>    
+  <script src="bower_components/hammerjs/hammer.js"></script>
+  <script src="bower_components/angular-material/angular-material.js"></script>
+
+  <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+  <script src="bower_components/angular-socket-io/socket.js"></script>
+  <script src="bower_components/angular-cookie/angular-cookie.js"></script>
+  <script src="bower_components/angular-loading-bar/build/loading-bar.js"></script>
+
+  <script src="bower_components/lodash/dist/lodash.min.js"></script>
+  <script src="bower_components/restangular/dist/restangular.min.js"></script>
+
+  <script src="utils.js"></script>
+  <script src="app.js"></script>
+  <script src="login/login.js"></script>
+  <script src="message-options/message-options.js"></script>
+  <script src="dashboard/dashboard.js"></script>
+  <script src="profile/profile.js"></script>
+  <script src="victoria/victoria.js"></script>
+  
+  <script src="components/services/services.js"></script>
+  <script src="components/services/chat-socket.js"></script>
+  <script src="components/services/user-service.js"></script>
+  <script src="components/services/rooms-service.js"></script>
+  <script src="components/directives/directives.js"></script>
+  <script src="components/directives/logo-directive.js"></script>
+  <script src="components/version/version.js"></script>
+  <script src="components/version/version-directive.js"></script>
+  <script src="components/version/interpolate-filter.js"></script>
+
+  <script src="bower_components/angular-gettext/dist/angular-gettext.min.js"></script>
+  <script src="bower_components/ng-flow/dist/ng-flow-standalone.js"></script>
+  
+  <script src="bower_components/cryptojslib/rollups/md5.js"></script>
+  <script src="bower_components/cryptojslib/rollups/aes.js"></script>
+  
+  <!-- <script src="bower_components/angular-loading-bar/build/loading-bar.js"></script> -->
+  <script src="bower_components/q/q.js"></script>
+  <script src="translations.js"></script>
+
+  <script src="bower_components/jsencrypt/bin/jsencrypt.min.js"></script>
+  <script src="bower_components/moment/moment.js"></script>
+
+</body>
+</html>
