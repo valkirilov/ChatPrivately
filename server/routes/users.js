@@ -19,10 +19,10 @@ var settings = {
 };
 
 if (port === 9999) {
-    settings = require('./config/local.js');
+    settings = require('./../config/local.js');
 }
 else {
-    settings = require('./config/live.js');
+    settings = require('./../config/live.js');
 }
 
 var userSchema = new Schema({
@@ -227,6 +227,8 @@ module.exports = function(database) {
                 return res.status(500).send({ 'success': false, 'message': 'Cannot register user.'});   
             }
 
+            sendRegistrationEmail(newUser);
+
             res.status(200).send({'success': true});
         });
     });
@@ -293,41 +295,55 @@ module.exports = function(database) {
      * UTILS methods
      ******************************************/
 
-     function sendRegistrationEmail() {
+     function sendRegistrationEmail(user) {
         // create reusable transporter object using SMTP transport
         var transporter = nodemailer.createTransport({
             service: 'Gmail',
-                auth: {
-                    user: 'gmail.user@gmail.com',
-                    pass: 'userpass'
-                }
-            });   
+            auth: {
+                user: settings.MAIL_USER,
+                pass: settings.MAIL_PASS
+            }
+        });   
+
+        var text = '' +
+            'Your registration is successfull! \n' +
+            'Here are your details: \n' +
+            'Username: ' + user.username + '\n' +
+            'Password: *crypted* \n' +
+            'Passphrase: *crypted* \n\n' +
+            'Private Key:\n' + user.privateKey + '\n' +
+            'Public Key:\n' + user.publicKey + '\n'
+        ;
+
+        var html = '' +
+            '<h1>Your registration is successfull!</h1> <br />' +
+            '<p>Here are your details:</p> <br />' +
+            '<strong>Username:</strong> ' + user.username + '<br />' +
+            '<strong>Password:</strong> *crypted*<br />' +
+            '<strong>Passphrase:</strong> *crypted*<br /><br />' +
+            '<strong>Private Key:</strong> <br />' + user.privateKey + '<br />' +
+            '<strong>Public Key:</strong> <br />' + user.publicKey + '<br />'
+        ;
+
+        // setup e-mail data with unicode symbols
+        var mailOptions = {
+            from: 'Chat Privately <info@chatprivately.com>', // sender address
+            to: user.email, // list of receivers
+            subject: 'Welcome to ChatPrivately!', // Subject line
+            text: text,
+            html: html 
+        };
+
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, function(error, info){
+            if(error) {
+                console.log(error);
+            } else {
+                console.log('Message sent: ' + info.response);
+            }
+        });
+
      }
-
-     
-
-// NB! No need to recreate the transporter object. You can use
-// the same transporter object for all e-mails
-
-// setup e-mail data with unicode symbols
-var mailOptions = {
-    from: 'Fred Foo ✔ <foo@blurdybloop.com>', // sender address
-    to: 'bar@blurdybloop.com, baz@blurdybloop.com', // list of receivers
-    subject: 'Hello ✔', // Subject line
-    text: 'Hello world ✔', // plaintext body
-    html: '<b>Hello world ✔</b>' // html body
-};
-
-// send mail with defined transport object
-transporter.sendMail(mailOptions, function(error, info){
-    if(error){
-        console.log(error);
-    }else{
-        console.log('Message sent: ' + info.response);
-    }
-});
-
-
 
     return router;
 };

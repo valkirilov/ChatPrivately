@@ -48,6 +48,7 @@ angular.module('myApp.services.user-service', [])
     var promise = $http.post('/api/users/register', {
       username: username,
       email: email,
+      avatar: 'uploads/default.png',
       password: CryptoJS.MD5(password).toString(),
       passphrase: CryptoJS.MD5(passphrase).toString(),
       privateKey: keys.privateKey,
