@@ -42,7 +42,8 @@
     "requestify": "^0.1.16",
     "shelljs": "^0.2.6",
     "socket.io": "^1.2.0",
-    "modulus": "^3.0.4"
+    "modulus": "^3.0.4",
+    "nodemailer": "~1.3.0"
   },
   "main": "./server.js",
   "engines": {
