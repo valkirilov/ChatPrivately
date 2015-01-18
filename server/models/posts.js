@@ -1,27 +1,21 @@
 
 /**
- * Friends Mongoose Model
+ * Posts Mongoose Model
  */
 
 var ObjectID = require('mongodb').ObjectID,
     mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-var friendSchema = new Schema({
+var postSchema = new Schema({
     userId: Schema.ObjectId,
-    friendId: Schema.ObjectId,
-    username: String,
-    isAccepted: Boolean, 
-    isPending: Boolean,
-    created: { type: Date, default: Date.now }
-});
-
-friendSchema.virtual('id').get(function(){
-    return this._id.toHexString();
+    message: String,
+    date: { type: Date, default: Date.now },
+    isCrypted: Boolean,
 });
 
 // Ensure virtual fields are serialised.
-friendSchema.set('toJSON', {
+postSchema.set('toJSON', {
     virtuals: true,
     transform: function (doc, ret, options) {
          ret.id = ret._id;
@@ -30,4 +24,5 @@ friendSchema.set('toJSON', {
      }
 });
 
-module.exports = friendSchema;
+
+module.exports = postSchema;

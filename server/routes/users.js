@@ -26,23 +26,12 @@ else {
     settings = require('./../config/live.js');
 }
 
+
+// Configure access control allow origin header stuff
+var ACCESS_CONTROLL_ALLOW_ORIGIN = false;
+
 var Users = mongoose.model('users', userSchema);
 
-function from_database(user) {
-    user.id = user._id;
-    delete user._id;
-
-    return user;
-}
-
-function to_database(user) {
-    user._id  = new ObjectID(user.id);
-    //task.date = moment(task.date).toDate();
-
-    delete user.id;
-
-    return user;
-}
 
 module.exports = function(database) {
 

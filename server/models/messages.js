@@ -1,24 +1,23 @@
 
 /**
- * Rooms Mongoose Model
+ * Messages Mongoose Model
  */
 
 var ObjectID = require('mongodb').ObjectID,
     mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-var roomSchema = new Schema({
-    title: String,
-    participants: [Schema.Types.ObjectId],
-    created: { type: Date, default: Date.now }
-});
-
-roomSchema.virtual('id').get(function(){
-    return this._id.toHexString();
+var messageSchema = new Schema({
+    roomId: Schema.ObjectId,
+    user: Schema.ObjectId,
+    username: String,
+    content: String,
+    date: { type: Date, default: Date.now },
+    isCrypted: Boolean,
 });
 
 // Ensure virtual fields are serialised.
-roomSchema.set('toJSON', {
+messageSchema.set('toJSON', {
     virtuals: true,
     transform: function (doc, ret, options) {
          ret.id = ret._id;
@@ -27,4 +26,5 @@ roomSchema.set('toJSON', {
      }
 });
 
-module.exports = roomSchema;
+
+module.exports = messageSchema;

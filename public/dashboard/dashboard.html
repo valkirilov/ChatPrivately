@@ -17,7 +17,7 @@
 <!-- </div> -->
 
 <form flex ng-show="tabs[selectedIndex].type === 'room'">
-  <textarea ng-model="message" ng-keypress="send($event)" placeholder="Write something..." autofocus />
+  <textarea ng-model="message" ng-keypress="send($event)" placeholder="Write something..." autofocus ></textarea>
 
   <md-button class="md-fab md-primary" ng-click="showGridBottomSheet($event)">
     <i class="fa fa-paperclip fa-2x"></i>

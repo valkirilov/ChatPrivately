@@ -1,1 +1,40 @@
-Dashboard here
+<md-content scroll-y layout-fill="" flex class="md-padding">
+
+	<form flex>
+		<textarea name="post" ng-model="post.message" placeholder="Write something..." autofocus ></textarea>
+
+		  <md-button class="md-fab md-primary" ng-click="addPost()">	
+		    <i class="fa fa-location-arrow fa-2x"></i>
+		  </md-button>
+
+	</form>
+
+	<hr />
+
+	<md-list>
+      <md-item ng-repeat="post in posts">
+        <md-item-content>
+          <div class="md-tile-left">
+            <img ng-src="avatars/{{ profile.avatar }}" ng-show="post.userId === user.id" class="face" alt="{{message.username}}">
+          	<img ng-src="avatars/{{ friends[post.userId].avatar }}" ng-show="post.userId !== user.id" class="face" alt="{{message.username}}">
+          </div>
+          <div class="md-tile-content" ng-show="post.userId !== user.id">
+            <h3>{{ friends[post.userId].firstName }} {{ friends[post.userId].lastName}} ({{ friends[post.userId].username }})</h3>
+            <h4>{{ post.date }}</h4>
+            <p>
+              {{ post.message }}
+            </p>
+          </div>
+
+          <div class="md-tile-content" ng-show="post.userId === user.id">
+            <h3>{{ profile.firstName }} {{ profile.lastName}} ({{ profile.username }})</h3>
+            <h4>{{ post.date }}</h4>
+            <p>
+              {{ post.message }}
+            </p>
+          </div>
+        </md-item-content>
+      </md-item>
+    </md-list>
+
+</md-content>

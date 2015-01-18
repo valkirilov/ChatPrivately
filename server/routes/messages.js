@@ -4,25 +4,9 @@ var express = require('express'),
     router = express.Router(),
     authenticate = require("authenticate"),
     mongoose = require('mongoose'),
+    messageSchema = require('./../models/messages.js'),
     Schema = mongoose.Schema;
 
-var messageSchema = new Schema({
-    roomId: Schema.ObjectId,
-    user: Schema.ObjectId,
-    username: String,
-    content: String,
-    isCrypted: Boolean,
-});
-
-// Ensure virtual fields are serialised.
-messageSchema.set('toJSON', {
-    virtuals: true,
-    transform: function (doc, ret, options) {
-         ret.id = ret._id;
-         delete ret._id;
-         delete ret.__v;
-     }
-});
 
 function from_database(message) {
     message.id = message._id;
@@ -67,24 +51,30 @@ module.exports = function(database) {
      * POST methods
      ******************************************/
     router.post('/', function(req, res) {
-        console.log('Saver req received');
         var message = req.body;
         message.roomId = new ObjectID(message.roomId);
         message.userId = new ObjectID(message.userId);
 
-        messages.insert(message, function(err, response) {
-            if (err) {
-                console.error('Cannot insert message', err);
-                return res.status(500).send({'success':'false', 'message':'Cannot insert message.'});
+        var newMessage = new Messages({
+            roomId: ObjectID(message.roomId),
+            userId: ObjectID(message.userId),
+            username: message.username,
+            content: message.content,
+            isCrypted: message.isCrypted
+        });
+
+        Messages.create(newMessage, function(error) {
+            if (error) {
+                return res.status(500).send({'success': false, 'message':'Cannot insert message.'});
             }
 
-            res.status(200).send({'success':'true'});
+            res.status(200).send({'success': true});
         });
     });
 
     router.post('/victoria', function(req, res) {
         messages.remove({}, function(reponse) {
-            res.json({'success':'true', 'message':'All messages are deleted'});    
+            res.json({'success': true, 'message':'All messages are deleted'});    
         });
     });
 

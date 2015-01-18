@@ -17,16 +17,13 @@ var userSchema = new Schema({
     lastName: String,
     description: String,
     privateKey: String,
-    publicKey: String
+    publicKey: String,
+    created: { type: Date, default: Date.now }
 });
 
 userSchema.virtual('id').get(function(){
     return this._id.toHexString();
 });
-
-// Configure access control allow origin header stuff
-var ACCESS_CONTROLL_ALLOW_ORIGIN = false;
-
 
 // Ensure virtual fields are serialised.
 userSchema.set('toJSON', {

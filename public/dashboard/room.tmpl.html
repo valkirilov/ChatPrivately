@@ -4,7 +4,8 @@
     <md-item ng-repeat="message in tab.room.messages" class="message">
       <md-item-content class="md-item-content">
         <div class="md-tile-left">
-          <img ng-src="avatars/{{ friends[message.user].avatar }}" class="face" alt="{{item.who}}">
+          <img ng-src="avatars/{{ profile.avatar }}" ng-show="message.username === user.username" class="face" alt="{{message.username}}">
+          <img ng-src="avatars/{{ friends[message.user].avatar }}" ng-show="message.username !== user.username" class="face" alt="{{message.username}}">
         </div>
         <div class="md-tile-content">
           <h3><strong>{{ message.username }}</strong></h3>

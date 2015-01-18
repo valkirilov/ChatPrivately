@@ -27,6 +27,7 @@ users = require('./routes/users');
 rooms = require('./routes/rooms');
 messages = require('./routes/messages');
 friends = require('./routes/friends');
+posts = require('./routes/posts');
 
 mongoose.connect(settings.DB_ADDRESS);
 
@@ -34,10 +35,10 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function (callback) {
 
-  setup_express(users(db), rooms(db), messages(db), friends(db));
+  setup_express(users(db), rooms(db), messages(db), friends(db), posts(db));
 });
 
-function setup_express(users, rooms, messages, friends) {
+function setup_express(users, rooms, messages, friends, posts) {
     app.use(bodyParser.json());
     app.use(express.static(path.join(__dirname, '../public')));
     //app.use(express.static(path.join(__dirname, '../uploads/avatars')));
@@ -75,6 +76,7 @@ function setup_express(users, rooms, messages, friends) {
     app.use('/api/rooms', rooms);
     app.use('/api/messages', messages);
     app.use('/api/friends', friends);
+    app.use('/api/posts', posts);
 
     require('./sockets/base')(io);
 

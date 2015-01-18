@@ -30,12 +30,16 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
   // flowFactoryProvider.factory = fustyFlowFactory;
 }])
 
-.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket', 'UserService', 'RoomsService', '$mdBottomSheet', 'ipCookie',
-  function($scope, $rootScope, $routeParams, $timeout, chatSocket, UserService, RoomsService, $mdBottomSheet, ipCookie) {
+.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', 'ipCookie',
+  function($scope, $rootScope, $routeParams, $timeout, chatSocket, UserService, RoomsService, PostsService, $mdBottomSheet, ipCookie) {
 
   $scope.messages = [];
   $scope.tabs = [];
   $scope.messagesHeight = 300;
+
+  $scope.post = { message: 'Type something here..' };
+  $scope.posts = [];
+  $scope.myPosts = [];
 
   $scope.newAvatar = null;
 
@@ -44,6 +48,14 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
     $rootScope.initRooms();
     $rootScope.initFriends();
+
+    PostsService.fetch($rootScope.user.id).then(function(response) {
+      for (var i=0; i<response.length; i++) {
+        response[i].date = moment(response[i].date).from();
+      }
+
+      $scope.posts = response;
+    });
 
     // Check if we are on a specific user
     var username = $routeParams.username || null;
@@ -144,6 +156,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     if (type === 'friends') {
       $scope.fetchFriends();
     }
+    else if (type === 'profile') {
+      $scope.fetchMyPosts(); 
+    }
   };
 
   /**
@@ -182,6 +197,21 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     });
   };
 
+  $scope.fetchMyPosts = function() {
+    PostsService.fetchMy($rootScope.user.id).then(function(response) {
+      $scope.myPosts = {};
+      if (response.length === 0)
+        return;
+
+      for (var i=0; i<response.length; i++) {
+        response[i].date = moment(response[i].date).from();
+      }
+      
+      $scope.myPosts = response;
+    });
+  };
+
+
   /**
    * This function is used to send friend requuest to a specific user
    * @param {[object]} friend [description]
@@ -205,6 +235,26 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
         var message = $rootScope.user.username+' accepted your friend request';
         chatSocket.emit('notification', $rootScope.user.id, request.friendId, message);
+      }
+    });
+  };
+
+  $scope.addPost = function() {
+    var message = angular.copy($scope.post.message);
+
+    PostsService.create($rootScope.user.id, message).then(function(response) {
+      if (response.data.success) {
+        
+        $scope.posts.unshift({
+          userId: $rootScope.user.id,
+          message: message
+        });
+
+        $scope.post.message = 'Type something here..';
+        $rootScope.showToastMessage('Post added successfully');
+      }
+      else {
+        $rootScope.showError('Post cannot be added.');
       }
     });
   };

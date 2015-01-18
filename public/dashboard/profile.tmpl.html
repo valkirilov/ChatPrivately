@@ -23,7 +23,31 @@
 
   <div class="col-xs-12">
     <h1>Your posts</h1>
-    <p>Under dev</p>
+    <md-list>
+      <md-item ng-repeat="post in myPosts">
+        <md-item-content>
+          <div class="md-tile-left">
+            <img ng-src="avatars/{{ profile.avatar }}" ng-show="post.userId === user.id" class="face" alt="{{message.username}}">
+            <img ng-src="avatars/{{ friends[post.userId].avatar }}" ng-show="post.userId !== user.id" class="face" alt="{{message.username}}">
+          </div>
+          <div class="md-tile-content" ng-show="post.userId !== user.id">
+            <h3>{{ friends[post.userId].firstName }} {{ friends[post.userId].lastName}} ({{ friends[post.userId].username }})</h3>
+            <h4>{{ post.date }}</h4>
+            <p>
+              {{ post.message }}
+            </p>
+          </div>
+
+          <div class="md-tile-content" ng-show="post.userId === user.id">
+            <h3>{{ profile.firstName }} {{ profile.lastName}} ({{ profile.username }})</h3>
+            <h4>{{ post.date }}</h4>
+            <p>
+              {{ post.message }}
+            </p>
+          </div>
+        </md-item-content>
+      </md-item>
+    </md-list>
   </div>
 
 </md-content>

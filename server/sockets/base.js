@@ -54,9 +54,9 @@ module.exports = function (io) {
           headers: headers
         };
 
-      console.log('lets save it');
-      console.log(dataString);
-      console.log(options);
+      // console.log('lets save it');
+      // console.log(dataString);
+      // console.log(options);
 
     
       var reqSave = http.request(options, function(res) {
@@ -65,14 +65,14 @@ module.exports = function (io) {
         var responseString = '';
 
         res.on('data', function(data) {
-          console.log('Response here');
+          //console.log('Response here');
           responseString += data;
         });
 
         res.on('end', function() {
           var resultObject = JSON.parse(responseString);
-          console.log('Saved');
-          console.log(resultObject);
+          // console.log('Saved');
+          // console.log(resultObject);
         });
       });
 
