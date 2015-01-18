@@ -14,6 +14,7 @@ module.exports = function (io) {
       console.log('User disconnected');
     });
 
+    /** This socket is responsible for accepting and sending messages */
     socket.on('message', function (room, user, message) {
       console.log('Messege recieve');
       room.participants.forEach(function(item) {
@@ -86,6 +87,17 @@ module.exports = function (io) {
 
     });
 
+    /** This socket is responsibkle for receiving and resending notifications */
+    socket.on('notification', function (from, to, message) {
+      // Send message to the receiver
+      io.sockets.emit('user'+to, {
+        action: 'notification',
+        type: 'friend',
+        message: message
+      });
+    });
+
+    /** This socket is responsible for opening chat wewindows to the participants */
     socket.on('chatOpen', function (roomId, participants) {
       participants.forEach(function(item) {
         console.log('Send chatOpen to ' + item);

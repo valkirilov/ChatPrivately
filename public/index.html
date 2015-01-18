@@ -74,9 +74,18 @@
         </md-item>
         <md-item>
           <md-item-content>
-            <md-button class="btn-block" ng-click="selectTab('profile')">
+            <md-button class="btn-block" ng-click="selectTab('profile', 'Profile', 'dashboard/profile.tmpl.html')">
               <div class="md-tile-content pull-left">
                 <h3><span class="fa fa-user"> </span> Profile</h3>
+              </div>
+            </md-button>
+          </md-item-content>
+        </md-item>
+         <md-item>
+          <md-item-content>
+            <md-button class="btn-block" ng-click="selectTab('friends', 'Friends', 'dashboard/friends.tmpl.html')">
+              <div class="md-tile-content pull-left">
+                <h3><span class="fa fa-users"> </span> Friends</h3>
               </div>
             </md-button>
           </md-item-content>

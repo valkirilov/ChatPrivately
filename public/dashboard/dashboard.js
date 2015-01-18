@@ -39,10 +39,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
   $scope.newAvatar = null;
 
-  $rootScope.initRooms();
-
   $scope.init = function() {
     $scope.addDashboardTab();
+
+    $rootScope.initRooms();
+    $rootScope.initFriends();
 
     // Check if we are on a specific user
     var username = $routeParams.username || null;
@@ -53,8 +54,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
   $scope.chatOpenHandle = function(data) {
     if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
-      console.log('Already opened');
+      //console.log('Already opened');
       return;
+    }
+    else {
+      //console.log('We should open the room');
     }
 
     $scope.addTab(data.roomId, function(room) {
@@ -73,6 +77,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
   $scope.addTab = function (roomId, callback) {
     var room = $rootScope.rooms[roomId];
     if (!room) {
+      // Room doesnt exsit, fetch it
       RoomsService.fetchOne(roomId).then(function(room) {
         room.messages = [];
         $rootScope.rooms[room.id] = room;
@@ -80,6 +85,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
       });
     }
     else {
+      // Room exsit, just open it
       $scope.addRoomTab(room, callback);
     }
   };
@@ -120,10 +126,10 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
       }, 100);
     });
   };
-  $scope.addProfileTab = function() {
-    var indexOfProfileTab = $rootScope.getItemFromArray($scope.tabs, 'Profile', { isIndex: true, id: 'title' });
+  $scope.addSpecialTab = function(type, title, template) {
+    var indexOfProfileTab = $rootScope.getItemFromArray($scope.tabs, title, { isIndex: true, id: 'title' });
     if (indexOfProfileTab === null) {
-      $scope.tabs.push({ template: "dashboard/profile.tmpl.html", title: 'Profile', type: 'profile' });
+      $scope.tabs.push({ template: template, title: title, type: type });
       $timeout(function() {
         $rootScope.selectedIndex = $scope.tabs.length - 1;
       }, 100);
@@ -133,6 +139,74 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
         $rootScope.selectedIndex = indexOfProfileTab; 
       }, 100);
     }
+
+    // Some checks for a special tabs
+    if (type === 'friends') {
+      $scope.fetchFriends();
+    }
+  };
+
+  /**
+   * This function is used to fetch friends details when the tab is opened
+   * @return {[type]} [description]
+   */
+  $scope.fetchFriends = function() {
+    UserService.fetchFriendsRequests($rootScope.user).then(function(response) {
+      $rootScope.friendsRequests = {};
+      if (response.data.length === 0)
+        return;
+      
+      response.data.forEach(function(request) {
+        $rootScope.friendsRequests[request.id] = request;
+      });
+    });
+
+    UserService.fetchFriendsRecommended($rootScope.user).then(function(response) {
+      $rootScope.friendsRecommended = {};
+      if (response.data.length === 0)
+        return;
+
+      response.data.forEach(function(friend) {
+        $rootScope.friendsRecommended[friend.id] = friend;
+      });
+    });
+
+    UserService.fetchFriends($rootScope.user).then(function(response) {
+      $rootScope.friends = {};
+      if (response.data.length === 0)
+        return;
+
+      response.data.forEach(function(friend) {
+        $rootScope.friends[friend.id] = friend;
+      });
+    });
+  };
+
+  /**
+   * This function is used to send friend requuest to a specific user
+   * @param {[object]} friend [description]
+   */
+  $scope.sendFriendRequest = function(friend) {
+    UserService.sendFriendRequest($rootScope.user, friend).then(function(response) {
+      //console.log(response);
+      if (response.data.success) {
+        $scope.fetchFriends();
+
+        var message = $rootScope.user.username+' send you a friend request';
+        chatSocket.emit('notification', $rootScope.user.id, friend.id, message);
+      }
+    });
+  };
+
+  $scope.acceptFriendRequest = function(request) {
+    UserService.acceptFriendRequest(request).then(function(response) {
+      if (response.data.success) {
+        $scope.fetchFriends();
+
+        var message = $rootScope.user.username+' accepted your friend request';
+        chatSocket.emit('notification', $rootScope.user.id, request.friendId, message);
+      }
+    });
   };
 
   $scope.avatarAddedHandle = function($file) {
@@ -216,8 +290,8 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     $scope.messages.push(data);
   });
 
-  $rootScope.$on('addProfileTab', function() {
-    $scope.addProfileTab();
+  $rootScope.$on('addSpecialTab', function(data, type, title, template) {
+    $scope.addSpecialTab(type, title, template);
   });
 
   chatSocket.on('user'+$rootScope.user.id, function(data) {
@@ -226,19 +300,17 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     }
     
     if (data.action === 'chatOpen') {
+      //$rootScope.initRooms();
       $scope.chatOpenHandle(data);
     }
     else if (data.action === 'message') {
       // console.log('Message received');
-      // console.log(data)
+      // console.log(data);
 
       var room = $rootScope.rooms[data.roomId];
       if (room.messages === undefined) {
         $scope.chatOpenHandle(data);
       }
-
-      //console.log('Message received');
-      //console.log(data);
 
       room.messages.push({ 
         user: data.user, 
@@ -248,6 +320,14 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
       scrollMessages(room);
+    }
+    else if (data.action === 'notification') {
+      console.log('Notification received');
+      $rootScope.showToastMessage(data.message);
+
+      if (data.type === 'friend') {
+        $scope.fetchFriends();
+      }
     }
   });
 

@@ -19,7 +19,7 @@ angular.module('myApp.services.rooms-service', [])
     var messages = Restangular.all('api/messages/'+roomId).getList();
     return messages;
   };
-  var getRoomName = function(participants, userId, friends) {
+  var getRoomName = function(participants, user, friends) {
 
     // var users = participants.filter(function(item) {
     //   if (item !== userId)
@@ -35,7 +35,13 @@ angular.module('myApp.services.rooms-service', [])
 
     var names = [];
     users.forEach(function(item) {
-      names.push(friendsNames[item]);
+      if (item.toString() === user.id.toString()) {
+        names.push(user.username);    
+      }
+      else {
+        names.push(friendsNames[item]);  
+      }
+      
     });
 
     return names.join();

@@ -6,9 +6,23 @@ angular.module('myApp.services.user-service', [])
   var users;
   var baseUsers = Restangular.all('api/users');
 
-  var fetchFriends = function() {
-    users = baseUsers.getList();
-    return users;
+  var fetchFriends = function(user) {
+    if (!user) {
+      user = { id: ''};
+    }
+
+    var promise = $http.get('/api/friends/'+user.id);
+    return promise;
+  };
+
+  var fetchFriendsRequests = function(user) {
+    var promise = $http.get('/api/friends/requests/'+user.id);
+    return promise;
+  };
+
+  var fetchFriendsRecommended = function(user) {
+    var promise = $http.get('/api/friends/recommended/'+user.id);
+    return promise;
   };
 
   var getUserByUsername = function(username) {
@@ -75,11 +89,32 @@ angular.module('myApp.services.user-service', [])
     return promise;
   };
 
+  var sendFriendRequest = function(user, friend) {
+    // Remove some of the properties of the user
+
+    var promise = $http.post('/api/friends/add/', { 'user': user, 'friend': friend });
+
+    return promise;
+  };
+
+  var acceptFriendRequest = function(request) {
+    var promise = $http.post('/api/friends/accept/', { 'request': request });
+
+    return promise;
+  };
+
   return {
     login: login,
     register: register,
     logout: logout,
+
+    fetchFriendsRequests: fetchFriendsRequests,
+    fetchFriendsRecommended: fetchFriendsRecommended,
     fetchFriends: fetchFriends,
+
+    sendFriendRequest: sendFriendRequest,
+    acceptFriendRequest: acceptFriendRequest,
+
     getUserByUsername: getUserByUsername,
     saveProfileDetails: saveProfileDetails,
     saveAvatar: saveAvatar

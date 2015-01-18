@@ -1,0 +1,65 @@
+<md-content scroll-y layout-fill="" flex class="md-padding">
+    <section>
+      <md-subheader class="md-primary">Friend Requests</md-subheader>
+      <md-list layout="column">
+        <md-item ng-repeat="request in friendsRequests">
+          <md-item-content>
+            <div class="md-tile-left">
+                <img ng-src="avatars/default.png" class="face" alt="{{ request.username }}">
+            </div>
+            <div class="md-tile-content">
+              <h3>{{ request.username }}</h3>
+              <h4>
+                <md-button ng-click="acceptFriendRequest(request)"
+                  ng-disabled="request.isPending"
+                  class="md-default-theme md-raised  {{ request.isPending ? 'md-warn' : ' md-primary' }}">
+                  {{ request.isPending ? 'Request is Pending' : 'Accept friend'}}
+                </md-button>
+              </h4>
+            </div>
+          </md-item-content>
+        </md-item>
+      </md-list>
+    </section>
+
+    <section>
+      <md-subheader class="md-warn">Friend Recomendations</md-subheader>
+      <md-list layout="column">
+        <md-item ng-repeat="friend in friendsRecommended">
+          <md-item-content>
+            <div class="md-tile-left">
+                <img ng-src="{{ friend.avatar }}" class="face" alt="{{ friend.username }}">
+            </div>
+            <div class="md-tile-content">
+              <h3>{{friend.firstName}} {{ friend.lastName }} ({{friend.username}}) </h3>
+              <h4>
+                <md-button class="md-raised" ng-click="sendFriendRequest(friend)">
+                  <span class="fa fa-plus-circle"> </span> &nbsp; Send friend request
+                </md-button>
+              </h4>
+              
+            </div>
+          </md-item-content>
+        </md-item>
+      </md-list>
+    </section>
+
+    <section>
+      <md-subheader>Your Friends</md-subheader>
+      <md-list layout="column">
+        <md-item ng-repeat="friend in friends">
+          <md-item-content>
+            <div class="md-tile-left">
+                <img ng-src="{{ friend.avatar }}" class="face" alt="{{ friend.username }}">
+            </div>
+            <div class="md-tile-content">
+              <h3>{{friend.firstName}} {{ friend.lastName }}</h3>
+              <h4>{{friend.username}}</h4>
+            </div>
+          </md-item-content>
+        </md-item>
+      </md-list>
+    </section>
+
+    
+</md-content>

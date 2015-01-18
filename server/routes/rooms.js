@@ -2,7 +2,12 @@ var express = require('express'),
     //moment = require('moment'),
     ObjectID = require('mongodb').ObjectID,
     router = express.Router(),
-    authenticate = require("authenticate");
+    authenticate = require("authenticate"),
+    mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    roomSchema = require('./../models/rooms.js');
+
+var Rooms = mongoose.model('rooms', roomSchema);
 
 function from_database(room) {
     room.id = room._id;
@@ -29,21 +34,21 @@ module.exports = function(database) {
      ******************************************/
     router.get('/', function(req, res) {
 
-        rooms.find({}).toArray(function(err, rooms) {
+        Rooms.find({}, function(err, rooms) {
             if (err) {
                 console.error('Cannot get rooms', err);
                 return res.status(500).send({'success':'false', 'message':'Cannot get rooms'});
             }
 
-            res.json(rooms.map(from_database));
+            res.json(rooms);
         });
     });
 
     router.get('/id/:roomId', function(req, res) {
         var roomId = new ObjectID(req.param('roomId'));
 
-        rooms.findOne({
-            _id: roomId,
+        Rooms.findOne({
+            _id: ObjectID(roomId),
         }, function(err, room) {
             if (err) {
                 console.error('Cannot get room', err);
@@ -57,15 +62,15 @@ module.exports = function(database) {
     router.get('/:userId', function(req, res) {
         var userId = new ObjectID(req.param('userId'));
 
-        rooms.find({
+        Rooms.find({
             participants: { $in : [ userId ] },
-        }).toArray(function(err, rooms) {
+        }, function(err, rooms) {
             if (err) {
                 console.error('Cannot get rooms', err);
                 return res.status(500).send({'success':'false', 'message':'Cannot get rooms'});
             }
 
-            res.json(rooms.map(from_database));
+            res.json(rooms);
         });
     });
 
@@ -73,21 +78,25 @@ module.exports = function(database) {
      * POST methods
      ******************************************/
     router.post('/create', function(req, res) {
-        var room = {};
+        
+
+        var room = new Rooms({
+            title: req.body.title,
+            participants: []
+        });
+
         room.participants = req.body.participants.map(function(item) {
+            console.log(item);
             return new ObjectID(item);
         });
-        room.title = req.body.title;
 
-        // TODO: Add only one room 
-
-        rooms.insert(room, function(err, response) {
+        Rooms.create(room, function(err, response) {
             if (err) {
                 console.error('Cannot insert room', err);
                 return res.status(500).send({'success':'false', 'message':'Cannot create room.'});
             }
-            var fixed = from_database(response[0]);
-            res.status(200).send({'success':'true', 'room':fixed });
+
+            res.status(200).send({'success':'true', 'room': response });
         });
     });
 

@@ -43,14 +43,22 @@ config(['$routeProvider', function($routeProvider) {
   $scope.viewsNotLogged = ['/login', '/register', '/logo'];
 
   $rootScope.friends = {};
+  $rootScope.friendsRequests = {};
+  $rootScope.friendsRecommended = {};
   $rootScope.rooms = {};
 
   // Getting the friends an listing them as object
-  UserService.fetchFriends().then(function(data) {
-    data.forEach(function(friend) {
-      $rootScope.friends[friend.id] = friend;
+  $rootScope.initFriends = function() {
+    UserService.fetchFriends($rootScope.user).then(function(response) {
+      $rootScope.friends = {};
+      if (response.data.length === 0)
+        return;
+
+      response.data.forEach(function(friend) {
+        $rootScope.friends[friend.id] = friend;
+      });
     });
-  });
+  };
 
   // Getting rooms an listing them as object
   $rootScope.initRooms = function () {
@@ -122,7 +130,7 @@ config(['$routeProvider', function($routeProvider) {
 
   $scope.chatFriend = function(friendId) {
     var participants = [$scope.user.id, friendId];
-    RoomsService.create(participants, $rootScope.user.id, $rootScope.friends).then(function(response) {
+    RoomsService.create(participants, $rootScope.user, $rootScope.friends).then(function(response) {
       if (response.data.success === 'true') {
         var responseRoom = response.data.room;
         $rootScope.rooms[responseRoom.id] = responseRoom;
@@ -203,14 +211,15 @@ config(['$routeProvider', function($routeProvider) {
     $location.path(page);
   };
 
-  $scope.selectTab = function(index) {
+  $scope.selectTab = function(index, title, template) {
     if (typeof index === 'number') {
       $rootScope.selectedIndex = index;
     }
     else if (typeof index === 'string') {
       switch(index) {
         case 'profile': 
-          $rootScope.$emit('addProfileTab');
+        case 'friends':
+          $rootScope.$emit('addSpecialTab', index, title, template);
           break;
       }
     }
