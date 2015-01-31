@@ -75,7 +75,13 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
     $scope.addTab(data.roomId, function(room) {
       RoomsService.fetchMessages(data.roomId).then(function(response) {
-        room.messages = response.length === 0 ? [] : response;  
+        room.messages = response.length === 0 ? [] : response;
+
+        // Now let's decode the messages
+        room.messages = room.messages.map(function(message) {
+          message.content = $scope.decodeMessage(message);
+          return message;
+        });
 
         setTimeout(function() {
           setMessagesHeight();
@@ -375,10 +381,12 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
         $scope.chatOpenHandle(data);
       }
 
+      var content = $scope.decodeMessage(data);
+
       room.messages.push({ 
         user: data.user, 
         username: data.username, 
-        content: CryptoJS.AES.decrypt(data.content, data.key).toString(CryptoJS.enc.Utf8), 
+        content: content, 
         isCrypted: data.isCrypted });
 
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
@@ -393,6 +401,29 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
       }
     }
   });
+
+  $scope.encodeMessage = function(message) {
+    var encoded;
+
+    return encoded;
+  };
+
+  $scope.decodeMessage = function(message) {
+    var decoded;
+
+    if (message.isCrypted) {
+      console.log(message.user);
+      console.log($rootScope.user.id);
+      console.log(message.user === $rootScope.user.id);
+      var key = (message.user === $rootScope.user.id) ? $rootScope.user.passphrase : $rootScope.friends[message.user].passphrase;
+      decoded = CryptoJS.AES.decrypt(message.content, key).toString(CryptoJS.enc.Utf8);
+    }
+    else {
+      decoded = message.content;
+    }
+
+    return decoded;
+  };
 
   function scrollMessages(room) {
     if (!room.contentElement || room.contentElement.length === 0) {

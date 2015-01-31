@@ -52,12 +52,13 @@ module.exports = function(database) {
      ******************************************/
     router.post('/', function(req, res) {
         var message = req.body;
+
         message.roomId = new ObjectID(message.roomId);
-        message.userId = new ObjectID(message.userId);
+        message.userId = new ObjectID(message.user);
 
         var newMessage = new Messages({
-            roomId: ObjectID(message.roomId),
-            userId: ObjectID(message.userId),
+            roomId: message.roomId,
+            user: message.userId,
             username: message.username,
             content: message.content,
             isCrypted: message.isCrypted
