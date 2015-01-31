@@ -19,7 +19,7 @@ angular.module('myApp', [
   'ui.bootstrap',
   'btford.socket-io',
   'ipCookie',
-  'gettext',
+  'gettext'
 ]).
 config(['$routeProvider', function($routeProvider) {
   $routeProvider.otherwise({redirectTo: '/dashboard'});
@@ -109,6 +109,8 @@ config(['$routeProvider', function($routeProvider) {
   $rootScope.toggleSidenav = function(position) {
     $mdSidenav(position).toggle();
   };
+
+  /** Opening a modal to setup the keys */
   $scope.openKeys = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -124,12 +126,60 @@ config(['$routeProvider', function($routeProvider) {
     });
   };
 
+  /** Opening a modal to create a new chat */
+  $scope.createRoom = function(ev) {
+    $mdDialog.show({
+      controller: CreateRoomController,
+      templateUrl: 'alerts/alert-create-room.tmpl.html',
+      targetEvent: ev,
+    })
+    .then(function(callback) {
+      if (callback) {
+        callback(); 
+      }
+    }, function() {
+      // canceled event
+    });
+  };
+
   /************************************
    * CHAT ROOMS
    ************************************/
 
+  /**
+   * This function is used to create a new chat room with a givven friendId
+   * @param  {[type]} friendId 
+   * @return {[type]}          [description]
+   */
   $scope.chatFriend = function(friendId) {
     var participants = [$scope.user.id, friendId];
+
+    // Lets check does we have already a room with this person
+    var isRoomExist = RoomsService.isRoomInitiated($rootScope.rooms, participants);
+    if (isRoomExist.isFound) {
+      $scope.chatOpen(isRoomExist.roomId);
+    }
+    else {
+      RoomsService.create(participants, $rootScope.user, $rootScope.friends).then(function(response) {
+        if (response.data.success === 'true') {
+          var responseRoom = response.data.room;
+          $rootScope.rooms[responseRoom.id] = responseRoom;
+          $scope.chatOpen(responseRoom.id);
+        }
+      });
+    }
+  };
+
+  $rootScope.chatFriends = function(friends) {
+    var participants = friends;
+    participants.push($scope.user.id);
+
+    // Lets check does we have already a room with this person
+    var isRoomExist = RoomsService.isRoomInitiated($rootScope.rooms, participants);
+    if (isRoomExist.isFound) {
+      $scope.chatOpen(isRoomExist.roomId);
+    }
+
     RoomsService.create(participants, $rootScope.user, $rootScope.friends).then(function(response) {
       if (response.data.success === 'true') {
         var responseRoom = response.data.room;

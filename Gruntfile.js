@@ -2,6 +2,29 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
 	pkg : grunt.file.readJSON('package.json'),
+      
+      concurrent: {
+        target: {
+          tasks: ['shell:run_mongod', 'nodemon', 'sass', 'concat', 'watch'],
+          options: {
+            logConcurrentOutput: true
+          }
+        }
+      },
+
+      nodemon: {
+        dev: {
+          script: 'server.js'
+        }
+      },
+
+      shell: {
+        run_mongod: {
+            command: function () {
+                return 'mongod';
+            }
+        }
+      },
       connect: {
         server: {
           options: {},
@@ -139,6 +162,7 @@ module.exports = function(grunt) {
       }
     });
 
+    grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-connect');
@@ -146,13 +170,19 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-angular-gettext');
     grunt.loadNpmTasks('grunt-docular');
     grunt.loadNpmTasks('grunt-notify');
+    grunt.loadNpmTasks('grunt-nodemon');
+    grunt.loadNpmTasks('grunt-concurrent');
 
     grunt.task.run('notify_hooks');
 
-    grunt.registerTask('default', [
+    grunt.registerTask('default', ['concurrent:target']);
+
+    grunt.registerTask('old', [
       'nggettext_extract', 
       'nggettext_compile', 
       'sass', 
       'concat', 
       'watch']);
+
+    grunt.registerTask('mongo', ['shell:run_mongod']);
 };

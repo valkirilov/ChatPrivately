@@ -66,7 +66,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
   $scope.chatOpenHandle = function(data) {
     if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
-      //console.log('Already opened');
+      //$scope.selectTab('room', data.roomId);
       return;
     }
     else {
@@ -159,6 +159,19 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     else if (type === 'profile') {
       $scope.fetchMyPosts(); 
     }
+  };
+  $scope.selectTab = function(type, search) {
+    switch(type) {
+      case 'room':
+        for (var i in $scope.tabs) {
+          if ($scope.tabs[i].type === 'room' && $scope.tabs[i].roomId === search) {
+            $rootScope.selectedIndex = i;
+            return;
+          }
+        }
+        break;
+    }
+
   };
 
   /**

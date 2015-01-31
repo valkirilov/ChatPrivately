@@ -160,8 +160,9 @@
     
     <md-toolbar class="app-toolbar">
 
-      <div class="md-toolbar-tools" ng-click="toggleSidenav('left')" tabindex="0">
-          <span class="fa fa-reorder" show-phone="" show-tablet="" ></span>
+      <div class="md-toolbar-tools pull-left" tabindex="0">
+          <span class="fa fa-reorder" show-phone="" show-tablet="" ng-click="toggleSidenav('left')"></span>
+          <span class="fa fa-wechat pull-right" ng-click="createRoom()"></span>
       </div>
 
       <!-- <div class="md-toolbar-tools api-options-bar with-icon ng-scope">

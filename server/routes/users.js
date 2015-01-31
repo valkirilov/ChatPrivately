@@ -166,7 +166,7 @@ module.exports = function(database) {
 
     router.post('/register', function(req, res) {
 
-        var user = to_database(req.body);
+        var user = req.body;
 
         var newUser = new Users({
             username: user.username,

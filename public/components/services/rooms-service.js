@@ -48,10 +48,41 @@ angular.module('myApp.services.rooms-service', [])
   };
 
   var create = function(participants, user, friends) {
+    console.log(participants);
+
     var title = getRoomName(participants, user, friends);
     var promise = $http.post('/api/rooms/create', { participants: participants, title: title });
 
     return promise;
+  };
+
+  var isRoomInitiated = function(rooms, participants) {
+    var result = {
+      isFound: false,
+      roomId: null
+    };
+    for (var index in rooms) {
+      var currentRoom = rooms[index];
+
+      if (currentRoom.participants.length !== participants.length)
+        continue;
+
+      var isTheSameRoom = true;
+      currentRoom.participants.forEach(function(user) {
+        if (participants.indexOf(user) === -1) {
+          isTheSameRoom = false;
+          return;
+        }
+      });
+
+      if (isTheSameRoom) {
+        result.isFound = true;
+        result.roomId = currentRoom.id;
+        return result;
+      }
+    }
+
+    return result;
   };
 
 
@@ -60,6 +91,7 @@ angular.module('myApp.services.rooms-service', [])
     fetchOne: fetchOne,
     create: create,
     fetchMessages: fetchMessages,
-    getRoomName: getRoomName
+    getRoomName: getRoomName,
+    isRoomInitiated: isRoomInitiated
   };
 });

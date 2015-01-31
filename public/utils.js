@@ -21,3 +21,46 @@ function DialogController($rootScope, $scope, $mdDialog) {
     $mdDialog.hide($rootScope.settingsSaveKeys);
   };
 }
+
+function CreateRoomController($rootScope, $scope, $mdDialog) {
+  $scope.friends = [];
+  $scope.participants = [];
+
+  for (var i in $rootScope.friends) {
+    $scope.friends.push($rootScope.friends[i]);
+  }
+
+  $scope.hide = function() {
+    $mdDialog.hide();
+  };
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+  $scope.createRoom = function() {
+    var participants = [];
+
+    $scope.participants.forEach(function(participant) {
+      participants.push(participant.id);
+    });
+
+    $mdDialog.hide(function() {
+      $rootScope.chatFriends(participants);
+    });
+  };
+
+  $scope.addParticipant = function($event) {
+    if ($event.keyCode === 13 && $scope.selected) {
+      $scope.participants.push($scope.selected);
+
+      // Remove this friend from the array of available
+      $scope.friends = $scope.friends.filter(function(friend) {
+        if ($scope.selected.id !== friend.id) {
+          return true;
+        }
+      });
+
+      $scope.selected = null;
+    }
+  };
+
+}

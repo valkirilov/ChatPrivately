@@ -5,7 +5,7 @@
         <md-item ng-repeat="request in friendsRequests">
           <md-item-content>
             <div class="md-tile-left">
-                <img ng-src="avatars/default.png" class="face" alt="{{ request.username }}">
+                <img ng-src="avatars/{{friend.avatar}}" class="face" alt="{{ request.username }}">
             </div>
             <div class="md-tile-content">
               <h3>{{ request.username }}</h3>
@@ -28,7 +28,7 @@
         <md-item ng-repeat="friend in friendsRecommended">
           <md-item-content>
             <div class="md-tile-left">
-                <img ng-src="{{ friend.avatar }}" class="face" alt="{{ friend.username }}">
+                <img ng-src="avatars/{{friend.avatar}}" class="face" alt="{{ friend.username }}">
             </div>
             <div class="md-tile-content">
               <h3>{{friend.firstName}} {{ friend.lastName }} ({{friend.username}}) </h3>
@@ -50,7 +50,7 @@
         <md-item ng-repeat="friend in friends">
           <md-item-content>
             <div class="md-tile-left">
-                <img ng-src="{{ friend.avatar }}" class="face" alt="{{ friend.username }}">
+                <img ng-src="avatars/{{friend.avatar}}" class="face" alt="{{ friend.username }}">
             </div>
             <div class="md-tile-content">
               <h3>{{friend.firstName}} {{ friend.lastName }}</h3>
