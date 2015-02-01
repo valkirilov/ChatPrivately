@@ -1,6 +1,6 @@
 {
   "name": "flow.js",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "main": "./dist/flow.js",
   "ignore": [
     "**/.*",
@@ -16,11 +16,11 @@
     "Gruntfile.js"
   ],
   "homepage": "https://github.com/flowjs/flow.js",
-  "_release": "2.8.0",
+  "_release": "2.9.0",
   "_resolution": {
     "type": "version",
-    "tag": "v2.8.0",
-    "commit": "d319b806517637694aa2a3f68323e21898aa933c"
+    "tag": "v2.9.0",
+    "commit": "0467da5c2820e87623c7f720c7d21493c2655511"
   },
   "_source": "git://github.com/flowjs/flow.js.git",
   "_target": "~2",

@@ -2,12 +2,13 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 md-tabs {
   display: block;
   width: 100%;
-  font-weight: 500; }
+  font-weight: 500;
+  overflow: auto; }
 
 .md-header {
   width: 100%;
@@ -81,9 +82,37 @@ md-tabs[center] .md-header:not(.md-paginating) .md-header-items {
 
 .md-tabs-content {
   overflow: hidden;
-  width: 100%; }
+  width: 100%;
+  position: relative; }
   .md-tabs-content .md-tab-content {
     height: 100%; }
+    .md-tabs-content .md-tab-content.ng-hide.ng-animate {
+      display: block !important; }
+    .md-tabs-content .md-tab-content.ng-animate {
+      transition: -webkit-transform 0.5s cubic-bezier(0.35, 0, 0.25, 1);
+      transition: transform 0.5s cubic-bezier(0.35, 0, 0.25, 1);
+      -webkit-transform: translateX(0);
+              transform: translateX(0); }
+      .md-tabs-content .md-tab-content.ng-animate.ng-hide-add {
+        -webkit-transform: translateX(-100%);
+                transform: translateX(-100%); }
+        .md-tabs-content .md-tab-content.ng-animate.ng-hide-add.md-transition-rtl {
+          -webkit-transform: translateX(100%);
+                  transform: translateX(100%); }
+      .md-tabs-content .md-tab-content.ng-animate.ng-hide-remove {
+        position: absolute;
+        -webkit-transform: translateX(100%);
+                transform: translateX(100%);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0; }
+        .md-tabs-content .md-tab-content.ng-animate.ng-hide-remove.md-transition-rtl {
+          -webkit-transform: translateX(-100%);
+                  transform: translateX(-100%); }
+        .md-tabs-content .md-tab-content.ng-animate.ng-hide-remove.ng-hide-remove-active {
+          -webkit-transform: translateX(0);
+                  transform: translateX(0); }
 
 md-tabs-ink-bar {
   z-index: 1;
@@ -121,20 +150,22 @@ md-tab {
   cursor: pointer;
   padding: 20px 24px;
   box-sizing: border-box;
-  transition: background 0.35s cubic-bezier(0.35, 0, 0.25, 1), color 0.35s cubic-bezier(0.35, 0, 0.25, 1);
+  transition: none;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none; }
+  md-tab.md-tab-themed {
+    transition: background 0.35s cubic-bezier(0.35, 0, 0.25, 1), color 0.35s cubic-bezier(0.35, 0, 0.25, 1); }
   md-tab[disabled] {
     pointer-events: none;
     cursor: default; }
   md-tab:focus {
     outline: none; }
   md-tab md-tab-label {
-    -webkit-flex: 1;
-        -ms-flex: 1;
-            flex: 1;
+    -webkit-flex: 1 1 auto;
+        -ms-flex: 1 1 auto;
+            flex: 1 1 auto;
     z-index: 100;
     opacity: 1;
     overflow: hidden; }

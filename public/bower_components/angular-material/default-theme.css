@@ -1,6 +1,5 @@
 md-backdrop.md-opaque.md-THEME_NAME-theme {
-  background-color: '{{foreground-4-0.5}}';
-  position: absolute; }
+  background-color: '{{foreground-4-0.5}}'; }
 
 md-bottom-sheet.md-THEME_NAME-theme {
   background-color: '{{background-50}}';
@@ -11,6 +10,14 @@ md-bottom-sheet.md-THEME_NAME-theme {
     background-color: '{{background-50}}'; }
   md-bottom-sheet.md-THEME_NAME-theme .md-subheader {
     color: '{{foreground-1}}'; }
+
+md-card.md-THEME_NAME-theme {
+  border-radius: 2px; }
+  md-card.md-THEME_NAME-theme .md-card-image {
+    border-radius: 2px 2px 0 0; }
+
+md-toolbar .md-button.md-THEME_NAME-theme.md-fab {
+  background-color: white; }
 
 .md-button.md-THEME_NAME-theme {
   border-radius: 3px; }
@@ -24,12 +31,16 @@ md-bottom-sheet.md-THEME_NAME-theme {
       .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {
         background-color: '{{primary-600}}'; }
   .md-button.md-THEME_NAME-theme.md-fab {
-    border-radius: 50%; }
-  .md-button.md-THEME_NAME-theme.md-raised, .md-button.md-THEME_NAME-theme.md-fab {
+    border-radius: 50%;
+    background-color: '{{accent-color}}';
+    color: '{{accent-contrast}}'; }
+    .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {
+      background-color: '{{accent-A700}}'; }
+  .md-button.md-THEME_NAME-theme.md-raised {
     color: '{{background-contrast}}';
-    background-color: '{{background-500-0.185}}'; }
-    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {
-      background-color: '{{background-500-0.3}}'; }
+    background-color: '{{background-50}}'; }
+    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus {
+      background-color: '{{background-200}}'; }
   .md-button.md-THEME_NAME-theme.md-warn {
     color: '{{warn-color}}'; }
     .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {
@@ -48,11 +59,6 @@ md-bottom-sheet.md-THEME_NAME-theme {
     color: '{{foreground-3}}';
     background-color: transparent;
     cursor: not-allowed; }
-
-md-card.md-THEME_NAME-theme {
-  border-radius: 2px; }
-  md-card.md-THEME_NAME-theme .md-card-image {
-    border-radius: 2px 2px 0 0; }
 
 md-checkbox.md-THEME_NAME-theme .md-ripple {
   color: '{{accent-600}}'; }
@@ -76,8 +82,6 @@ md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:a
   border-color: '{{background-200}}'; }
 md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {
   color: '{{warn-600}}'; }
-md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ripple {
-  color: '{{background-600}}'; }
 md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {
   border-color: '{{foreground-2}}'; }
 md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {
@@ -100,6 +104,40 @@ md-dialog.md-THEME_NAME-theme {
 
 md-divider.md-THEME_NAME-theme {
   border-top-color: '{{foreground-4}}'; }
+
+md-input-container.md-THEME_NAME-theme .md-input {
+  color: '{{foreground-1}}';
+  border-color: '{{foreground-4}}';
+  text-shadow: '{{foreground-shadow}}'; }
+  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {
+    color: '{{foreground-3}}'; }
+md-input-container.md-THEME_NAME-theme label, md-input-container.md-THEME_NAME-theme .md-placeholder {
+  text-shadow: '{{foreground-shadow}}';
+  color: '{{foreground-3}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-has-value label {
+  color: '{{foreground-2}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused .md-input {
+  border-color: '{{primary-500}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused label {
+  color: '{{primary-500}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent .md-input {
+  border-color: '{{accent-500}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent label {
+  color: '{{accent-500}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn .md-input {
+  border-color: '{{warn-500}}'; }
+md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn label {
+  color: '{{warn-500}}'; }
+md-input-container.md-THEME_NAME-theme.md-input-invalid .md-input {
+  border-color: '{{warn-500}}'; }
+md-input-container.md-THEME_NAME-theme.md-input-invalid label {
+  color: '{{warn-500}}'; }
+md-input-container.md-THEME_NAME-theme.md-input-invalid ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid data-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid x-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid [ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [data-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [x-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid .md-char-counter {
+  color: '{{warn-500}}'; }
+md-input-container.md-THEME_NAME-theme .md-input[disabled] {
+  border-bottom-color: transparent;
+  color: '{{foreground-3}}';
+  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%); }
 
 md-progress-circular.md-THEME_NAME-theme {
   background-color: transparent; }
@@ -162,14 +200,6 @@ md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {
   color: '{{accent-color-0.87}}'; }
 md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {
   color: '{{accent-600}}'; }
-md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {
-  background-color: '{{warn-color-0.87}}'; }
-md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {
-  border-color: '{{warn-color-0.87}}'; }
-md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {
-  color: '{{warn-color-0.87}}'; }
-md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {
-  color: '{{warn-600}}'; }
 md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {
   background-color: '{{primary-color-0.87}}'; }
 md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {
@@ -178,6 +208,14 @@ md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-in
   color: '{{primary-color-0.87}}'; }
 md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {
   color: '{{primary-600}}'; }
+md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {
+  background-color: '{{warn-color-0.87}}'; }
+md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {
+  border-color: '{{warn-color-0.87}}'; }
+md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {
+  color: '{{warn-color-0.87}}'; }
+md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {
+  color: '{{warn-600}}'; }
 md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {
   border-color: '{{foreground-3}}'; }
 md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {
@@ -191,6 +229,8 @@ md-sidenav.md-THEME_NAME-theme {
 
 md-slider.md-THEME_NAME-theme .md-track {
   background-color: '{{foreground-3}}'; }
+md-slider.md-THEME_NAME-theme .md-track-ticks {
+  background-color: '{{foreground-4}}'; }
 md-slider.md-THEME_NAME-theme .md-focus-thumb {
   background-color: '{{foreground-2}}'; }
 md-slider.md-THEME_NAME-theme .md-focus-ring {
@@ -221,17 +261,17 @@ md-slider.md-THEME_NAME-theme.md-warn .md-sign {
     border-top-color: '{{warn-color}}'; }
 md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {
   color: '{{warn-contrast}}'; }
-md-slider.md-THEME_NAME-theme.md-accent .md-track-fill {
-  background-color: '{{accent-color}}'; }
-md-slider.md-THEME_NAME-theme.md-accent .md-thumb:after {
-  border-color: '{{accent-color}}';
-  background-color: '{{accent-color}}'; }
-md-slider.md-THEME_NAME-theme.md-accent .md-sign {
-  background-color: '{{accent-color}}'; }
-  md-slider.md-THEME_NAME-theme.md-accent .md-sign:after {
-    border-top-color: '{{accent-color}}'; }
-md-slider.md-THEME_NAME-theme.md-accent .md-thumb-text {
-  color: '{{accent-contrast}}'; }
+md-slider.md-THEME_NAME-theme.md-primary .md-track-fill {
+  background-color: '{{primary-color}}'; }
+md-slider.md-THEME_NAME-theme.md-primary .md-thumb:after {
+  border-color: '{{primary-color}}';
+  background-color: '{{primary-color}}'; }
+md-slider.md-THEME_NAME-theme.md-primary .md-sign {
+  background-color: '{{primary-color}}'; }
+  md-slider.md-THEME_NAME-theme.md-primary .md-sign:after {
+    border-top-color: '{{primary-color}}'; }
+md-slider.md-THEME_NAME-theme.md-primary .md-thumb-text {
+  color: '{{primary-contrast}}'; }
 md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {
   border-color: '{{foreground-3}}'; }
 md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {
@@ -286,8 +326,8 @@ md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {
   md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {
     color: '{{warn-contrast}}'; }
 md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {
-  color: white;
-  background: white; }
+  color: '{{primary-contrast}}';
+  background: '{{primary-contrast}}'; }
 md-tabs.md-THEME_NAME-theme md-tab {
   color: '{{primary-100}}'; }
   md-tabs.md-THEME_NAME-theme md-tab.active {
@@ -298,13 +338,11 @@ md-tabs.md-THEME_NAME-theme md-tab {
     color: '{{primary-contrast}}';
     background-color: '{{primary-contrast-0.1}}'; }
   md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {
-    color: white; }
+    color: '{{primary-contrast}}'; }
 
 md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {
   text-shadow: '{{foreground-shadow}}'; }
-  md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {
-    color: '{{foreground-3}}'; }
-  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder {
+  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {
     color: '{{foreground-3}}'; }
 md-input-group.md-THEME_NAME-theme label {
   text-shadow: '{{foreground-shadow}}';
@@ -322,7 +360,7 @@ md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {
   color: '{{accent-500}}'; }
 md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {
   color: '{{foreground-2}}'; }
-md-input-group.md-THEME_NAME-theme[disabled] input, md-input-group.md-THEME_NAME-theme[disabled] textarea {
+md-input-group.md-THEME_NAME-theme .md-input[disabled] {
   border-bottom-color: '{{foreground-4}}';
   color: '{{foreground-3}}'; }
 
@@ -331,12 +369,12 @@ md-toast.md-THEME_NAME-theme {
   color: '{{background-50}}'; }
   md-toast.md-THEME_NAME-theme .md-button {
     color: '{{background-50}}'; }
-  md-toast.md-THEME_NAME-theme .md-action {
-    color: '{{primary-A200}}'; }
-    md-toast.md-THEME_NAME-theme .md-action.md-accent {
-      color: '{{accent-A200}}'; }
-    md-toast.md-THEME_NAME-theme .md-action.md-warn {
-      color: '{{warn-A200}}'; }
+    md-toast.md-THEME_NAME-theme .md-button.md-highlight {
+      color: '{{primary-A200}}'; }
+      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-accent {
+        color: '{{accent-A200}}'; }
+      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-warn {
+        color: '{{warn-A200}}'; }
 
 md-toolbar.md-THEME_NAME-theme {
   background-color: '{{primary-color}}';

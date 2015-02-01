@@ -15,9 +15,10 @@ angular.module('myApp.services.rooms-service', [])
     return room;
   };
 
-  var fetchMessages = function(roomId) {
-    var messages = Restangular.all('api/messages/'+roomId).getList();
-    return messages;
+  var fetchMessages = function(roomId, page) {
+    var response = $http.get('api/messages/'+roomId+'/'+page);
+
+    return response;
   };
   var getRoomName = function(participants, user, friends) {
 
@@ -48,8 +49,6 @@ angular.module('myApp.services.rooms-service', [])
   };
 
   var create = function(participants, user, friends) {
-    console.log(participants);
-
     var title = getRoomName(participants, user, friends);
     var promise = $http.post('/api/rooms/create', { participants: participants, title: title });
 

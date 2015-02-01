@@ -24,8 +24,8 @@ angular.module('myApp', [
 config(['$routeProvider', function($routeProvider) {
   $routeProvider.otherwise({redirectTo: '/dashboard'});
 }])
-.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket', 'ipCookie',
-  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket, ipCookie) {
+.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket', 'ipCookie', '$http', 
+  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket, ipCookie, $http) {
 
   /***********************************************
    * Init variables
@@ -139,6 +139,34 @@ config(['$routeProvider', function($routeProvider) {
       }
     }, function() {
       // canceled event
+    });
+  };
+
+  $scope.inviteFriends = function(ev) {
+    $mdDialog.show({
+      controller: InviteFriendsController,
+      templateUrl: 'alerts/alert-invite-friends.tmpl.html',
+      targetEvent: ev,
+    })
+    .then(function(callback) {
+      if (callback) {
+        callback(); 
+      }
+    }, function() {
+      // canceled event
+    });
+  };
+
+  $rootScope.sendInvitation = function(friends) {
+    console.log(friends);
+    $http.post('/api/users/invite', { friends: friends }).then(function(response) {
+      console.log(response);
+      if (response.data.success) {
+        $rootScope.showToastMessage('Your friends are invited!');
+      }
+      else {
+        $rootScope.showToastMessage(response.data.message); 
+      }
     });
   };
 

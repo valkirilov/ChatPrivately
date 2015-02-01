@@ -64,3 +64,28 @@ function CreateRoomController($rootScope, $scope, $mdDialog) {
   };
 
 }
+
+function InviteFriendsController($rootScope, $scope, $mdDialog) {
+  $scope.participants = [];
+
+
+  $scope.hide = function() {
+    $mdDialog.hide();
+  };
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+  $scope.inviteFriends = function() {
+    $mdDialog.hide(function() {
+      $rootScope.sendInvitation($scope.participants);
+    });
+  };
+
+  $scope.addParticipant = function($event) {
+    if ($event.keyCode === 13 && $scope.selected) {
+      $scope.participants.push($scope.selected);
+      $scope.selected = null;
+    }
+  };
+
+}

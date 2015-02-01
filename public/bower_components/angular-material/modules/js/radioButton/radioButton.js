@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.0-rc3
  */
 (function() {
 'use strict';
@@ -62,7 +62,7 @@ function mdRadioGroupDirective($mdUtil, $mdConstant, $mdTheming) {
     restrict: 'E',
     controller: ['$element', RadioGroupController],
     require: ['mdRadioGroup', '?ngModel'],
-    link: linkRadioGroup
+    link: { pre: linkRadioGroup }
   };
 
   function linkRadioGroup(scope, element, attr, ctrls) {
@@ -71,13 +71,25 @@ function mdRadioGroupDirective($mdUtil, $mdConstant, $mdTheming) {
     var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
 
     function keydownListener(ev) {
-      if (ev.keyCode === $mdConstant.KEY_CODE.LEFT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.UP_ARROW) {
-        ev.preventDefault();
-        rgCtrl.selectPrevious();
-      }
-      else if (ev.keyCode === $mdConstant.KEY_CODE.RIGHT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.DOWN_ARROW) {
-        ev.preventDefault();
-        rgCtrl.selectNext();
+      switch(ev.keyCode) {
+        case $mdConstant.KEY_CODE.LEFT_ARROW:
+        case $mdConstant.KEY_CODE.UP_ARROW:
+          ev.preventDefault();
+          rgCtrl.selectPrevious();
+          break;
+
+        case $mdConstant.KEY_CODE.RIGHT_ARROW:
+        case $mdConstant.KEY_CODE.DOWN_ARROW:
+          ev.preventDefault();
+          rgCtrl.selectNext();
+          break;
+
+        case $mdConstant.KEY_CODE.ENTER:
+          var form = angular.element($mdUtil.getClosest(element[0], 'form'));
+          if (form.length > 0) {
+            form.triggerHandler('submit');
+          }
+          break;
       }
     }
 
@@ -241,7 +253,7 @@ function mdRadioButtonDirective($mdAria, $mdUtil, $mdTheming) {
     }
 
     function render() {
-      var checked = (rgCtrl.getViewValue() === attr.value);
+      var checked = (rgCtrl.getViewValue() == attr.value);
       if (checked === lastChecked) {
         return;
       }

@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.0-rc3
  */
 (function() {
 'use strict';
@@ -21,6 +21,9 @@ function MdCoreInitialize() {
       'ngMaterial requires HammerJS to be preloaded.'
     );
   }
+  // By default, Hammer disables user selection on desktop if swipe is enabled.
+  // We don't want this, so we make sure Hammer doesn't set a user-select: none.
+  Hammer.defaults.cssProps.userSelect = '';
 }
 
 function MdCoreConfigure($provide, $mdThemingProvider) {
@@ -125,16 +128,16 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
   angular
     .module('material.core')
     .config( ["$provide", function($provide){
-       $provide.decorator('$mdUtil', ['$delegate', function ($mdUtil){
+       $provide.decorator('$mdUtil', ['$delegate', function ($delegate){
            /**
             * Inject the iterator facade to easily support iteration and accessors
             * @see iterator below
             */
-           $mdUtil.iterator = Iterator;
+           $delegate.iterator = Iterator;
 
-           return $mdUtil;
+           return $delegate;
          }
-       ])
+       ]);
      }]);
 
   /**
@@ -166,8 +169,8 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
 
       first: first,
       last: last,
-      next: next,
-      previous: previous,
+      next: angular.bind(null, findSubsequentItem, false),
+      previous: angular.bind(null, findSubsequentItem, true),
 
       hasPrevious: hasPrevious,
       hasNext: hasNext
@@ -292,48 +295,6 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
     }
 
     /**
-     * Find the next item. If reloop is true and at the end of the list, it will
-     * go back to the first item. If given ,the `validate` callback will be used
-     * determine whether the next item is valid. If not valid, it will try to find the
-     * next item again.
-     * @param item
-     * @param {optional} validate function
-     * @param {optional} recursion limit
-     * @returns {*}
-     */
-    function next(item, validate, limit) {
-      validate = validate || trueFn;
-
-      var index = indexOf(item) + 1;
-      var found = inRange(index) ? _items[ index ] : (reloop ? first() : null);
-
-          found = hasCheckedAll(found, limit) ? null : found;
-
-      return !found || validate(found) ? found : next(found, validate, limit || index);
-    }
-
-    /**
-     * Find the previous item. If reloop is true and at the beginning of the list, it will
-     * go back to the last item. If given ,the `validate` callback will be used
-     * determine whether the previous item is valid. If not valid, it will try to find the
-     * previous item again.
-     * @param item
-     * @param {optional} validation function
-     * @param {optional} recursion limit
-     * @returns {*}
-     */
-    function previous(item, validate, limit) {
-      validate = validate || trueFn;
-
-        var index = indexOf(item) - 1;
-        var found = inRange(index) ? _items[ index ] : (reloop ? last() : null);
-
-            found = hasCheckedAll(found, limit) ? null : found;
-
-        return !found || validate(found) ? found : previous(found, validate, limit || index);
-    }
-
-    /**
      * Return first item in the list
      * @returns {*}
      */
@@ -350,21 +311,48 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
     }
 
     /**
-     * Has the iteration checked all items in the list
-     * @param item current found item in th list
-     * @param {optional} stopAt index
-     * @returns {*|boolean}
+     * Find the next item. If reloop is true and at the end of the list, it will
+     * go back to the first item. If given ,the `validate` callback will be used
+     * determine whether the next item is valid. If not valid, it will try to find the
+     * next item again.
+     * @param item
+     * @param {optional} validate function
+     * @param {optional} recursion limit
+     * @returns {*}
      */
-    function hasCheckedAll(item, stopAt) {
-      return stopAt && item && (indexOf(item) == stopAt);
-    }
+    function findSubsequentItem(backwards, item, validate, limit) {
+      validate = validate || trueFn;
 
+      var curIndex = indexOf(item);
+      if (!inRange(curIndex)) {
+        return null;
+      }
+
+      var nextIndex = curIndex + (backwards ? -1 : 1);
+      var foundItem = null;
+      if (inRange(nextIndex)) {
+        foundItem = _items[nextIndex];
+      } else if (reloop) {
+        foundItem = backwards ? last() : first();
+        nextIndex = indexOf(foundItem);
+      }
+
+      if ((foundItem === null) || (nextIndex === limit)) {
+        return null;
+      }
+
+      if (angular.isUndefined(limit)) {
+        limit = nextIndex;
+      }
+
+      return validate(foundItem) ? foundItem : findSubsequentItem(backwards, foundItem, validate, limit);
+    }
   }
 
 })();
 
 angular.module('material.core')
-    .factory('$mdMedia', mdMediaFactory);
+.factory('$mdMedia', mdMediaFactory);
 
 /**
  * Exposes a function on the '$mdMedia' service which will return true or false,
@@ -375,46 +363,52 @@ angular.module('material.core')
  * @example $mdMedia('(min-width: 1200px)') == true if device-width >= 1200px
  * @example $mdMedia('max-width: 300px') == true if device-width <= 300px (sanitizes input, adding parens)
  */
-function mdMediaFactory($window, $mdUtil, $timeout, $mdConstant) {
-    var cache = $mdUtil.cacheFactory('$mdMedia', { capacity: 15 });
+function mdMediaFactory($mdConstant, $mdUtil, $rootScope, $window) {
+  var queriesCache = $mdUtil.cacheFactory('$mdMedia:queries', {capacity: 15});
+  var resultsCache = $mdUtil.cacheFactory('$mdMedia:results', {capacity: 15});
 
-    angular.element($window).on('resize', updateAll);
+  angular.element($window).on('resize', updateAll);
 
-    return $mdMedia;
+  return $mdMedia;
 
-    function $mdMedia(query) {
-        query = validate(query);
-        var result;
-        if (!angular.isDefined(result = cache.get(query)) ) {
-            return add(query);
-        }
-        return result;
+  function $mdMedia(query) {
+    var validated = queriesCache.get(query);
+    if (angular.isUndefined(validated)) {
+      validated = queriesCache.put(query, validate(query));
     }
 
-    function validate(query) {
-        return $mdConstant.MEDIA[query] || (
-                query.charAt(0) != '(' ?  ('(' + query + ')') : query
-            );
+    var result = resultsCache.get(validated);
+    if (angular.isUndefined(result)) {
+      result = add(validated);
     }
 
-    function add(query) {
-        return cache.put(query, !!$window.matchMedia(query).matches);
+    return result;
+  }
 
+  function validate(query) {
+    return $mdConstant.MEDIA[query] ||
+           ((query.charAt(0) !== '(') ? ('(' + query + ')') : query);
+  }
+
+  function add(query) {
+    return resultsCache.put(query, !!$window.matchMedia(query).matches);
+  }
+
+  function updateAll() {
+    var keys = resultsCache.keys();
+    var len = keys.length;
+
+    if (len) {
+      for (var i = 0; i < len; i++) {
+        add(keys[i]);
+      }
+
+      // Trigger a $digest() if not already in progress
+      $rootScope.$evalAsync();
     }
-
-    function updateAll() {
-        var keys = cache.keys();
-        if (keys.length) {
-            for (var i = 0, ii = keys.length; i < ii; i++) {
-                cache.put(keys[i], !!$window.matchMedia(keys[i]).matches);
-            }
-            // trigger a $digest()
-            $timeout(angular.noop);
-        }
-    }
-
+  }
 }
-mdMediaFactory.$inject = ["$window", "$mdUtil", "$timeout", "$mdConstant"];
+mdMediaFactory.$inject = ["$mdConstant", "$mdUtil", "$rootScope", "$window"];
 
 (function() {
 'use strict';
@@ -428,7 +422,7 @@ mdMediaFactory.$inject = ["$window", "$mdUtil", "$timeout", "$mdConstant"];
 var nextUniqueId = ['0','0','0'];
 
 angular.module('material.core')
-.factory('$mdUtil', ["$cacheFactory", "$document", function($cacheFactory, $document) {
+.factory('$mdUtil', ["$cacheFactory", "$document", "$timeout", function($cacheFactory, $document, $timeout) {
   var Util;
   return Util = {
     now: window.performance ? angular.bind(window.performance, window.performance.now) : Date.now,
@@ -470,18 +464,23 @@ angular.module('material.core')
 
     // Returns a function, that, as long as it continues to be invoked, will not
     // be triggered. The function will be called after it stops being called for
-    // N milliseconds. If `immediate` is passed, trigger the function on the
-    // leading edge, instead of the trailing.
-    debounce: function debounce(func, wait, immediate) {
-      var timeout;
+    // N milliseconds.
+    // @param wait Integer value of msecs to delay (since last debounce reset); default value 10 msecs
+    // @param invokeApply should the $timeout trigger $digest() dirty checking
+    debounce: function (func, wait, scope, invokeApply) {
+      var timer;
+
       return function debounced() {
-        var context = this, args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(function() {
-          timeout = null;
-          if (!immediate) func.apply(context, args);
-        }, wait);
-        if (immediate && !timeout) func.apply(context, args);
+        var context = scope,
+          args = Array.prototype.slice.call(arguments);
+
+        $timeout.cancel(timer);
+        timer = $timeout(function() {
+
+          timer = undefined;
+          func.apply(context, args);
+
+        }, wait || 10, invokeApply );
       };
     },
 
@@ -495,7 +494,7 @@ angular.module('material.core')
         var args = arguments;
         var now = Util.now();
 
-        if (!recent || recent - now > delay) {
+        if (!recent || (now - recent > delay)) {
           func.apply(context, args);
           recent = now;
         }
@@ -575,6 +574,21 @@ angular.module('material.core')
       } else {
         parent.$$childHead = parent.$$childTail = child;
       }
+    },
+  /*
+   * getClosest replicates jQuery.closest() to walk up the DOM tree until it finds a matching nodeName
+   *
+   * @param el Element to start walking the DOM from
+   * @param tagName Tag name to find closest to el, such as 'form'
+   */
+    getClosest: function getClosest(el, tagName) {
+      tagName = tagName.toUpperCase();
+      do {
+        if (el.nodeName === tagName) {
+          return el;
+        }
+      } while (el = el.parentNode);
+      return null;
     }
   };
 
@@ -679,22 +693,36 @@ angular.module('material.core')
   }
 
   /*
-   * Angular's $cacheFactory doesn't have a keys() method,
-   * so we add one ourself.
+   * Inject a 'keys()' method into Angular's $cacheFactory. Then
+   * head-hook all other methods
+   *
    */
   function cacheFactory(id, options) {
     var cache = $cacheFactory(id, options);
-
     var keys = {};
+
     cache._put = cache.put;
     cache.put = function(k,v) {
       keys[k] = true;
       return cache._put(k, v);
     };
+
     cache._remove = cache.remove;
     cache.remove = function(k) {
       delete keys[k];
       return cache._remove(k);
+    };
+
+    cache._removeAll = cache.removeAll;
+    cache.removeAll = function() {
+      keys = {};
+      return cache._removeAll();
+    };
+
+    cache._destroy = cache.destroy;
+    cache.destroy = function() {
+      keys = {};
+      return cache._destroy();
     };
 
     cache.keys = function() {
@@ -811,6 +839,7 @@ angular.module('material.core')
   .service('$mdCompiler', mdCompilerService);
 
 function mdCompilerService($q, $http, $injector, $compile, $controller, $templateCache) {
+  /* jshint validthis: true */
 
   /*
    * @ngdoc service
@@ -1094,6 +1123,15 @@ function InterimElementProvider() {
           };
         });
 
+        // Create shortcut method for one-linear methods
+        if (definition.argOption) {
+          var methodName = 'show' + name.charAt(0).toUpperCase() + name.slice(1);
+          publicService[methodName] = function(arg) {
+            var config = publicService[name](arg);
+            return publicService.show(config);
+          };
+        }
+
         // eg $mdDialog.alert() will return a new alert preset
         publicService[name] = function(arg) {
           // If argOption is supplied, eg `argOption: 'content'`, then we assume
@@ -1312,7 +1350,7 @@ function InterimElementProvider() {
      * for interpolation. This allows pre-defined templates (for components such as dialog, toast etc)
      * to continue to work in apps that use custom interpolation start-/endSymbols.
      *
-     * @param {string} text The test in which to replace `{{` / `}}`
+     * @param {string} text The text in which to replace `{{` / `}}`
      * @returns {string} The modified string using the actual interpolation start-/endSymbols
      */
     function replaceInterpolationSymbols(text) {
@@ -1437,13 +1475,13 @@ function InterimElementProvider() {
 
           return deferred.promise;
         }
-        return $q.reject("Invalid `md-component-id` value.")
+        return $q.reject("Invalid `md-component-id` value.");
       }
 
     };
 
     function isValidID(handle){
-      return handle && (handle != "");
+      return handle && (handle !== "");
     }
 
   }
@@ -1537,6 +1575,9 @@ function InkRippleService($window, $timeout) {
         hammertime = new Hammer(node),
         color = parseColor(element.attr('md-ink-ripple')) || parseColor($window.getComputedStyle(options.colorElement[0]).color || 'rgb(0, 0, 0)');
 
+    // expose onInput for ripple testing
+    scope._onInput = onInput;
+
     options.mousedown && hammertime.on('hammer.input', onInput);
 
     controller.createRipple = createRipple;
@@ -1592,7 +1633,7 @@ function InkRippleService($window, $timeout) {
        * @returns {string} rgba color with 0.1 alpha
        */
       function rgbToRGBA(color) {
-        return color.replace(')', ', 0.1)').replace('(', 'a(')
+        return color.replace(')', ', 0.1)').replace('(', 'a(');
       }
 
     }
@@ -1768,7 +1809,8 @@ function InkRippleService($window, $timeout) {
        */
       function getRippleContainer() {
         if (rippleContainer) return rippleContainer;
-        var container = rippleContainer = angular.element('<div class="md-ripple-container">');
+        var container = angular.element('<div class="md-ripple-container"></div>');
+        rippleContainer = container;
         element.append(container);
         return container;
       }
@@ -1800,10 +1842,10 @@ function InkRippleService($window, $timeout) {
         var parent = node.parentNode;
         var grandparent = parent && parent.parentNode;
         var ancestor = grandparent && grandparent.parentNode;
-        return !node.hasAttribute('disabled') &&
-          !(parent && parent.hasAttribute('disabled')) &&
-          !(grandparent && grandparent.hasAttribute('disabled')) &&
-          !(ancestor && ancestor.hasAttribute('disabled'));
+        return !isDisabled(node) && !isDisabled(parent) && !isDisabled(grandparent) && !isDisabled(ancestor);
+        function isDisabled (elem) {
+          return elem && elem.hasAttribute && elem.hasAttribute('disabled');
+        }
       }
     }
   }
@@ -1853,7 +1895,357 @@ function attrNoDirective() {
 (function() {
 'use strict';
 
-angular.module('material.core.theming', [])
+angular.module('material.core.theming.palette', [])
+.constant('$mdColorPalette', {
+  'red': {
+    '50': '#ffebee',
+    '100': '#ffcdd2',
+    '200': '#ef9a9a',
+    '300': '#e57373',
+    '400': '#ef5350',
+    '500': '#f44336',
+    '600': '#e53935',
+    '700': '#d32f2f',
+    '800': '#c62828',
+    '900': '#b71c1c',
+    'A100': '#ff8a80',
+    'A200': '#ff5252',
+    'A400': '#ff1744',
+    'A700': '#d50000',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300 400 A100'
+  },
+  'pink': {
+    '50': '#fce4ec',
+    '100': '#f8bbd0',
+    '200': '#f48fb1',
+    '300': '#f06292',
+    '400': '#ec407a',
+    '500': '#e91e63',
+    '600': '#d81b60',
+    '700': '#c2185b',
+    '800': '#ad1457',
+    '900': '#880e4f',
+    'A100': '#ff80ab',
+    'A200': '#ff4081',
+    'A400': '#f50057',
+    'A700': '#c51162',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300 400 A100'
+  },
+  'purple': {
+    '50': '#f3e5f5',
+    '100': '#e1bee7',
+    '200': '#ce93d8',
+    '300': '#ba68c8',
+    '400': '#ab47bc',
+    '500': '#9c27b0',
+    '600': '#8e24aa',
+    '700': '#7b1fa2',
+    '800': '#6a1b9a',
+    '900': '#4a148c',
+    'A100': '#ea80fc',
+    'A200': '#e040fb',
+    'A400': '#d500f9',
+    'A700': '#aa00ff',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 A100'
+  },
+  'deep-purple': {
+    '50': '#ede7f6',
+    '100': '#d1c4e9',
+    '200': '#b39ddb',
+    '300': '#9575cd',
+    '400': '#7e57c2',
+    '500': '#673ab7',
+    '600': '#5e35b1',
+    '700': '#512da8',
+    '800': '#4527a0',
+    '900': '#311b92',
+    'A100': '#b388ff',
+    'A200': '#7c4dff',
+    'A400': '#651fff',
+    'A700': '#6200ea',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 A100'
+  },
+  'indigo': {
+    '50': '#e8eaf6',
+    '100': '#c5cae9',
+    '200': '#9fa8da',
+    '300': '#7986cb',
+    '400': '#5c6bc0',
+    '500': '#3f51b5',
+    '600': '#3949ab',
+    '700': '#303f9f',
+    '800': '#283593',
+    '900': '#1a237e',
+    'A100': '#8c9eff',
+    'A200': '#536dfe',
+    'A400': '#3d5afe',
+    'A700': '#304ffe',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 A100'
+  },
+  'blue': {
+    '50': '#e3f2fd',
+    '100': '#bbdefb',
+    '200': '#90caf9',
+    '300': '#64b5f6',
+    '400': '#42a5f5',
+    '500': '#2196f3',
+    '600': '#1e88e5',
+    '700': '#1976d2',
+    '800': '#1565c0',
+    '900': '#0d47a1',
+    'A100': '#82b1ff',
+    'A200': '#448aff',
+    'A400': '#2979ff',
+    'A700': '#2962ff',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '100 200 300 400 A100'
+  },
+  'light-blue': {
+    '50': '#e1f5fe',
+    '100': '#b3e5fc',
+    '200': '#81d4fa',
+    '300': '#4fc3f7',
+    '400': '#29b6f6',
+    '500': '#03a9f4',
+    '600': '#039be5',
+    '700': '#0288d1',
+    '800': '#0277bd',
+    '900': '#01579b',
+    'A100': '#80d8ff',
+    'A200': '#40c4ff',
+    'A400': '#00b0ff',
+    'A700': '#0091ea',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900 A700'
+  },
+  'cyan': {
+    '50': '#e0f7fa',
+    '100': '#b2ebf2',
+    '200': '#80deea',
+    '300': '#4dd0e1',
+    '400': '#26c6da',
+    '500': '#00bcd4',
+    '600': '#00acc1',
+    '700': '#0097a7',
+    '800': '#00838f',
+    '900': '#006064',
+    'A100': '#84ffff',
+    'A200': '#18ffff',
+    'A400': '#00e5ff',
+    'A700': '#00b8d4',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900'
+  },
+  'teal': {
+    '50': '#e0f2f1',
+    '100': '#b2dfdb',
+    '200': '#80cbc4',
+    '300': '#4db6ac',
+    '400': '#26a69a',
+    '500': '#009688',
+    '600': '#00897b',
+    '700': '#00796b',
+    '800': '#00695c',
+    '900': '#004d40',
+    'A100': '#a7ffeb',
+    'A200': '#64ffda',
+    'A400': '#1de9b6',
+    'A700': '#00bfa5',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900'
+  },
+  'green': {
+    '50': '#e8f5e9',
+    '100': '#c8e6c9',
+    '200': '#a5d6a7',
+    '300': '#81c784',
+    '400': '#66bb6a',
+    '500': '#4caf50',
+    '600': '#43a047',
+    '700': '#388e3c',
+    '800': '#2e7d32',
+    '900': '#1b5e20',
+    'A100': '#b9f6ca',
+    'A200': '#69f0ae',
+    'A400': '#00e676',
+    'A700': '#00c853',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900'
+  },
+  'light-green': {
+    '50': '#f1f8e9',
+    '100': '#dcedc8',
+    '200': '#c5e1a5',
+    '300': '#aed581',
+    '400': '#9ccc65',
+    '500': '#8bc34a',
+    '600': '#7cb342',
+    '700': '#689f38',
+    '800': '#558b2f',
+    '900': '#33691e',
+    'A100': '#ccff90',
+    'A200': '#b2ff59',
+    'A400': '#76ff03',
+    'A700': '#64dd17',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '800 900'
+  },
+  'lime': {
+    '50': '#f9fbe7',
+    '100': '#f0f4c3',
+    '200': '#e6ee9c',
+    '300': '#dce775',
+    '400': '#d4e157',
+    '500': '#cddc39',
+    '600': '#c0ca33',
+    '700': '#afb42b',
+    '800': '#9e9d24',
+    '900': '#827717',
+    'A100': '#f4ff81',
+    'A200': '#eeff41',
+    'A400': '#c6ff00',
+    'A700': '#aeea00',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '900'
+  },
+  'yellow': {
+    '50': '#fffde7',
+    '100': '#fff9c4',
+    '200': '#fff59d',
+    '300': '#fff176',
+    '400': '#ffee58',
+    '500': '#ffeb3b',
+    '600': '#fdd835',
+    '700': '#fbc02d',
+    '800': '#f9a825',
+    '900': '#f57f17',
+    'A100': '#ffff8d',
+    'A200': '#ffff00',
+    'A400': '#ffea00',
+    'A700': '#ffd600',
+    'contrastDefaultColor': 'dark'
+  },
+  'amber': {
+    '50': '#fff8e1',
+    '100': '#ffecb3',
+    '200': '#ffe082',
+    '300': '#ffd54f',
+    '400': '#ffca28',
+    '500': '#ffc107',
+    '600': '#ffb300',
+    '700': '#ffa000',
+    '800': '#ff8f00',
+    '900': '#ff6f00',
+    'A100': '#ffe57f',
+    'A200': '#ffd740',
+    'A400': '#ffc400',
+    'A700': '#ffab00',
+    'contrastDefaultColor': 'dark'
+  },
+  'orange': {
+    '50': '#fff3e0',
+    '100': '#ffe0b2',
+    '200': '#ffcc80',
+    '300': '#ffb74d',
+    '400': '#ffa726',
+    '500': '#ff9800',
+    '600': '#fb8c00',
+    '700': '#f57c00',
+    '800': '#ef6c00',
+    '900': '#e65100',
+    'A100': '#ffd180',
+    'A200': '#ffab40',
+    'A400': '#ff9100',
+    'A700': '#ff6d00',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '800 900'
+  },
+  'deep-orange': {
+    '50': '#fbe9e7',
+    '100': '#ffccbc',
+    '200': '#ffab91',
+    '300': '#ff8a65',
+    '400': '#ff7043',
+    '500': '#ff5722',
+    '600': '#f4511e',
+    '700': '#e64a19',
+    '800': '#d84315',
+    '900': '#bf360c',
+    'A100': '#ff9e80',
+    'A200': '#ff6e40',
+    'A400': '#ff3d00',
+    'A700': '#dd2c00',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300 400 A100 A200'
+  },
+  'brown': {
+    '50': '#efebe9',
+    '100': '#d7ccc8',
+    '200': '#bcaaa4',
+    '300': '#a1887f',
+    '400': '#8d6e63',
+    '500': '#795548',
+    '600': '#6d4c41',
+    '700': '#5d4037',
+    '800': '#4e342e',
+    '900': '#3e2723',
+    'A100': '#d7ccc8',
+    'A200': '#bcaaa4',
+    'A400': '#8d6e63',
+    'A700': '#5d4037',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200'
+  },
+  'grey': {
+    '0': '#ffffff',
+    '50': '#fafafa',
+    '100': '#f5f5f5',
+    '200': '#eeeeee',
+    '300': '#e0e0e0',
+    '400': '#bdbdbd',
+    '500': '#9e9e9e',
+    '600': '#757575',
+    '700': '#616161',
+    '800': '#424242',
+    '900': '#212121',
+    '1000': '#000000',
+    'A100': '#ffffff',
+    'A200': '#eeeeee',
+    'A400': '#bdbdbd',
+    'A700': '#616161',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '600 700 800 900'
+  },
+  'blue-grey': {
+    '50': '#eceff1',
+    '100': '#cfd8dc',
+    '200': '#b0bec5',
+    '300': '#90a4ae',
+    '400': '#78909c',
+    '500': '#607d8b',
+    '600': '#546e7a',
+    '700': '#455a64',
+    '800': '#37474f',
+    '900': '#263238',
+    'A100': '#cfd8dc',
+    'A200': '#b0bec5',
+    'A400': '#78909c',
+    'A700': '#455a64',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300'
+  }
+});
+})();
+
+(function() {
+'use strict';
+
+angular.module('material.core.theming', ['material.core.theming.palette'])
   .directive('mdTheme', ThemingDirective)
   .directive('mdThemable', ThemableDirective)
   .provider('$mdTheming', ThemingProvider)
@@ -1901,7 +2293,7 @@ var LIGHT_FOREGROUND = {
   '4': 'rgba(255,255,255,0.12)'
 };
 
-var DARK_SHADOW = '1px 1px 0px rgba(black, 0.4), -1px -1px 0px rgba(black, 0.4)';
+var DARK_SHADOW = '1px 1px 0px rgba(0,0,0,0.4), -1px -1px 0px rgba(0,0,0,0.4)';
 var LIGHT_SHADOW = '';
 
 var DARK_CONTRAST_COLOR = colorToRgbaArray('rgba(0,0,0,0.87)');
@@ -1913,10 +2305,10 @@ var DEFAULT_COLOR_TYPE = 'primary';
 // A color in a theme will use these hues by default, if not specified by user.
 var LIGHT_DEFAULT_HUES = {
   'accent': {
-    'default': '400',
-    'hue-1': '300',
-    'hue-2': '800',
-    'hue-3': 'A100',
+    'default': 'A700',
+    'hue-1': 'A200',
+    'hue-2': 'A400',
+    'hue-3': 'A100'
   }
 };
 var DARK_DEFAULT_HUES = {
@@ -1944,14 +2336,14 @@ var VALID_HUE_VALUES = [
   '700', '800', '900', 'A100', 'A200', 'A400', 'A700'
 ];
 
-function ThemingProvider() {
+function ThemingProvider($mdColorPalette) {
   PALETTES = {};
   THEMES = {};
   var defaultTheme = 'default';
   var alwaysWatchTheme = false;
 
-  // Load CSS defined palettes (generated from scss)
-  readPaletteCss();
+  // Load JS Defined Palettes
+  angular.extend(PALETTES, $mdColorPalette);
 
   // Default theme defined in core.js
 
@@ -1975,28 +2367,6 @@ function ThemingProvider() {
     _parseRules: parseRules,
     _rgba: rgba
   };
-
-  // Use a temporary element to read the palettes from the content of a decided selector as JSON
-  function readPaletteCss() {
-    var element = document.createElement('div');
-    element.classList.add('md-color-palette-definition');
-    document.body.appendChild(element);
-
-    var backgroundImage = getComputedStyle(element).backgroundImage;
-    if (backgroundImage === 'none' || !backgroundImage) {
-      backgroundImage = '{}'
-    }
-
-    backgroundImage = backgroundImage
-      .replace(/^.*?\{/, '{') // get rid of everything before opening brace
-      .replace(/\}.\).*?$/, '}') // get rid of everything after closing brace and paren
-      .replace(/_/g, '"'); // we output underscores as placeholders for quotes
-
-    // Remove backslashes that firefox gives
-    var parsed = JSON.parse(decodeURI(backgroundImage));
-    angular.extend(PALETTES, parsed);
-    document.body.removeChild(element);
-  }
 
   // Example: $mdThemingProvider.definePalette('neonRed', { 50: '#f5fafa', ... });
   function definePalette(name, map) {
@@ -2188,6 +2558,7 @@ function ThemingProvider() {
     }
   }
 }
+ThemingProvider.$inject = ["$mdColorPalette"];
 
 function ThemingDirective($interpolate) {
   return {
@@ -2222,7 +2593,7 @@ function parseRules(theme, colorType, rules) {
 
   var themeNameRegex = new RegExp('.md-' + theme.name + '-theme', 'g');
   // Matches '{{ primary-color }}', etc
-  var hueRegex = new RegExp('(\'|\")?{{\\s*\(' + colorType + '\)-\(color|contrast\)\-\?\(\\d\\.\?\\d\*\)\?\\s*}}(\"|\')?','g');
+  var hueRegex = new RegExp('(\'|")?{{\\s*(' + colorType + ')-(color|contrast)-?(\\d\\.?\\d*)?\\s*}}(\"|\')?','g');
   var simpleVariableRegex = /'?"?\{\{\s*([a-zA-Z]+)-(A?\d+|hue\-[0-3]|shadow)-?(\d\.?\d*)?\s*\}\}'?"?/g;
   var palette = PALETTES[color.name];
 
@@ -2277,7 +2648,7 @@ function generateThemes($injector) {
   THEME_COLOR_TYPES.forEach(function(type) {
     rulesByType[type] = '';
   });
-  var ruleMatchRegex = new RegExp('md-\(' + THEME_COLOR_TYPES.join('\|') + '\)', 'g');
+  var ruleMatchRegex = new RegExp('md-(' + THEME_COLOR_TYPES.join('|') + ')', 'g');
 
   // Sort the rules based on type, allowing us to do color substitution on a per-type basis
   rules.forEach(function(rule) {
@@ -2338,6 +2709,7 @@ function generateThemes($injector) {
 
     // Change { 'A100': '#fffeee' } to { 'A100': { value: '#fffeee', contrast:DARK_CONTRAST_COLOR }
     angular.forEach(palette, function(hueValue, hueName) {
+      if (angular.isObject(hueValue)) return; // Already converted
       // Map everything to rgb colors
       var rgbValue = colorToRgbaArray(hueValue);
       if (!rgbValue) {
@@ -2384,7 +2756,7 @@ function colorToRgbaArray(clr) {
     });
   }
   if (clr.charAt(0) == '#') clr = clr.substring(1);
-  if (!/^([a-f0-9]{3}){1,2}$/g.test(clr)) return;
+  if (!/^([a-fA-F0-9]{3}){1,2}$/g.test(clr)) return;
 
   var dig = clr.length / 3;
   var red = clr.substr(0, dig);

@@ -31,6 +31,7 @@ angular.module('myApp.login', ['ngRoute'])
   };
   $scope.isGeneratingKeys = 0;
   $scope.isLogoVissible = false;
+  $scope.keySize = 1024;
 
   $scope.init = function() {
     $timeout(function() {
@@ -73,15 +74,14 @@ angular.module('myApp.login', ['ngRoute'])
         password = angular.copy($scope.input.password),
         passphrase = angular.copy($scope.input.passphrase);
 
-    var keys = generatePrivateAndPublicKeys();
+    var keys = generatePrivateAndPublicKeys(passphrase);
     
     UserService.register(username, email, password, passphrase, keys).then(function(response) {
       $scope.isGeneratingKeys = 2;
 
-      $scope.input.privateKey = keys.privateKey;
+      //$scope.input.privateKey = keys.privateKey;
       $scope.input.publicKey = keys.publicKey;
       ipCookie(username, { 
-        privateKey: keys.privateKey,
         publicKey: keys.publicKey,
         passphraseText: passphrase,
         passphrase: CryptoJS.MD5(passphrase).toString()
@@ -90,31 +90,32 @@ angular.module('myApp.login', ['ngRoute'])
     });
   };  
 
-  var generatePrivateAndPublicKeys = function() {
+  var generatePrivateAndPublicKeys = function(passphrase) {
     $scope.isGeneratingKeys = 1;
-    var keys = {},
-        keySize = 8,
-        crypt = new JSEncrypt({default_key_size: keySize});
 
-    crypt.getKey();
-    keys.privateKey = crypt.getPrivateKey();
-    keys.publicKey = crypt.getPublicKey();
+    var RSAKey = cryptico.generateRSAKey(CryptoJS.MD5(passphrase).toString(), $scope.keySize),
+        publicKey = cryptico.publicKeyString(RSAKey);
+
+    var keys = {
+      publicKey: publicKey,
+      privateKey: 'remove-me-from-the-model'
+    };
 
     return keys;
   };
 
   $scope.checkPrivateKey = function() {
     if (ipCookie($rootScope.user.username) 
-        && ipCookie($rootScope.user.username).privateKey
+        && ipCookie($rootScope.user.username).publicKey
         && ipCookie($rootScope.user.username).passphrase 
         && ipCookie($rootScope.user.username).passphraseText) {
 
-      $rootScope.user.privateKey = ipCookie($rootScope.user.username).privateKey;
+      $rootScope.user.publicKey = ipCookie($rootScope.user.username).publicKey;
       $rootScope.user.passphrase = ipCookie($rootScope.user.username).passphrase;
       $rootScope.user.passphraseText = ipCookie($rootScope.user.username).passphraseText;
 
       $rootScope.isKeysLoaded = true;
-      $rootScope.showToastMessage('Private Key found and loaded.');
+      //$rootScope.showToastMessage('Private Key found and loaded.');
     }
   };
 
@@ -136,18 +137,27 @@ angular.module('myApp.login', ['ngRoute'])
   };
 
   $scope.enableCrypt = function() {
-    // $rootScope.crypt = new JSEncrypt();
+    if (!$rootScope.isKeysLoaded)
+      return;
 
-    // $rootScope.crypt.setPrivateKey($rootScope.user.privateKey);
-    // $rootScope.crypt.setPublicKey($rootScope.user.publicKey);
+    // Lets' genereate our RSA Key
+    $rootScope.user.privateKey = cryptico.generateRSAKey($rootScope.user.passphrase, $scope.keySize);
 
-    // var text = "Test private and public keys";
-    // var encryptedTest = $rootScope.crypt.encrypt(text);
-    // var decriptedTest = $rootScope.crypt.decrypt(encryptedTest);
+    var text = "Matt, I need you to help me with my Starcraft strategy.";
+    var encryptedTest = cryptico.encrypt(text, $rootScope.user.publicKey);
+    var encryptedTestCipher = encryptedTest.cipher;
+    var decriptedTest = cryptico.decrypt(encryptedTestCipher, $rootScope.user.privateKey);
 
-    // if (text !== decriptedTest) {
-    //   $rootScope.showToastMessage("Error: Private Key is not valid!");
-    // }
+    if (text !== decriptedTest.plaintext) {
+      $rootScope.isKeysLoaded = false;
+      $rootScope.showToastMessage("Error: Private Key is not valid!");
+    }
+    else {
+      $rootScope.showToastMessage("Private Key is valid!"); 
+    }
+
+    // Encrypt the passphrase
+    
   };
 
   $scope.checkForLogin();

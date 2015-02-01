@@ -24,7 +24,7 @@
     "angular-material": "^0.7.0",
     "moment": "~2.9.0",
     "jsencrypt": "~2.1.0",
-    "font-awesome": "~4.2.0",
+    "font-awesome": "~4.3.0",
     "q": "1.0.1",
     "ng-flow": "~2",
     "cryptojslib": "~3.1.2",

@@ -1,6 +1,13 @@
 <md-content scroll-y layout-fill="" flex id="room-{{ tab.roomId }}" class="messages md-padding" style="height: {{ messagesHeight }}">
 
   <md-list>
+    <md-item class="message">
+      <md-item-content class="md-item-content">
+        <div class="md-tile-content">
+          <a class="center-block text-center" ng-hide="rooms[tab.roomId].page > rooms[tab.roomId].pages" ng-click="loadOlderMessages(tab.roomId)">Load more</a>
+        </div>
+      </md-item-content>
+    </md-item>
     <md-item ng-repeat="message in tab.room.messages" class="message">
       <md-item-content class="md-item-content">
         <div class="md-tile-left">
@@ -8,8 +15,12 @@
           <img ng-src="avatars/{{ friends[message.user].avatar }}" ng-show="message.username !== user.username" class="face" alt="{{message.username}}">
         </div>
         <div class="md-tile-content">
-          <h3><strong>{{ message.username }}</strong></h3>
+          <h3>
+            <strong>{{ message.username }}</strong>
+            <strong class="pull-right">{{ message.date | date:'medium' }}</strong>
+          </h3>
           <p>{{ message.content }}</p>
+          <p class=""></p>
         </div>
       </md-item-content>
     </md-item>

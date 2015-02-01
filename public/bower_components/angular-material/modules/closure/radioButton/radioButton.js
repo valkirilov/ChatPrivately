@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 goog.provide('ng.material.components.radioButton');
 goog.require('ng.material.core');
@@ -32,6 +32,10 @@ angular.module('material.components.radioButton', [
  * The `<md-radio-group>` directive identifies a grouping
  * container for the 1..n grouped radio buttons; specified using nested
  * `<md-radio-button>` tags.
+ *
+ * As per the [material design spec](http://www.google.com/design/spec/style/color.html#color-ui-color-application)
+ * the radio button is in the accent color by default. The primary color palette may be used with
+ * the `md-primary` class.
  *
  * Note: `<md-radio-group>` and `<md-radio-button>` handle tabindex differently
  * than the native `<input type='radio'>` controls. Whereas the native controls
@@ -64,7 +68,7 @@ function mdRadioGroupDirective($mdUtil, $mdConstant, $mdTheming) {
     restrict: 'E',
     controller: ['$element', RadioGroupController],
     require: ['mdRadioGroup', '?ngModel'],
-    link: linkRadioGroup
+    link: { pre: linkRadioGroup }
   };
 
   function linkRadioGroup(scope, element, attr, ctrls) {
@@ -73,13 +77,25 @@ function mdRadioGroupDirective($mdUtil, $mdConstant, $mdTheming) {
     var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
 
     function keydownListener(ev) {
-      if (ev.keyCode === $mdConstant.KEY_CODE.LEFT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.UP_ARROW) {
-        ev.preventDefault();
-        rgCtrl.selectPrevious();
-      }
-      else if (ev.keyCode === $mdConstant.KEY_CODE.RIGHT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.DOWN_ARROW) {
-        ev.preventDefault();
-        rgCtrl.selectNext();
+      switch(ev.keyCode) {
+        case $mdConstant.KEY_CODE.LEFT_ARROW:
+        case $mdConstant.KEY_CODE.UP_ARROW:
+          ev.preventDefault();
+          rgCtrl.selectPrevious();
+          break;
+
+        case $mdConstant.KEY_CODE.RIGHT_ARROW:
+        case $mdConstant.KEY_CODE.DOWN_ARROW:
+          ev.preventDefault();
+          rgCtrl.selectNext();
+          break;
+
+        case $mdConstant.KEY_CODE.ENTER:
+          var form = angular.element($mdUtil.getClosest(element[0], 'form'));
+          if (form.length > 0) {
+            form.triggerHandler('submit');
+          }
+          break;
       }
     }
 
@@ -243,7 +259,7 @@ function mdRadioButtonDirective($mdAria, $mdUtil, $mdTheming) {
     }
 
     function render() {
-      var checked = (rgCtrl.getViewValue() === attr.value);
+      var checked = (rgCtrl.getViewValue() == attr.value);
       if (checked === lastChecked) {
         return;
       }

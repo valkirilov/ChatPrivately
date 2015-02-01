@@ -4,26 +4,11 @@ var express = require('express'),
     router = express.Router(),
     authenticate = require("authenticate"),
     mongoose = require('mongoose'),
+    mongoosePaginate = require('mongoose-paginate'),
     messageSchema = require('./../models/messages.js'),
     Schema = mongoose.Schema;
 
-
-function from_database(message) {
-    message.id = message._id;
-    delete message._id;
-
-    return message;
-}
-
-function to_database(message) {
-    message._id  = new ObjectID(message.id);
-    //task.date = moment(task.date).toDate();
-
-    delete message.id;
-
-    return message;
-}
-
+messageSchema.plugin(mongoosePaginate);
 var Messages = mongoose.model('messages', messageSchema);
 
 module.exports = function(database) {
@@ -33,18 +18,34 @@ module.exports = function(database) {
     /******************************************
      * GET methods
      ******************************************/
-    router.get('/:roomId', function(req, res) {
+    router.get('/:roomId/:page', function(req, res) {
         var roomId = new ObjectID(req.param('roomId'));
 
-        Messages.find(
-            { roomId: roomId },
-            function (error, messages) {
-                if (error) {
-                    return res.status(500).send({ 'success': false, 'message': 'Cannot get messages.'});
-                }
+        // Messages.find(
+        //     { roomId: roomId },
+        //     function (error, messages) {
+        //         if (error) {
+        //             return res.status(500).send({ 'success': false, 'message': 'Cannot get messages.'});
+        //         }
 
-                res.json(messages);
-            });
+        //         res.json(messages);
+        //     });
+
+        var perPage = 10,
+            currentPage = req.param('page') || 1;
+
+        Messages.paginate(
+            { roomId: roomId }, currentPage, perPage, 
+            function(error, pageCount, paginatedResults, itemCount) {
+                if (error) {
+                    console.error(error);
+                    return res.status(500).send({ 'success': false, 'message': 'Cannot get messages.'});
+                } else {
+                    res.json({ 'pages': pageCount, 'messages': paginatedResults });
+                }
+            },
+            { sortBy : { date : -1 } }
+        );
     });
 
     /******************************************

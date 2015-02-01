@@ -192,6 +192,17 @@ module.exports = function(database) {
         });
     });
 
+    router.post('/invite', function(req, res) {
+
+        var friends = req.body.friends;
+
+        friends.forEach(function(friend) {
+            sendInvitationEmail(friend);
+        });
+
+        res.status(200).send({'success': true});
+    });
+
     router.post('/update/profile', function(req, res) {
         var user = req.body;
 
@@ -254,15 +265,23 @@ module.exports = function(database) {
      * UTILS methods
      ******************************************/
 
-     function sendRegistrationEmail(user) {
+    var transporter = null;
+
+    function createTransporter() {
+        if (transporter === null) {
+            transporter = nodemailer.createTransport({
+                service: 'Gmail',
+                auth: {
+                    user: settings.MAIL_USER,
+                    pass: settings.MAIL_PASS
+                }
+            });       
+        }
+    }
+
+    function sendRegistrationEmail(user) {
         // create reusable transporter object using SMTP transport
-        var transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: settings.MAIL_USER,
-                pass: settings.MAIL_PASS
-            }
-        });   
+        createTransporter();
 
         var text = '' +
             'Your registration is successfull! \n' +
@@ -270,7 +289,7 @@ module.exports = function(database) {
             'Username: ' + user.username + '\n' +
             'Password: *crypted* \n' +
             'Passphrase: *crypted* \n\n' +
-            'Private Key:\n' + user.privateKey + '\n' +
+            //'Private Key:\n' + user.privateKey + '\n' +
             'Public Key:\n' + user.publicKey + '\n'
         ;
 
@@ -280,7 +299,7 @@ module.exports = function(database) {
             '<strong>Username:</strong> ' + user.username + '<br />' +
             '<strong>Password:</strong> *crypted*<br />' +
             '<strong>Passphrase:</strong> *crypted*<br /><br />' +
-            '<strong>Private Key:</strong> <br />' + user.privateKey + '<br />' +
+            //'<strong>Private Key:</strong> <br />' + user.privateKey + '<br />' +
             '<strong>Public Key:</strong> <br />' + user.publicKey + '<br />'
         ;
 
@@ -302,7 +321,47 @@ module.exports = function(database) {
             }
         });
 
-     }
+    }
+
+    function sendInvitationEmail(email) {
+        // create reusable transporter object using SMTP transport
+        createTransporter();
+
+        var text = '' +
+            'Ping from ChatPrivately! \n' +
+            'You were invited to test the pre Alpha version of the most secure chat ever. \n' +
+            'Make your registration now and test it: \n' +
+            'http://chat-privately-40399.onmodulus.net/#/register \n'
+        ;
+
+        var html = '' +
+            '<h1>Ping from ChatPrivately! </h1> <br />' +
+            '<p>You were invited to test the pre Alpha version of the most secure chat ever.<br />' +
+            'Make your registration now and test it:</p> <br />' +
+            '<a href="http://chat-privately-40399.onmodulus.net/#/register">http://chat-privately-40399.onmodulus.net/#/register</a><br />'
+        ;
+
+        // setup e-mail data with unicode symbols
+        var mailOptions = {
+            from: 'Chat Privately <info@chatprivately.com>', // sender address
+            to: email, // list of receivers
+            subject: 'Welcome to ChatPrivately!', // Subject line
+            text: text,
+            html: html 
+        };
+
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, function(error, info){
+            if(error) {
+                console.log(error);
+                return false;
+            } else {
+                console.log('Message sent: ' + info.response);
+            }
+        });
+
+        return true;
+    }
 
     return router;
 };

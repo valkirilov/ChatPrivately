@@ -1,0 +1,37 @@
+<md-dialog aria-label="Create a New chat room" class="alert-settings-keys">
+  <md-content>
+    <md-subheader class="md-sticky-no-effect text-center">Invite your friends</md-subheader>
+
+    <input type="text" id="input-friend-invite" ng-model="selected" ng-keyup="addParticipant($event)" class="form-control" style="width: 500px;" placeholder="Type E-mail..">
+    <br />
+
+    <md-toolbar class="md-theme-light">
+      <h1 class="md-toolbar-tools">
+        <span><span class="fa fa-users"> </span> Friends</span>
+      </h1>
+    </md-toolbar>
+
+    <md-list>
+      <md-item ng-repeat="friend in participants">
+        <md-item-content>
+
+          <md-button class="btn-block">
+            <div class="md-tile-content pull-left">
+              <h3>{{ friend }}</h3>
+            </div>
+          </md-button>
+        </md-item-content>
+      </md-item>
+    </md-list>
+ 
+  </md-content>
+  <div class="md-actions" layout="row">
+    <span flex></span>
+    <md-button ng-click="hide()">
+     Close it
+    </md-button>
+    <md-button ng-click="inviteFriends()" class="md-raised md-primary">
+      Invite to ChatPrivately
+    </md-button>
+  </div>
+</md-dialog>

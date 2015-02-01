@@ -2,14 +2,14 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
-angular.module('ngMaterial', ["ng","ngAnimate","ngAria","material.core","material.core.theming","material.components.backdrop","material.components.bottomSheet","material.components.button","material.components.card","material.components.checkbox","material.components.content","material.components.dialog","material.components.divider","material.components.icon","material.components.list","material.components.progressCircular","material.components.progressLinear","material.components.radioButton","material.components.sidenav","material.components.slider","material.components.sticky","material.components.subheader","material.components.swipe","material.components.switch","material.components.tabs","material.components.textField","material.components.toast","material.components.toolbar","material.components.tooltip","material.components.whiteframe"]);
+angular.module('ngMaterial', ["ng","ngAnimate","ngAria","material.core","material.core.theming.palette","material.core.theming","material.components.backdrop","material.components.bottomSheet","material.components.button","material.components.card","material.components.checkbox","material.components.content","material.components.dialog","material.components.divider","material.components.icon","material.components.input","material.components.list","material.components.progressCircular","material.components.progressLinear","material.components.radioButton","material.components.sidenav","material.components.slider","material.components.sticky","material.components.subheader","material.components.swipe","material.components.switch","material.components.tabs","material.components.textField","material.components.toast","material.components.toolbar","material.components.tooltip","material.components.whiteframe"]);
 /*!
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -18,61 +18,52 @@ angular.module('ngMaterial', ["ng","ngAnimate","ngAria","material.core","materia
  * Initialization function that validates environment
  * requirements.
  */
-angular.module('material.core', ['material.core.theming'])
-  .run(MdCoreInitialize)
+angular
+  .module('material.core', ['material.core.theming'])
   .config(MdCoreConfigure);
 
-function MdCoreInitialize() {
-  if (typeof Hammer === 'undefined') {
-    throw new Error(
-      'ngMaterial requires HammerJS to be preloaded.'
-    );
-  }
-}
 
 function MdCoreConfigure($provide, $mdThemingProvider) {
-  $provide.decorator('$$rAF', ['$delegate', '$rootScope', rAFDecorator]);
+  $provide.decorator('$$rAF', ["$delegate", rAFDecorator]);
 
   $mdThemingProvider.theme('default')
-    .primaryColor('blue')
-    .accentColor('green')
-    .warnColor('red')
-    .backgroundColor('grey');
-
-  function rAFDecorator($$rAF, $rootScope) {
-    /**
-     * Use this to debounce events that come in often.
-     * The debounced function will always use the *last* invocation before the
-     * coming frame.
-     *
-     * For example, window resize events that fire many times a second:
-     * If we set to use an raf-debounced callback on window resize, then
-     * our callback will only be fired once per frame, with the last resize
-     * event that happened before that frame.
-     *
-     * @param {function} callback function to debounce
-     */
-    $$rAF.debounce = function(cb) {
-      var queueArgs, alreadyQueued, queueCb, context;
-      return function debounced() {
-        queueArgs = arguments;
-        context = this;
-        queueCb = cb;
-        if (!alreadyQueued) {
-          alreadyQueued = true;
-          $$rAF(function() {
-            queueCb.apply(context, queueArgs);
-            alreadyQueued = false;
-          });
-        }
-      };
-    };
-    return $$rAF;
-
-  }
-
+    .primaryPalette('indigo')
+    .accentPalette('pink')
+    .warnPalette('red')
+    .backgroundPalette('grey');
 }
 MdCoreConfigure.$inject = ["$provide", "$mdThemingProvider"];
+
+function rAFDecorator( $delegate ) {
+  /**
+   * Use this to throttle events that come in often.
+   * The throttled function will always use the *last* invocation before the
+   * coming frame.
+   *
+   * For example, window resize events that fire many times a second:
+   * If we set to use an raf-throttled callback on window resize, then
+   * our callback will only be fired once per frame, with the last resize
+   * event that happened before that frame.
+   *
+   * @param {function} callback function to debounce
+   */
+  $delegate.throttle = function(cb) {
+    var queueArgs, alreadyQueued, queueCb, context;
+    return function debounced() {
+      queueArgs = arguments;
+      context = this;
+      queueCb = cb;
+      if (!alreadyQueued) {
+        alreadyQueued = true;
+        $delegate(function() {
+          queueCb.apply(context, queueArgs);
+          alreadyQueued = false;
+        });
+      }
+    };
+  };
+  return $delegate;
+}
 
 })();
 
@@ -80,7 +71,7 @@ MdCoreConfigure.$inject = ["$provide", "$mdThemingProvider"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -137,23 +128,23 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function(){
 
   angular
     .module('material.core')
     .config( ["$provide", function($provide){
-       $provide.decorator('$mdUtil', ['$delegate', function ($mdUtil){
+       $provide.decorator('$mdUtil', ['$delegate', function ($delegate){
            /**
             * Inject the iterator facade to easily support iteration and accessors
             * @see iterator below
             */
-           $mdUtil.iterator = Iterator;
+           $delegate.iterator = Iterator;
 
-           return $mdUtil;
+           return $delegate;
          }
-       ])
+       ]);
      }]);
 
   /**
@@ -185,8 +176,8 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
 
       first: first,
       last: last,
-      next: next,
-      previous: previous,
+      next: angular.bind(null, findSubsequentItem, false),
+      previous: angular.bind(null, findSubsequentItem, true),
 
       hasPrevious: hasPrevious,
       hasNext: hasNext
@@ -311,48 +302,6 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
     }
 
     /**
-     * Find the next item. If reloop is true and at the end of the list, it will
-     * go back to the first item. If given ,the `validate` callback will be used
-     * determine whether the next item is valid. If not valid, it will try to find the
-     * next item again.
-     * @param item
-     * @param {optional} validate function
-     * @param {optional} recursion limit
-     * @returns {*}
-     */
-    function next(item, validate, limit) {
-      validate = validate || trueFn;
-
-      var index = indexOf(item) + 1;
-      var found = inRange(index) ? _items[ index ] : (reloop ? first() : null);
-
-          found = hasCheckedAll(found, limit) ? null : found;
-
-      return !found || validate(found) ? found : next(found, validate, limit || index);
-    }
-
-    /**
-     * Find the previous item. If reloop is true and at the beginning of the list, it will
-     * go back to the last item. If given ,the `validate` callback will be used
-     * determine whether the previous item is valid. If not valid, it will try to find the
-     * previous item again.
-     * @param item
-     * @param {optional} validation function
-     * @param {optional} recursion limit
-     * @returns {*}
-     */
-    function previous(item, validate, limit) {
-      validate = validate || trueFn;
-
-        var index = indexOf(item) - 1;
-        var found = inRange(index) ? _items[ index ] : (reloop ? last() : null);
-
-            found = hasCheckedAll(found, limit) ? null : found;
-
-        return !found || validate(found) ? found : previous(found, validate, limit || index);
-    }
-
-    /**
      * Return first item in the list
      * @returns {*}
      */
@@ -369,15 +318,42 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
     }
 
     /**
-     * Has the iteration checked all items in the list
-     * @param item current found item in th list
-     * @param {optional} stopAt index
-     * @returns {*|boolean}
+     * Find the next item. If reloop is true and at the end of the list, it will
+     * go back to the first item. If given ,the `validate` callback will be used
+     * determine whether the next item is valid. If not valid, it will try to find the
+     * next item again.
+     * @param item
+     * @param {optional} validate Validate function
+     * @param {optional} limit Recursion limit
+     * @returns {*}
      */
-    function hasCheckedAll(item, stopAt) {
-      return stopAt && item && (indexOf(item) == stopAt);
-    }
+    function findSubsequentItem(backwards, item, validate, limit) {
+      validate = validate || trueFn;
 
+      var curIndex = indexOf(item);
+      if (!inRange(curIndex)) {
+        return null;
+      }
+
+      var nextIndex = curIndex + (backwards ? -1 : 1);
+      var foundItem = null;
+      if (inRange(nextIndex)) {
+        foundItem = _items[nextIndex];
+      } else if (reloop) {
+        foundItem = backwards ? last() : first();
+        nextIndex = indexOf(foundItem);
+      }
+
+      if ((foundItem === null) || (nextIndex === limit)) {
+        return null;
+      }
+
+      if (angular.isUndefined(limit)) {
+        limit = nextIndex;
+      }
+
+      return validate(foundItem) ? foundItem : findSubsequentItem(backwards, foundItem, validate, limit);
+    }
   }
 
 })();
@@ -386,10 +362,10 @@ MdConstantFactory.$inject = ["$$rAF", "$sniffer"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 angular.module('material.core')
-    .factory('$mdMedia', mdMediaFactory);
+.factory('$mdMedia', mdMediaFactory);
 
 /**
  * Exposes a function on the '$mdMedia' service which will return true or false,
@@ -400,52 +376,52 @@ angular.module('material.core')
  * @example $mdMedia('(min-width: 1200px)') == true if device-width >= 1200px
  * @example $mdMedia('max-width: 300px') == true if device-width <= 300px (sanitizes input, adding parens)
  */
-function mdMediaFactory($window, $mdUtil, $timeout, $mdConstant) {
-    var cache = $mdUtil.cacheFactory('$mdMedia', { capacity: 15 });
+function mdMediaFactory($mdConstant, $rootScope, $window) {
+  var queries = {};
+  var results = {};
 
-    angular.element($window).on('resize', updateAll);
+  return $mdMedia;
 
-    return $mdMedia;
-
-    function $mdMedia(query) {
-        query = validate(query);
-        var result;
-        if (!angular.isDefined(result = cache.get(query)) ) {
-            return add(query);
-        }
-        return result;
+  function $mdMedia(query) {
+    var validated = queries[query];
+    if (angular.isUndefined(validated)) {
+      validated = queries[query] = validate(query);
     }
 
-    function validate(query) {
-        return $mdConstant.MEDIA[query] || (
-                query.charAt(0) != '(' ?  ('(' + query + ')') : query
-            );
+    var result = results[validated];
+    if (angular.isUndefined(result)) {
+      result = add(validated);
     }
 
-    function add(query) {
-        return cache.put(query, !!$window.matchMedia(query).matches);
+    return result;
+  }
 
-    }
+  function validate(query) {
+    return $mdConstant.MEDIA[query] ||
+           ((query.charAt(0) !== '(') ? ('(' + query + ')') : query);
+  }
 
-    function updateAll() {
-        var keys = cache.keys();
-        if (keys.length) {
-            for (var i = 0, ii = keys.length; i < ii; i++) {
-                cache.put(keys[i], !!$window.matchMedia(keys[i]).matches);
-            }
-            // trigger a $digest()
-            $timeout(angular.noop);
-        }
-    }
+  function add(query) {
+    var result = $window.matchMedia(query);
+    result.addListener(onQueryChange);
+    return (results[result.media] = !!result.matches);
+  }
+
+  function onQueryChange() {
+    var query = this;
+    $rootScope.$evalAsync(function() {
+      results[query.media] = !!query.matches;
+    });
+  }
 
 }
-mdMediaFactory.$inject = ["$window", "$mdUtil", "$timeout", "$mdConstant"];
+mdMediaFactory.$inject = ["$mdConstant", "$rootScope", "$window"];
 
 /*!
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -459,12 +435,11 @@ mdMediaFactory.$inject = ["$window", "$mdUtil", "$timeout", "$mdConstant"];
 var nextUniqueId = ['0','0','0'];
 
 angular.module('material.core')
-.factory('$mdUtil', ["$cacheFactory", "$document", function($cacheFactory, $document) {
+.factory('$mdUtil', ["$document", "$timeout", function($document, $timeout) {
   var Util;
+
   return Util = {
     now: window.performance ? angular.bind(window.performance, window.performance.now) : Date.now,
-
-    attachDragBehavior: attachDragBehavior,
 
     elementRect: function(element, offsetParent) {
       var node = element[0];
@@ -482,10 +457,14 @@ angular.module('material.core')
 
     fakeNgModel: function() {
       return {
+        $fake: true,
         $setViewValue: function(value) {
           this.$viewValue = value;
           this.$render(value);
           this.$viewChangeListeners.forEach(function(cb) { cb(); });
+        },
+        $isEmpty: function(value) {
+          return (''+value).length === 0;
         },
         $parsers: [],
         $formatters: [],
@@ -494,25 +473,25 @@ angular.module('material.core')
       };
     },
 
-    /**
-     * @see cacheFactory below
-     */
-    cacheFactory: cacheFactory,
-
     // Returns a function, that, as long as it continues to be invoked, will not
     // be triggered. The function will be called after it stops being called for
-    // N milliseconds. If `immediate` is passed, trigger the function on the
-    // leading edge, instead of the trailing.
-    debounce: function debounce(func, wait, immediate) {
-      var timeout;
+    // N milliseconds.
+    // @param wait Integer value of msecs to delay (since last debounce reset); default value 10 msecs
+    // @param invokeApply should the $timeout trigger $digest() dirty checking
+    debounce: function (func, wait, scope, invokeApply) {
+      var timer;
+
       return function debounced() {
-        var context = this, args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(function() {
-          timeout = null;
-          if (!immediate) func.apply(context, args);
-        }, wait);
-        if (immediate && !timeout) func.apply(context, args);
+        var context = scope,
+          args = Array.prototype.slice.call(arguments);
+
+        $timeout.cancel(timer);
+        timer = $timeout(function() {
+
+          timer = undefined;
+          func.apply(context, args);
+
+        }, wait || 10, invokeApply );
       };
     },
 
@@ -526,7 +505,7 @@ angular.module('material.core')
         var args = arguments;
         var now = Util.now();
 
-        if (!recent || recent - now > delay) {
+        if (!recent || (now - recent > delay)) {
           func.apply(context, args);
           recent = now;
         }
@@ -606,134 +585,24 @@ angular.module('material.core')
       } else {
         parent.$$childHead = parent.$$childTail = child;
       }
+    },
+  /*
+   * getClosest replicates jQuery.closest() to walk up the DOM tree until it finds a matching nodeName
+   *
+   * @param el Element to start walking the DOM from
+   * @param tagName Tag name to find closest to el, such as 'form'
+   */
+    getClosest: function getClosest(el, tagName) {
+      tagName = tagName.toUpperCase();
+      do {
+        if (el.nodeName === tagName) {
+          return el;
+        }
+      } while (el = el.parentNode);
+      return null;
     }
   };
 
-
-  function attachDragBehavior(scope, element, options) {
-    // The state of the current drag & previous drag
-    var drag;
-    var previousDrag;
-    // Whether the pointer is currently down on this element.
-    var pointerIsDown;
-    var START_EVENTS = 'mousedown touchstart pointerdown';
-    var MOVE_EVENTS = 'mousemove touchmove pointermove';
-    var END_EVENTS = 'mouseup mouseleave touchend touchcancel pointerup pointercancel';
-
-    // Listen to move and end events on document. End events especially could have bubbled up
-    // from the child.
-    element.on(START_EVENTS, startDrag);
-    $document.on(MOVE_EVENTS, doDrag)
-      .on(END_EVENTS, endDrag);
-
-    scope.$on('$destroy', cleanup);
-
-    return cleanup;
-
-    function cleanup() {
-      if (cleanup.called) return;
-      cleanup.called = true;
-
-      element.off(START_EVENTS, startDrag);
-      $document.off(MOVE_EVENTS, doDrag)
-        .off(END_EVENTS, endDrag);
-      drag = pointerIsDown = false;
-    }
-
-    function startDrag(ev) {
-      var eventType = ev.type.charAt(0);
-      var now = Util.now();
-      // iOS & old android bug: after a touch event, iOS sends a click event 350 ms later.
-      // Don't allow a drag of a different pointerType than the previous drag if it has been
-      // less than 400ms.
-      if (previousDrag && previousDrag.pointerType !== eventType &&
-          (now - previousDrag.endTime < 400)) {
-        return;
-      }
-      if (pointerIsDown) return;
-      pointerIsDown = true;
-
-      drag = {
-        // Restrict this drag to whatever started it: if a mousedown started the drag,
-        // don't let anything but mouse events continue it.
-        pointerType: eventType,
-        startX: getPosition(ev),
-        startTime: now
-      };
-
-      element.one('$md.dragstart', function(ev) {
-        // Allow user to cancel by preventing default
-        if (ev.defaultPrevented) drag = null;
-      });
-      element.triggerHandler('$md.dragstart', drag);
-    }
-    function doDrag(ev) {
-      if (!drag || !isProperEventType(ev, drag)) return;
-
-      if (drag.pointerType === 't' || drag.pointerType === 'p') {
-        // No scrolling for touch/pointer events
-        ev.preventDefault();
-      }
-      updateDragState(ev);
-      element.triggerHandler('$md.drag', drag);
-    }
-    function endDrag(ev) {
-      pointerIsDown = false;
-      if (!drag || !isProperEventType(ev, drag)) return;
-
-      drag.endTime = Util.now();
-      updateDragState(ev);
-
-      element.triggerHandler('$md.dragend', drag);
-
-      previousDrag = drag;
-      drag = null;
-    }
-
-    function updateDragState(ev) {
-      var x = getPosition(ev);
-      drag.distance = drag.startX - x;
-      drag.direction = drag.distance > 0 ? 'left' : (drag.distance < 0 ? 'right' : '');
-      drag.duration = drag.startTime - Util.now();
-      drag.velocity = Math.abs(drag.duration) / drag.time;
-    }
-    function getPosition(ev) {
-      ev = ev.originalEvent || ev; //support jQuery events
-      var point = (ev.touches && ev.touches[0]) ||
-        (ev.changedTouches && ev.changedTouches[0]) ||
-        ev;
-      return point.pageX;
-    }
-    function isProperEventType(ev, drag) {
-      return drag && ev && (ev.type || '').charAt(0) === drag.pointerType;
-    }
-  }
-
-  /*
-   * Angular's $cacheFactory doesn't have a keys() method,
-   * so we add one ourself.
-   */
-  function cacheFactory(id, options) {
-    var cache = $cacheFactory(id, options);
-
-    var keys = {};
-    cache._put = cache.put;
-    cache.put = function(k,v) {
-      keys[k] = true;
-      return cache._put(k, v);
-    };
-    cache._remove = cache.remove;
-    cache.remove = function(k) {
-      delete keys[k];
-      return cache._remove(k);
-    };
-
-    cache.keys = function() {
-      return Object.keys(keys);
-    };
-
-    return cache;
-  }
 }]);
 
 /*
@@ -763,7 +632,7 @@ angular.element.prototype.blur = angular.element.prototype.blur || function() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -845,7 +714,7 @@ AriaService.$inject = ["$$rAF", "$log", "$window"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -854,6 +723,7 @@ angular.module('material.core')
   .service('$mdCompiler', mdCompilerService);
 
 function mdCompilerService($q, $http, $injector, $compile, $controller, $templateCache) {
+  /* jshint validthis: true */
 
   /*
    * @ngdoc service
@@ -990,7 +860,407 @@ mdCompilerService.$inject = ["$q", "$http", "$injector", "$compile", "$controlle
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
+ */
+(function() {
+'use strict';
+
+/*
+ * TODO: Add support for multiple fingers on the `pointer` object (enables pinch gesture)
+ */
+
+var START_EVENTS = 'mousedown touchstart pointerdown';
+var MOVE_EVENTS = 'mousemove touchmove pointermove';
+var END_EVENTS = 'mouseup mouseleave touchend touchcancel pointerup pointercancel';
+var HANDLERS;
+
+document.contains || (document.contains = function(node) {
+  return document.body.contains(node);
+});
+
+// TODO add windows phone to this
+var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+var isIos = userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i);
+var isAndroid = userAgent.match(/Android/i);
+var shouldHijackClicks = isIos || isAndroid;
+
+if (shouldHijackClicks) {
+  document.addEventListener('click', function(ev) {
+    // Space/enter on a button, and submit events, can send clicks
+    var isKeyClick = ev.clientX === 0 && ev.clientY === 0;
+    if (isKeyClick || ev.$material) return;
+
+    // Prevent clicks unless they're sent by material
+    ev.preventDefault();
+    ev.stopPropagation();
+  }, true);
+}
+
+angular.element(document)
+  .on(START_EVENTS, gestureStart)
+  .on(MOVE_EVENTS, gestureMove)
+  .on(END_EVENTS, gestureEnd)
+  // For testing
+  .on('$$mdGestureReset', function() {
+    lastPointer = pointer = null;
+  });
+
+// The state of the current and previous 'pointer' (user's hand)
+var pointer, lastPointer;
+
+function runHandlers(handlerEvent, event) {
+  var handler;
+  for (var handlerName in HANDLERS) {
+    handler = HANDLERS[handlerName];
+    if (handlerEvent === 'start') {
+      // Run cancel to reset any handlers' state
+      handler.cancel();
+    }
+    handler[handlerEvent](event, pointer);
+  }
+}
+
+function gestureStart(ev) {
+  // If we're already touched down, abort
+  if (pointer) return;
+
+  var now = +Date.now();
+
+  // iOS & old android bug: after a touch event, a click event is sent 350 ms later.
+  // If <400ms have passed, don't allow an event of a different type than the previous event
+  if (lastPointer && !typesMatch(ev, lastPointer) && (now - lastPointer.endTime < 1500)) {
+    return;
+  }
+
+  pointer = makeStartPointer(ev);
+
+  runHandlers('start', ev);
+}
+
+function gestureMove(ev) {
+  if (!pointer || !typesMatch(ev, pointer)) return;
+
+  updatePointerState(ev, pointer);
+  runHandlers('move', ev);
+}
+
+function gestureEnd(ev) {
+  if (!pointer || !typesMatch(ev, pointer)) return;
+
+  updatePointerState(ev, pointer);
+  pointer.endTime = +Date.now();
+
+  runHandlers('end', ev);
+
+  lastPointer = pointer;
+  pointer = null;
+}
+
+/******** Helpers *********/
+function typesMatch(ev, pointer) {
+  return ev && pointer && ev.type.charAt(0) === pointer.type;
+}
+
+function getEventPoint(ev) {
+  ev = ev.originalEvent || ev; // support jQuery events
+  return (ev.touches && ev.touches[0]) ||
+    (ev.changedTouches && ev.changedTouches[0]) ||
+    ev;
+}
+
+function updatePointerState(ev, pointer) {
+  var point = getEventPoint(ev);
+  var x = pointer.x = point.pageX;
+  var y = pointer.y = point.pageY;
+
+  pointer.distanceX = x - pointer.startX;
+  pointer.distanceY = y - pointer.startY;
+  pointer.distance = Math.sqrt(
+    pointer.distanceX * pointer.distanceX + pointer.distanceY * pointer.distanceY
+  );
+
+  pointer.directionX = pointer.distanceX > 0 ? 'right' : pointer.distanceX < 0 ? 'left' : '';
+  pointer.directionY = pointer.distanceY > 0 ? 'up' : pointer.distanceY < 0 ? 'down' : '';
+
+  pointer.duration = +Date.now() - pointer.startTime;
+  pointer.velocityX = pointer.distanceX / pointer.duration;
+  pointer.velocityY = pointer.distanceY / pointer.duration;
+}
+
+
+function makeStartPointer(ev) {
+  var point = getEventPoint(ev);
+  var startPointer = {
+    startTime: +Date.now(),
+    target: ev.target,
+    // 'p' for pointer, 'm' for mouse, 't' for touch
+    type: ev.type.charAt(0)
+  };
+  startPointer.startX = startPointer.x = point.pageX;
+  startPointer.startY = startPointer.y = point.pageY;
+  return startPointer;
+}
+
+angular.module('material.core')
+.run(["$mdGesture", function($mdGesture) {}]) // make sure $mdGesture is always instantiated
+.factory('$mdGesture', ["$$MdGestureHandler", "$$rAF", "$timeout", function($$MdGestureHandler, $$rAF, $timeout) {
+  HANDLERS = {};
+
+  if (shouldHijackClicks) {
+    addHandler('click', {
+      options: {
+        maxDistance: 6
+      },
+      onEnd: function(ev, pointer) {
+        if (pointer.distance < this.state.options.maxDistance) {
+          this.dispatchEvent(ev, 'click', null, ev);
+        }
+      }
+    });
+  }
+
+  addHandler('press', {
+    onStart: function(ev, pointer) {
+      this.dispatchEvent(ev, '$md.pressdown');
+    },
+    onEnd: function(ev, pointer) {
+      this.dispatchEvent(ev, '$md.pressup');
+    }
+  });
+
+
+  addHandler('hold', {
+    options: {
+      // If the user keeps his finger within the same <maxDistance> area for
+      // <delay> ms, dispatch a hold event.
+      maxDistance: 6,
+      delay: 500,
+    },
+    onCancel: function() {
+      $timeout.cancel(this.state.timeout);
+    },
+    onStart: function(ev, pointer) {
+      // For hold, require a parent to be registered with $mdGesture.register()
+      // Because we prevent scroll events, this is necessary.
+      if (!this.state.registeredParent) return this.cancel();
+
+      this.state.pos = {x: pointer.x, y: pointer.y};
+      this.state.timeout = $timeout(angular.bind(this, function holdDelayFn() {
+        this.dispatchEvent(ev, '$md.hold');
+        this.cancel(); //we're done!
+      }), this.state.options.delay, false);
+    },
+    onMove: function(ev, pointer) {
+      // Don't scroll while waiting for hold
+      ev.preventDefault();
+      var dx = this.state.pos.x - pointer.x;
+      var dy = this.state.pos.y - pointer.y;
+      if (Math.sqrt(dx*dx + dy*dy) > this.options.maxDistance) {
+        this.cancel();
+      }
+    },
+    onEnd: function(ev, pointer) {
+      this.onCancel();
+    },
+  });
+
+  addHandler('drag', {
+    options: {
+      minDistance: 6,
+      horizontal: true,
+    },
+    onStart: function(ev) {
+      // For drag, require a parent to be registered with $mdGesture.register()
+      if (!this.state.registeredParent) this.cancel();
+    },
+    onMove: function(ev, pointer) {
+      var shouldStartDrag, shouldCancel;
+      // Don't allow touch events to scroll while we're dragging or
+      // deciding if this touchmove is a proper drag
+      ev.preventDefault();
+
+      if (!this.state.dragPointer) {
+        if (this.state.options.horizontal) {
+          shouldStartDrag = Math.abs(pointer.distanceX) > this.state.options.minDistance;
+          shouldCancel = Math.abs(pointer.distanceY) > this.state.options.minDistance * 1.5;
+        } else {
+          shouldStartDrag = Math.abs(pointer.distanceY) > this.state.options.minDistance;
+          shouldCancel = Math.abs(pointer.distanceX) > this.state.options.minDistance * 1.5;
+        }
+
+        if (shouldStartDrag) {
+          // Create a new pointer, starting at this point where the drag started.
+          this.state.dragPointer = makeStartPointer(ev);
+          updatePointerState(ev, this.state.dragPointer);
+          this.dispatchEvent(ev, '$md.dragstart', this.state.dragPointer);
+
+        } else if (shouldCancel) {
+          this.cancel();
+        }
+      } else {
+        this.dispatchDragMove(ev);
+      }
+    },
+    // Only dispatch these every frame; any more is unnecessray
+    dispatchDragMove: $$rAF.throttle(function(ev) {
+      // Make sure the drag didn't stop while waiting for the next frame
+      if (this.state.isRunning) {
+        updatePointerState(ev, this.state.dragPointer);
+        this.dispatchEvent(ev, '$md.drag', this.state.dragPointer);
+      }
+    }),
+    onEnd: function(ev, pointer) {
+      if (this.state.dragPointer) {
+        updatePointerState(ev, this.state.dragPointer);
+        this.dispatchEvent(ev, '$md.dragend', this.state.dragPointer);
+      }
+    }
+  });
+
+  addHandler('swipe', {
+    options: {
+      minVelocity: 0.65,
+      minDistance: 10,
+    },
+    onEnd: function(ev, pointer) {
+      if (Math.abs(pointer.velocityX) > this.state.options.minVelocity &&
+          Math.abs(pointer.distanceX) > this.state.options.minDistance) {
+        var eventType = pointer.directionX == 'left' ? '$md.swipeleft' : '$md.swiperight';
+        this.dispatchEvent(ev, eventType);
+      }
+    }
+  });
+
+  var self;
+  return self = {
+    handler: addHandler,
+    register: register
+  };
+
+  function addHandler(name, definition) {
+    var handler = new $$MdGestureHandler(name);
+    angular.extend(handler, definition);
+    HANDLERS[name] = handler;
+    return self;
+  }
+
+  function register(element, handlerName, options) {
+    var handler = HANDLERS[ handlerName.replace(/^\$md./, '') ];
+    if (!handler) {
+      throw new Error('Failed to register element with handler ' + handlerName + '. ' +
+                      'Available handlers: ' + Object.keys(HANDLERS).join(', '));
+    }
+    return handler.registerElement(element, options);
+  }
+}])
+.factory('$$MdGestureHandler', ["$$rAF", function($$rAF) {
+
+  function GestureHandler(name) {
+    this.name = name;
+    this.state = {};
+  }
+  GestureHandler.prototype = {
+    onStart: angular.noop,
+    onMove: angular.noop,
+    onEnd: angular.noop,
+    onCancel: angular.noop,
+    options: {},
+
+    dispatchEvent: dispatchEvent,
+
+    start: function(ev, pointer) {
+      if (this.state.isRunning) return;
+      var parentTarget = this.getNearestParent(ev.target);
+      var parentTargetOptions = parentTarget && parentTarget.$mdGesture[this.name] || {};
+
+      this.state = {
+        isRunning: true,
+        options: angular.extend({}, this.options, parentTargetOptions),
+        registeredParent: parentTarget
+      };
+      this.onStart(ev, pointer);
+    },
+    move: function(ev, pointer) {
+      if (!this.state.isRunning) return;
+      this.onMove(ev, pointer);
+    },
+    end: function(ev, pointer) {
+      if (!this.state.isRunning) return;
+      this.onEnd(ev, pointer);
+      this.state.isRunning = false;
+    },
+    cancel: function(ev, pointer) {
+      this.onCancel(ev, pointer);
+      this.state = {};
+    },
+
+    // Find and return the nearest parent element that has been registered via
+    // $mdGesture.register(element, 'handlerName').
+    getNearestParent: function(node) {
+      var current = node;
+      while (current) {
+        if ( (current.$mdGesture || {})[this.name] ) {
+          return current;
+        }
+        current = current.parentNode;
+      }
+    },
+
+    registerElement: function(element, options) {
+      var self = this;
+      element[0].$mdGesture = element[0].$mdGesture || {};
+      element[0].$mdGesture[this.name] = options || {};
+      element.on('$destroy', onDestroy);
+
+      return onDestroy;
+      
+      function onDestroy() {
+        delete element[0].$mdGesture[self.name];
+        element.off('$destroy', onDestroy);
+      }
+    },
+  };
+
+  var customEventOptions = {
+    bubbles: true,
+    cancelable: true
+  };
+  /*
+   * NOTE: dispatchEvent is very performance sensitive. 
+   */
+  function dispatchEvent(srcEvent, eventType, eventPointer, /*original DOMEvent */ev) {
+    eventPointer = eventPointer || pointer;
+    var eventObj;
+
+    if (eventType === 'click') {
+      eventObj = document.createEvent('MouseEvents');
+      eventObj.initMouseEvent(
+        'click', true, true, window, ev.detail,
+        ev.screenX, ev.screenY, ev.clientX, ev.clientY, 
+        ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey,
+        ev.button, ev.relatedTarget || null
+      );
+
+    } else {
+      eventObj = document.createEvent('CustomEvent');
+      eventObj.initCustomEvent(eventType, true, true, {});
+    }
+    eventObj.$material = true;
+    eventObj.pointer = eventPointer;
+    eventObj.srcEvent = srcEvent;
+    eventPointer.target.dispatchEvent(eventObj);
+  }
+
+  return GestureHandler;
+}]);
+
+})();
+
+/*!
+ * Angular Material Design
+ * https://github.com/angular/material
+ * @license MIT
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -1142,6 +1412,15 @@ function InterimElementProvider() {
             return this;
           };
         });
+
+        // Create shortcut method for one-linear methods
+        if (definition.argOption) {
+          var methodName = 'show' + name.charAt(0).toUpperCase() + name.slice(1);
+          publicService[methodName] = function(arg) {
+            var config = publicService[name](arg);
+            return publicService.show(config);
+          };
+        }
 
         // eg $mdDialog.alert() will return a new alert preset
         publicService[name] = function(arg) {
@@ -1361,7 +1640,7 @@ function InterimElementProvider() {
      * for interpolation. This allows pre-defined templates (for components such as dialog, toast etc)
      * to continue to work in apps that use custom interpolation start-/endSymbols.
      *
-     * @param {string} text The test in which to replace `{{` / `}}`
+     * @param {string} text The text in which to replace `{{` / `}}`
      * @returns {string} The modified string using the actual interpolation start-/endSymbols
      */
     function replaceInterpolationSymbols(text) {
@@ -1378,7 +1657,7 @@ function InterimElementProvider() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
   'use strict';
@@ -1492,13 +1771,13 @@ function InterimElementProvider() {
 
           return deferred.promise;
         }
-        return $q.reject("Invalid `md-component-id` value.")
+        return $q.reject("Invalid `md-component-id` value.");
       }
 
     };
 
     function isValidID(handle){
-      return handle && (handle != "");
+      return handle && (handle !== "");
     }
 
   }
@@ -1511,7 +1790,7 @@ function InterimElementProvider() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -1558,7 +1837,8 @@ function InkRippleService($window, $timeout) {
   function attachCheckboxBehavior(scope, element, options) {
     return attach(scope, element, angular.extend({
       center: true,
-      dimBackground: false
+      dimBackground: false,
+      fitRipple: true
     }, options));
   }
 
@@ -1583,10 +1863,11 @@ function InkRippleService($window, $timeout) {
       dimBackground: false,
       outline: false,
       isFAB: false,
-      isMenuItem: false
+      isMenuItem: false,
+      fitRipple: false
     }, options);
 
-    var rippleContainer, rippleSize,
+    var rippleSize,
         controller = element.controller('mdInkRipple') || {},
         counter = 0,
         ripples = [],
@@ -1595,10 +1876,23 @@ function InkRippleService($window, $timeout) {
         isActive = false,
         isHeld = false,
         node = element[0],
-        hammertime = new Hammer(node),
+        rippleSizeSetting = element.attr('md-ripple-size'),
         color = parseColor(element.attr('md-ink-ripple')) || parseColor($window.getComputedStyle(options.colorElement[0]).color || 'rgb(0, 0, 0)');
 
-    options.mousedown && hammertime.on('hammer.input', onInput);
+    switch (rippleSizeSetting) {
+      case 'full':
+        options.isFAB = true;
+        break;
+      case 'partial':
+        options.isFAB = false;
+        break;
+    }
+
+    // expose onInput for ripple testing
+    if (options.mousedown) {
+      element.on('$md.pressdown', onPressDown)
+        .on('$md.pressup', onPressUp);
+    }
 
     controller.createRipple = createRipple;
 
@@ -1614,9 +1908,25 @@ function InkRippleService($window, $timeout) {
 
     // Publish self-detach method if desired...
     return function detach() {
-      hammertime.destroy();
-      rippleContainer && rippleContainer.remove();
+      element.off('$md.pressdown', onPressDown)
+        .off('$md.pressup', onPressUp);
+      getRippleContainer().remove();
     };
+
+    /**
+     * Gets the current ripple container
+     * If there is no ripple container, it creates one and returns it
+     *
+     * @returns {angular.element} ripple container element
+     */
+    function getRippleContainer() {
+      var container = element.data('$mdRippleContainer');
+      if (container) return container;
+      container = angular.element('<div class="md-ripple-container">');
+      element.append(container);
+      element.data('$mdRippleContainer', container);
+      return container;
+    }
 
     function parseColor(color) {
       if (!color) return;
@@ -1653,7 +1963,7 @@ function InkRippleService($window, $timeout) {
        * @returns {string} rgba color with 0.1 alpha
        */
       function rgbToRGBA(color) {
-        return color.replace(')', ', 0.1)').replace('(', 'a(')
+        return color.replace(')', ', 0.1)').replace('(', 'a(');
       }
 
     }
@@ -1661,7 +1971,7 @@ function InkRippleService($window, $timeout) {
     function removeElement(elem, wait) {
       ripples.splice(ripples.indexOf(elem), 1);
       if (ripples.length === 0) {
-        rippleContainer && rippleContainer.css({ backgroundColor: '' });
+        getRippleContainer().css({ backgroundColor: '' });
       }
       $timeout(function () { elem.remove(); }, wait, false);
     }
@@ -1769,7 +2079,10 @@ function InkRippleService($window, $timeout) {
           size = 2 * Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
         } else {
           multiplier = options.isFAB ? 1.1 : 0.8;
-          size = Math.max(width, height) * multiplier;
+          size = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) * multiplier;
+          if (options.fitRipple) {
+            size = Math.min(height, width, size);
+          }
         }
         return size;
       }
@@ -1820,53 +2133,39 @@ function InkRippleService($window, $timeout) {
           return color.replace('rgba', 'rgb').replace(/,[^\)\,]+\)/, ')');
         }
       }
-
-      /**
-       * Gets the current ripple container
-       * If there is no ripple container, it creates one and returns it
-       *
-       * @returns {angular.element} ripple container element
-       */
-      function getRippleContainer() {
-        if (rippleContainer) return rippleContainer;
-        var container = rippleContainer = angular.element('<div class="md-ripple-container">');
-        element.append(container);
-        return container;
-      }
     }
 
     /**
      * Handles user input start and stop events
      *
-     * @param {event} event fired by hammer.js
      */
-    function onInput(ev) {
-      var ripple, index;
-      if (ev.eventType === Hammer.INPUT_START && ev.isFirst && isRippleAllowed()) {
-        ripple = createRipple(ev.center.x, ev.center.y);
-        isHeld = true;
-      } else if (ev.eventType === Hammer.INPUT_END && ev.isFinal) {
-        isHeld = false;
-        index = ripples.length - 1;
-        ripple = ripples[index];
-        $timeout(function () { updateElement(ripple); }, 0, false);
-      }
+    function onPressDown(ev) {
+      if (!isRippleAllowed()) return;
 
-      /**
-       * Determines if the ripple is allowed
-       *
-       * @returns {boolean} true if the ripple is allowed, false if not
-       */
-      function isRippleAllowed() {
-        var parent = node.parentNode;
-        var grandparent = parent && parent.parentNode;
-        var ancestor = grandparent && grandparent.parentNode;
-        return !node.hasAttribute('disabled') &&
-          !(parent && parent.hasAttribute('disabled')) &&
-          !(grandparent && grandparent.hasAttribute('disabled')) &&
-          !(ancestor && ancestor.hasAttribute('disabled'));
+      var ripple = createRipple(ev.pointer.x, ev.pointer.y);
+      isHeld = true;
+    }
+    function onPressUp(ev) {
+      isHeld = false;
+      var ripple = ripples[ ripples.length - 1 ];
+      $timeout(function () { updateElement(ripple); }, 0, false);
+    }
+
+    /**
+     * Determines if the ripple is allowed
+     *
+     * @returns {boolean} true if the ripple is allowed, false if not
+     */
+    function isRippleAllowed() {
+      var parent = node.parentNode;
+      var grandparent = parent && parent.parentNode;
+      var ancestor = grandparent && grandparent.parentNode;
+      return !isDisabled(node) && !isDisabled(parent) && !isDisabled(grandparent) && !isDisabled(ancestor);
+      function isDisabled (elem) {
+        return elem && elem.hasAttribute && elem.hasAttribute('disabled');
       }
     }
+
   }
 }
 InkRippleService.$inject = ["$window", "$timeout"];
@@ -1915,12 +2214,384 @@ function attrNoDirective() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
 
-angular.module('material.core.theming', [])
+angular.module('material.core.theming.palette', [])
+.constant('$mdColorPalette', {
+  'red': {
+    '50': '#ffebee',
+    '100': '#ffcdd2',
+    '200': '#ef9a9a',
+    '300': '#e57373',
+    '400': '#ef5350',
+    '500': '#f44336',
+    '600': '#e53935',
+    '700': '#d32f2f',
+    '800': '#c62828',
+    '900': '#b71c1c',
+    'A100': '#ff8a80',
+    'A200': '#ff5252',
+    'A400': '#ff1744',
+    'A700': '#d50000',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300 400 A100',
+    'contrastStrongLightColors': '500 600 700 A200 A400 A700'
+  },
+  'pink': {
+    '50': '#fce4ec',
+    '100': '#f8bbd0',
+    '200': '#f48fb1',
+    '300': '#f06292',
+    '400': '#ec407a',
+    '500': '#e91e63',
+    '600': '#d81b60',
+    '700': '#c2185b',
+    '800': '#ad1457',
+    '900': '#880e4f',
+    'A100': '#ff80ab',
+    'A200': '#ff4081',
+    'A400': '#f50057',
+    'A700': '#c51162',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300 400 A100',
+    'contrastStrongLightColors': '500 600 A200 A400 A700'
+  },
+  'purple': {
+    '50': '#f3e5f5',
+    '100': '#e1bee7',
+    '200': '#ce93d8',
+    '300': '#ba68c8',
+    '400': '#ab47bc',
+    '500': '#9c27b0',
+    '600': '#8e24aa',
+    '700': '#7b1fa2',
+    '800': '#6a1b9a',
+    '900': '#4a148c',
+    'A100': '#ea80fc',
+    'A200': '#e040fb',
+    'A400': '#d500f9',
+    'A700': '#aa00ff',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 A100',
+    'contrastStrongLightColors': '300 400 A200 A400 A700'
+  },
+  'deep-purple': {
+    '50': '#ede7f6',
+    '100': '#d1c4e9',
+    '200': '#b39ddb',
+    '300': '#9575cd',
+    '400': '#7e57c2',
+    '500': '#673ab7',
+    '600': '#5e35b1',
+    '700': '#512da8',
+    '800': '#4527a0',
+    '900': '#311b92',
+    'A100': '#b388ff',
+    'A200': '#7c4dff',
+    'A400': '#651fff',
+    'A700': '#6200ea',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 A100',
+    'contrastStrongLightColors': '300 400 A200'
+  },
+  'indigo': {
+    '50': '#e8eaf6',
+    '100': '#c5cae9',
+    '200': '#9fa8da',
+    '300': '#7986cb',
+    '400': '#5c6bc0',
+    '500': '#3f51b5',
+    '600': '#3949ab',
+    '700': '#303f9f',
+    '800': '#283593',
+    '900': '#1a237e',
+    'A100': '#8c9eff',
+    'A200': '#536dfe',
+    'A400': '#3d5afe',
+    'A700': '#304ffe',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 A100',
+    'contrastStrongLightColors': '300 400 A200 A400'
+  },
+  'blue': {
+    '50': '#e3f2fd',
+    '100': '#bbdefb',
+    '200': '#90caf9',
+    '300': '#64b5f6',
+    '400': '#42a5f5',
+    '500': '#2196f3',
+    '600': '#1e88e5',
+    '700': '#1976d2',
+    '800': '#1565c0',
+    '900': '#0d47a1',
+    'A100': '#82b1ff',
+    'A200': '#448aff',
+    'A400': '#2979ff',
+    'A700': '#2962ff',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '100 200 300 400 A100',
+    'contrastStrongLightColors': '500 600 700 A200 A400 A700'
+  },
+  'light-blue': {
+    '50': '#e1f5fe',
+    '100': '#b3e5fc',
+    '200': '#81d4fa',
+    '300': '#4fc3f7',
+    '400': '#29b6f6',
+    '500': '#03a9f4',
+    '600': '#039be5',
+    '700': '#0288d1',
+    '800': '#0277bd',
+    '900': '#01579b',
+    'A100': '#80d8ff',
+    'A200': '#40c4ff',
+    'A400': '#00b0ff',
+    'A700': '#0091ea',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900 A700',
+    'contrastStrongLightColors': '500 600 700 800 A700'
+  },
+  'cyan': {
+    '50': '#e0f7fa',
+    '100': '#b2ebf2',
+    '200': '#80deea',
+    '300': '#4dd0e1',
+    '400': '#26c6da',
+    '500': '#00bcd4',
+    '600': '#00acc1',
+    '700': '#0097a7',
+    '800': '#00838f',
+    '900': '#006064',
+    'A100': '#84ffff',
+    'A200': '#18ffff',
+    'A400': '#00e5ff',
+    'A700': '#00b8d4',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900',
+    'contrastStrongLightColors': '500 600 700 800'
+  },
+  'teal': {
+    '50': '#e0f2f1',
+    '100': '#b2dfdb',
+    '200': '#80cbc4',
+    '300': '#4db6ac',
+    '400': '#26a69a',
+    '500': '#009688',
+    '600': '#00897b',
+    '700': '#00796b',
+    '800': '#00695c',
+    '900': '#004d40',
+    'A100': '#a7ffeb',
+    'A200': '#64ffda',
+    'A400': '#1de9b6',
+    'A700': '#00bfa5',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900',
+    'contrastStrongLightColors': '500 600 700'
+  },
+  'green': {
+    '50': '#e8f5e9',
+    '100': '#c8e6c9',
+    '200': '#a5d6a7',
+    '300': '#81c784',
+    '400': '#66bb6a',
+    '500': '#4caf50',
+    '600': '#43a047',
+    '700': '#388e3c',
+    '800': '#2e7d32',
+    '900': '#1b5e20',
+    'A100': '#b9f6ca',
+    'A200': '#69f0ae',
+    'A400': '#00e676',
+    'A700': '#00c853',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '500 600 700 800 900',
+    'contrastStrongLightColors': '500 600 700'
+  },
+  'light-green': {
+    '50': '#f1f8e9',
+    '100': '#dcedc8',
+    '200': '#c5e1a5',
+    '300': '#aed581',
+    '400': '#9ccc65',
+    '500': '#8bc34a',
+    '600': '#7cb342',
+    '700': '#689f38',
+    '800': '#558b2f',
+    '900': '#33691e',
+    'A100': '#ccff90',
+    'A200': '#b2ff59',
+    'A400': '#76ff03',
+    'A700': '#64dd17',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '800 900',
+    'contrastStrongLightColors': '800 900'
+  },
+  'lime': {
+    '50': '#f9fbe7',
+    '100': '#f0f4c3',
+    '200': '#e6ee9c',
+    '300': '#dce775',
+    '400': '#d4e157',
+    '500': '#cddc39',
+    '600': '#c0ca33',
+    '700': '#afb42b',
+    '800': '#9e9d24',
+    '900': '#827717',
+    'A100': '#f4ff81',
+    'A200': '#eeff41',
+    'A400': '#c6ff00',
+    'A700': '#aeea00',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '900',
+    'contrastStrongLightColors': '900'
+  },
+  'yellow': {
+    '50': '#fffde7',
+    '100': '#fff9c4',
+    '200': '#fff59d',
+    '300': '#fff176',
+    '400': '#ffee58',
+    '500': '#ffeb3b',
+    '600': '#fdd835',
+    '700': '#fbc02d',
+    '800': '#f9a825',
+    '900': '#f57f17',
+    'A100': '#ffff8d',
+    'A200': '#ffff00',
+    'A400': '#ffea00',
+    'A700': '#ffd600',
+    'contrastDefaultColor': 'dark'
+  },
+  'amber': {
+    '50': '#fff8e1',
+    '100': '#ffecb3',
+    '200': '#ffe082',
+    '300': '#ffd54f',
+    '400': '#ffca28',
+    '500': '#ffc107',
+    '600': '#ffb300',
+    '700': '#ffa000',
+    '800': '#ff8f00',
+    '900': '#ff6f00',
+    'A100': '#ffe57f',
+    'A200': '#ffd740',
+    'A400': '#ffc400',
+    'A700': '#ffab00',
+    'contrastDefaultColor': 'dark'
+  },
+  'orange': {
+    '50': '#fff3e0',
+    '100': '#ffe0b2',
+    '200': '#ffcc80',
+    '300': '#ffb74d',
+    '400': '#ffa726',
+    '500': '#ff9800',
+    '600': '#fb8c00',
+    '700': '#f57c00',
+    '800': '#ef6c00',
+    '900': '#e65100',
+    'A100': '#ffd180',
+    'A200': '#ffab40',
+    'A400': '#ff9100',
+    'A700': '#ff6d00',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '800 900',
+    'contrastStrongLightColors': '800 900'
+  },
+  'deep-orange': {
+    '50': '#fbe9e7',
+    '100': '#ffccbc',
+    '200': '#ffab91',
+    '300': '#ff8a65',
+    '400': '#ff7043',
+    '500': '#ff5722',
+    '600': '#f4511e',
+    '700': '#e64a19',
+    '800': '#d84315',
+    '900': '#bf360c',
+    'A100': '#ff9e80',
+    'A200': '#ff6e40',
+    'A400': '#ff3d00',
+    'A700': '#dd2c00',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300 400 A100 A200',
+    'contrastStrongLightColors': '500 600 700 800 900 A400 A700'
+  },
+  'brown': {
+    '50': '#efebe9',
+    '100': '#d7ccc8',
+    '200': '#bcaaa4',
+    '300': '#a1887f',
+    '400': '#8d6e63',
+    '500': '#795548',
+    '600': '#6d4c41',
+    '700': '#5d4037',
+    '800': '#4e342e',
+    '900': '#3e2723',
+    'A100': '#d7ccc8',
+    'A200': '#bcaaa4',
+    'A400': '#8d6e63',
+    'A700': '#5d4037',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200',
+    'contrastStrongLightColors': '300 400'
+  },
+  'grey': {
+    '0': '#ffffff',
+    '50': '#fafafa',
+    '100': '#f5f5f5',
+    '200': '#eeeeee',
+    '300': '#e0e0e0',
+    '400': '#bdbdbd',
+    '500': '#9e9e9e',
+    '600': '#757575',
+    '700': '#616161',
+    '800': '#424242',
+    '900': '#212121',
+    '1000': '#000000',
+    'A100': '#ffffff',
+    'A200': '#eeeeee',
+    'A400': '#bdbdbd',
+    'A700': '#616161',
+    'contrastDefaultColor': 'dark',
+    'contrastLightColors': '600 700 800 900'
+  },
+  'blue-grey': {
+    '50': '#eceff1',
+    '100': '#cfd8dc',
+    '200': '#b0bec5',
+    '300': '#90a4ae',
+    '400': '#78909c',
+    '500': '#607d8b',
+    '600': '#546e7a',
+    '700': '#455a64',
+    '800': '#37474f',
+    '900': '#263238',
+    'A100': '#cfd8dc',
+    'A200': '#b0bec5',
+    'A400': '#78909c',
+    'A700': '#455a64',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': '50 100 200 300',
+    'contrastStrongLightColors': '400 500'
+  }
+});
+})();
+
+/*!
+ * Angular Material Design
+ * https://github.com/angular/material
+ * @license MIT
+ * v0.7.1
+ */
+(function() {
+'use strict';
+
+angular.module('material.core.theming', ['material.core.theming.palette'])
   .directive('mdTheme', ThemingDirective)
   .directive('mdThemable', ThemableDirective)
   .provider('$mdTheming', ThemingProvider)
@@ -1968,11 +2639,12 @@ var LIGHT_FOREGROUND = {
   '4': 'rgba(255,255,255,0.12)'
 };
 
-var DARK_SHADOW = '1px 1px 0px rgba(black, 0.4), -1px -1px 0px rgba(black, 0.4)';
+var DARK_SHADOW = '1px 1px 0px rgba(0,0,0,0.4), -1px -1px 0px rgba(0,0,0,0.4)';
 var LIGHT_SHADOW = '';
 
 var DARK_CONTRAST_COLOR = colorToRgbaArray('rgba(0,0,0,0.87)');
-var LIGHT_CONTRAST_COLOR = colorToRgbaArray('rgb(255,255,255)');
+var LIGHT_CONTRAST_COLOR = colorToRgbaArray('rgba(255,255,255,0.87');
+var STRONG_LIGHT_CONTRAST_COLOR = colorToRgbaArray('rgb(255,255,255)');
 
 var THEME_COLOR_TYPES = ['primary', 'accent', 'warn', 'background'];
 var DEFAULT_COLOR_TYPE = 'primary';
@@ -1980,10 +2652,10 @@ var DEFAULT_COLOR_TYPE = 'primary';
 // A color in a theme will use these hues by default, if not specified by user.
 var LIGHT_DEFAULT_HUES = {
   'accent': {
-    'default': '400',
-    'hue-1': '300',
-    'hue-2': '800',
-    'hue-3': 'A100',
+    'default': 'A200',
+    'hue-1': 'A100',
+    'hue-2': 'A400',
+    'hue-3': 'A700'
   }
 };
 var DARK_DEFAULT_HUES = {
@@ -2011,18 +2683,18 @@ var VALID_HUE_VALUES = [
   '700', '800', '900', 'A100', 'A200', 'A400', 'A700'
 ];
 
-function ThemingProvider() {
+function ThemingProvider($mdColorPalette) {
   PALETTES = {};
   THEMES = {};
   var defaultTheme = 'default';
   var alwaysWatchTheme = false;
 
-  // Load CSS defined palettes (generated from scss)
-  readPaletteCss();
+  // Load JS Defined Palettes
+  angular.extend(PALETTES, $mdColorPalette);
 
   // Default theme defined in core.js
 
-  ThemingService.$inject = ["$rootScope"];
+  ThemingService.$inject = ["$rootScope", "$log"];
   return themingProvider = {
     definePalette: definePalette,
     extendPalette: extendPalette,
@@ -2042,28 +2714,6 @@ function ThemingProvider() {
     _parseRules: parseRules,
     _rgba: rgba
   };
-
-  // Use a temporary element to read the palettes from the content of a decided selector as JSON
-  function readPaletteCss() {
-    var element = document.createElement('div');
-    element.classList.add('md-color-palette-definition');
-    document.body.appendChild(element);
-
-    var backgroundImage = getComputedStyle(element).backgroundImage;
-    if (backgroundImage === 'none' || !backgroundImage) {
-      backgroundImage = '{}'
-    }
-
-    backgroundImage = backgroundImage
-      .replace(/^.*?\{/, '{') // get rid of everything before opening brace
-      .replace(/\}.\).*?$/, '}') // get rid of everything after closing brace and paren
-      .replace(/_/g, '"'); // we output underscores as placeholders for quotes
-
-    // Remove backslashes that firefox gives
-    var parsed = JSON.parse(decodeURI(backgroundImage));
-    angular.extend(PALETTES, parsed);
-    document.body.removeChild(element);
-  }
 
   // Example: $mdThemingProvider.definePalette('neonRed', { 50: '#f5fafa', ... });
   function definePalette(name, map) {
@@ -2096,7 +2746,7 @@ function ThemingProvider() {
   // Register a theme (which is a collection of color palettes to use with various states
   // ie. warn, accent, primary )
   // Optionally inherit from an existing theme
-  // $mdThemingProvider.theme('custom-theme').primaryColor('red');
+  // $mdThemingProvider.theme('custom-theme').primaryPalette('red');
   function registerTheme(name, inheritFrom) {
     inheritFrom = inheritFrom || 'default';
     if (THEMES[name]) return THEMES[name];
@@ -2161,7 +2811,7 @@ function ThemingProvider() {
 
     THEME_COLOR_TYPES.forEach(function(colorType) {
       var defaultHues = (self.isDark ? DARK_DEFAULT_HUES : LIGHT_DEFAULT_HUES)[colorType];
-      self[colorType + 'Color'] = function setColorType(paletteName, hues) {
+      self[colorType + 'Palette'] = function setPaletteType(paletteName, hues) {
         var color = self.colors[colorType] = {
           name: paletteName,
           hues: angular.extend({}, defaultHues, hues)
@@ -2190,8 +2840,14 @@ function ThemingProvider() {
             );
           }
         });
-
         return self;
+      };
+
+      self[colorType + 'Color'] = function() {
+        var args = Array.prototype.slice.call(arguments);
+        console.warn('$mdThemingProviderTheme.' + colorType + 'Color() has been depricated. ' +
+                     'Use $mdThemingProviderTheme.' + colorType + 'Palette() instead.');
+        return self[colorType + 'Palette'].apply(self, args);
       };
     });
   }
@@ -2217,7 +2873,7 @@ function ThemingProvider() {
    * @param {el=} element to apply theming to
    */
   /* @ngInject */
-  function ThemingService($rootScope) {
+  function ThemingService($rootScope, $log) {
     applyTheme.inherit = function(el, parent) {
       var ctrl = parent.controller('mdTheme');
 
@@ -2233,6 +2889,10 @@ function ThemingProvider() {
       }
 
       function changeTheme(theme) {
+        if (!registered(theme)) {
+          $log.warn('Attempted to use unregistered theme \'' + theme + '\'. ' +
+                    'Register it with $mdThemingProvider.theme().');
+        }
         var oldTheme = el.data('$mdThemeName');
         if (oldTheme) el.removeClass('md-' + oldTheme +'-theme');
         el.addClass('md-' + theme + '-theme');
@@ -2240,7 +2900,14 @@ function ThemingProvider() {
       }
     };
 
+    applyTheme.registered = registered;
+
     return applyTheme;
+
+    function registered(theme) {
+      if (theme === undefined || theme === '') return true;
+      return THEMES[theme] !== undefined;
+    }
 
     function applyTheme(scope, el) {
       // Allow us to be invoked via a linking function signature.
@@ -2255,14 +2922,18 @@ function ThemingProvider() {
     }
   }
 }
+ThemingProvider.$inject = ["$mdColorPalette"];
 
-function ThemingDirective($interpolate) {
+function ThemingDirective($mdTheming, $interpolate, $log) {
   return {
     priority: 100,
     link: {
       pre: function(scope, el, attrs) {
         var ctrl = {
           $setTheme: function(theme) {
+            if (!$mdTheming.registered(theme)) {
+              $log.warn('attempted to use unregistered theme \'' + theme + '\'');
+            }
             ctrl.$mdTheme = theme;
           }
         };
@@ -2273,7 +2944,7 @@ function ThemingDirective($interpolate) {
     }
   };
 }
-ThemingDirective.$inject = ["$interpolate"];
+ThemingDirective.$inject = ["$mdTheming", "$interpolate", "$log"];
 
 function ThemableDirective($mdTheming) {
   return $mdTheming;
@@ -2289,7 +2960,7 @@ function parseRules(theme, colorType, rules) {
 
   var themeNameRegex = new RegExp('.md-' + theme.name + '-theme', 'g');
   // Matches '{{ primary-color }}', etc
-  var hueRegex = new RegExp('(\'|\")?{{\\s*\(' + colorType + '\)-\(color|contrast\)\-\?\(\\d\\.\?\\d\*\)\?\\s*}}(\"|\')?','g');
+  var hueRegex = new RegExp('(\'|")?{{\\s*(' + colorType + ')-(color|contrast)-?(\\d\\.?\\d*)?\\s*}}(\"|\')?','g');
   var simpleVariableRegex = /'?"?\{\{\s*([a-zA-Z]+)-(A?\d+|hue\-[0-3]|shadow)-?(\d\.?\d*)?\s*\}\}'?"?/g;
   var palette = PALETTES[color.name];
 
@@ -2344,7 +3015,7 @@ function generateThemes($injector) {
   THEME_COLOR_TYPES.forEach(function(type) {
     rulesByType[type] = '';
   });
-  var ruleMatchRegex = new RegExp('md-\(' + THEME_COLOR_TYPES.join('\|') + '\)', 'g');
+  var ruleMatchRegex = new RegExp('md-(' + THEME_COLOR_TYPES.join('|') + ')', 'g');
 
   // Sort the rules based on type, allowing us to do color substitution on a per-type basis
   rules.forEach(function(rule) {
@@ -2376,6 +3047,10 @@ function generateThemes($injector) {
     THEME_COLOR_TYPES.forEach(function(colorType) {
       styleString += parseRules(theme, colorType, rulesByType[colorType] + '');
     });
+    if (theme.colors.primary.name == theme.colors.accent.name) {
+      console.warn("$mdThemingProvider: Using the same palette for primary and" +
+                   "accent. This violates the material design spec.");
+    }
   });
 
   // Insert our newly minted styles into the DOM
@@ -2392,19 +3067,23 @@ function generateThemes($injector) {
   function sanitizePalette(palette) {
     var defaultContrast = palette.contrastDefaultColor;
     var lightColors = palette.contrastLightColors || [];
+    var strongLightColors = palette.contrastStrongLightColors || [];
     var darkColors = palette.contrastDarkColors || [];
 
-    // Sass provides these colors as space-separated lists
+    // These colors are provided as space-separated lists
     if (typeof lightColors === 'string') lightColors = lightColors.split(' ');
+    if (typeof strongLightColors === 'string') strongLightColors = strongLightColors.split(' ');
     if (typeof darkColors === 'string') darkColors = darkColors.split(' ');
 
     // Cleanup after ourselves
     delete palette.contrastDefaultColor;
     delete palette.contrastLightColors;
+    delete palette.contrastStrongLightColors;
     delete palette.contrastDarkColors;
 
     // Change { 'A100': '#fffeee' } to { 'A100': { value: '#fffeee', contrast:DARK_CONTRAST_COLOR }
     angular.forEach(palette, function(hueValue, hueName) {
+      if (angular.isObject(hueValue)) return; // Already converted
       // Map everything to rgb colors
       var rgbValue = colorToRgbaArray(hueValue);
       if (!rgbValue) {
@@ -2420,9 +3099,19 @@ function generateThemes($injector) {
       };
       function getContrastColor() {
         if (defaultContrast === 'light') {
-          return darkColors.indexOf(hueName) > -1 ? DARK_CONTRAST_COLOR : LIGHT_CONTRAST_COLOR;
+          if (darkColors.indexOf(hueName) > -1) {
+            return DARK_CONTRAST_COLOR;
+          } else {
+            return strongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR 
+              : LIGHT_CONTRAST_COLOR;
+          }
         } else {
-          return lightColors.indexOf(hueName) > -1 ? LIGHT_CONTRAST_COLOR : DARK_CONTRAST_COLOR;
+          if (lightColors.indexOf(hueName) > -1) {
+            return strongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR 
+              : LIGHT_CONTRAST_COLOR;
+          } else {
+            return DARK_CONTRAST_COLOR;
+          }
         }
       }
     });
@@ -2446,12 +3135,12 @@ function checkValidPalette(theme, colorType) {
 function colorToRgbaArray(clr) {
   if (angular.isArray(clr) && clr.length == 3) return clr;
   if (/^rgb/.test(clr)) {
-    return clr.replace(/(^\s*rgba?\(|\)\s*$)/g, '').split(',').map(function(value) {
-      return parseInt(value, 10);
+    return clr.replace(/(^\s*rgba?\(|\)\s*$)/g, '').split(',').map(function(value, i) {
+      return i == 3 ? parseFloat(value, 10) : parseInt(value, 10);
     });
   }
   if (clr.charAt(0) == '#') clr = clr.substring(1);
-  if (!/^([a-f0-9]{3}){1,2}$/g.test(clr)) return;
+  if (!/^([a-fA-F0-9]{3}){1,2}$/g.test(clr)) return;
 
   var dig = clr.length / 3;
   var red = clr.substr(0, dig);
@@ -2466,8 +3155,11 @@ function colorToRgbaArray(clr) {
 }
 
 function rgba(rgbArray, opacity) {
-  if (rgbArray.length == 4) opacity = rgbArray.pop();
-  return opacity && opacity.length ?
+  if (rgbArray.length == 4) {
+    rgbArray = angular.copy(rgbArray);
+    opacity ? rgbArray.pop() : opacity = rgbArray.pop();
+  }
+  return opacity && (typeof opacity == 'number' || (typeof opacity == 'string' && opacity.length)) ?
     'rgba(' + rgbArray.join(',') + ',' + opacity + ')' :
     'rgb(' + rgbArray.join(',') + ')';
 }
@@ -2478,7 +3170,7 @@ function rgba(rgbArray, opacity) {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -2517,7 +3209,7 @@ BackdropDirective.$inject = ["$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -2600,6 +3292,10 @@ function MdBottomSheetDirective() {
  *   - `resolve` - `{object=}`: Similar to locals, except it takes promises as values
  *   and the bottom sheet will not open until the promises resolve.
  *   - `controllerAs` - `{string=}`: An alias to assign the controller to on the scope.
+ *   - `parent` - `{element=}`: The element to append the bottom sheet to. Defaults to appending
+ *     to the root element of the application.
+ *   - `disableParentScroll` - `{boolean=}`: Whether to disable scrolling while the bottom sheet is open.
+ *     Default true.
  *
  * @returns {promise} A promise that can be resolved with `$mdBottomSheet.hide()` or
  * rejected with `$mdBottomSheet.cancel()`.
@@ -2630,15 +3326,19 @@ function MdBottomSheetDirective() {
  */
 
 function MdBottomSheetProvider($$interimElementProvider) {
+  // how fast we need to flick down to close the sheet, pixels/ms
+  var CLOSING_VELOCITY = 0.5;
+  var PADDING = 80; // same as css
 
-  bottomSheetDefaults.$inject = ["$animate", "$mdConstant", "$timeout", "$$rAF", "$compile", "$mdTheming", "$mdBottomSheet", "$rootElement"];
+  bottomSheetDefaults.$inject = ["$animate", "$mdConstant", "$timeout", "$$rAF", "$compile", "$mdTheming", "$mdBottomSheet", "$rootElement", "$rootScope", "$mdGesture"];
   return $$interimElementProvider('$mdBottomSheet')
     .setDefaults({
+      methods: ['disableParentScroll', 'escapeToClose', 'targetEvent'],
       options: bottomSheetDefaults
     });
 
   /* @ngInject */
-  function bottomSheetDefaults($animate, $mdConstant, $timeout, $$rAF, $compile, $mdTheming, $mdBottomSheet, $rootElement) {
+  function bottomSheetDefaults($animate, $mdConstant, $timeout, $$rAF, $compile, $mdTheming, $mdBottomSheet, $rootElement, $rootScope, $mdGesture) {
     var backdrop;
 
     return {
@@ -2646,13 +3346,14 @@ function MdBottomSheetProvider($$interimElementProvider) {
       targetEvent: null,
       onShow: onShow,
       onRemove: onRemove,
-      escapeToClose: true
+      escapeToClose: true,
+      disableParentScroll: true
     };
 
     function onShow(scope, element, options) {
       // Add a backdrop that will close on click
       backdrop = $compile('<md-backdrop class="md-opaque md-bottom-sheet-backdrop">')(scope);
-      backdrop.on('click touchstart', function() {
+      backdrop.on('click', function() {
         $timeout($mdBottomSheet.cancel);
       });
 
@@ -2660,12 +3361,17 @@ function MdBottomSheetProvider($$interimElementProvider) {
 
       $animate.enter(backdrop, options.parent, null);
 
-      var bottomSheet = new BottomSheet(element);
+      var bottomSheet = new BottomSheet(element, options.parent);
       options.bottomSheet = bottomSheet;
 
       // Give up focus on calling item
       options.targetEvent && angular.element(options.targetEvent.target).blur();
       $mdTheming.inherit(bottomSheet.element, options.parent);
+
+      if (options.disableParentScroll) {
+        options.lastOverflow = options.parent.css('overflow');
+        options.parent.css('overflow', 'hidden');
+      }
 
       return $animate.enter(bottomSheet.element, options.parent)
         .then(function() {
@@ -2690,8 +3396,15 @@ function MdBottomSheetProvider($$interimElementProvider) {
 
     function onRemove(scope, element, options) {
       var bottomSheet = options.bottomSheet;
+
+
       $animate.leave(backdrop);
       return $animate.leave(bottomSheet.element).then(function() {
+        if (options.disableParentScroll) {
+          options.parent.css('overflow', options.lastOverflow);
+          delete options.lastOverflow;
+        }
+
         bottomSheet.cleanup();
 
         // Restore focus
@@ -2702,99 +3415,47 @@ function MdBottomSheetProvider($$interimElementProvider) {
     /**
      * BottomSheet class to apply bottom-sheet behavior to an element
      */
-    function BottomSheet(element) {
-      var MAX_OFFSET = 80; // amount past the bottom of the element that we can drag down, this is same as in _bottomSheet.scss
-      var WIGGLE_AMOUNT = 20; // point where it starts to get "harder" to drag
-      var CLOSING_VELOCITY = 10; // how fast we need to flick down to close the sheet
-      var startY, lastY, velocity, transitionDelay, startTarget;
-
-      // coercion incase $mdCompiler returns multiple elements
-      element = element.eq(0);
-
-      element.on('touchstart', onTouchStart)
-             .on('touchmove', onTouchMove)
-             .on('touchend', onTouchEnd);
+    function BottomSheet(element, parent) {
+      var deregister = $mdGesture.register(parent, 'drag', { horizontal: false });
+      parent.on('$md.dragstart', onDragStart)
+        .on('$md.drag', onDrag)
+        .on('$md.dragend', onDragEnd);
 
       return {
         element: element,
         cleanup: function cleanup() {
-          element.off('touchstart', onTouchStart)
-                 .off('touchmove', onTouchMove)
-                 .off('touchend', onTouchEnd);
+          deregister();
+          parent.off('$md.dragstart', onDragStart)
+            .off('$md.drag', onDrag)
+            .off('$md.dragend', onDragEnd);
         }
       };
 
-      function onTouchStart(e) {
-        e.preventDefault();
-        startTarget = e.target;
-        startY = getY(e);
-
+      function onDragStart(ev) {
         // Disable transitions on transform so that it feels fast
-        transitionDelay = element.css($mdConstant.CSS.TRANSITION_DURATION);
-        element.css($mdConstant.CSS.TRANSITION_DURATION, '0s');
+        element.css($mdConstant.CSS.TRANSITION_DURATION, '0ms');
       }
 
-      function onTouchEnd(e) {
-        // Re-enable the transitions on transforms
-        element.css($mdConstant.CSS.TRANSITION_DURATION, transitionDelay);
-
-        var currentY = getY(e);
-        // If we didn't scroll much, and we didn't change targets, assume its a click
-        if ( Math.abs(currentY - startY) < 5  && e.target == startTarget) {
-          angular.element(e.target).triggerHandler('click');
-        } else {
-          // If they went fast enough, trigger a close.
-          if (velocity > CLOSING_VELOCITY) {
-            $timeout($mdBottomSheet.cancel);
-
-          // Otherwise, untransform so that we go back to our normal position
-          } else {
-            setTransformY(undefined);
-          }
+      function onDrag(ev) {
+        var transform = ev.pointer.distanceY;
+        if (transform < 5) {
+          // Slow down drag when trying to drag up, and stop after PADDING
+          transform = Math.max(-PADDING, transform / 2);
         }
+        element.css($mdConstant.CSS.TRANSFORM, 'translate3d(0,' + (PADDING + transform) + 'px,0)');
       }
 
-      function onTouchMove(e) {
-        var currentY = getY(e);
-        var delta = currentY - startY;
-
-        velocity = currentY - lastY;
-        lastY = currentY;
-
-        // Do some conversion on delta to get a friction-like effect
-        delta = adjustedDelta(delta);
-        setTransformY(delta + MAX_OFFSET);
-      }
-
-      /**
-       * Helper function to find the Y aspect of various touch events.
-       **/
-      function getY(e) {
-        var touch = e.touches && e.touches.length ? e.touches[0] : e.changedTouches[0];
-        return touch.clientY;
-      }
-
-      /**
-       * Transform the element along the y-axis
-       **/
-      function setTransformY(amt) {
-        if (amt === null || amt === undefined) {
+      function onDragEnd(ev) {
+        if (ev.pointer.distanceY > 0 &&
+            (ev.pointer.distanceY > 20 || Math.abs(ev.pointer.velocityY) > CLOSING_VELOCITY)) {
+          var distanceRemaining = element.prop('offsetHeight') - ev.pointer.distanceY;
+          var transitionDuration = Math.min(distanceRemaining / ev.pointer.velocityY * 0.75, 500);
+          element.css($mdConstant.CSS.TRANSITION_DURATION, transitionDuration + 'ms');
+          $timeout($mdBottomSheet.cancel);
+        } else {
+          element.css($mdConstant.CSS.TRANSITION_DURATION, '');
           element.css($mdConstant.CSS.TRANSFORM, '');
-        } else {
-          element.css($mdConstant.CSS.TRANSFORM, 'translate3d(0, ' + amt + 'px, 0)');
         }
-      }
-
-      // Returns a new value for delta that will never exceed MAX_OFFSET_AMOUNT
-      // Will get harder to exceed it as you get closer to it
-      function adjustedDelta(delta) {
-        if ( delta < 0  && delta < -MAX_OFFSET + WIGGLE_AMOUNT) {
-          delta = -delta;
-          var base = MAX_OFFSET - WIGGLE_AMOUNT;
-          delta = Math.max(-MAX_OFFSET, -Math.min(MAX_OFFSET - 5, base + ( WIGGLE_AMOUNT * (delta - base)) / MAX_OFFSET) - delta / 50);
-        }
-
-        return delta;
       }
     }
 
@@ -2809,7 +3470,7 @@ MdBottomSheetProvider.$inject = ["$$interimElementProvider"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -2839,8 +3500,13 @@ angular.module('material.components.button', [
  * If you supply a `href` or `ng-href` attribute, it will become an `<a>` element. Otherwise, it will
  * become a `<button>` element.
  *
+ * As per the [material design spec](http://www.google.com/design/spec/style/color.html#color-ui-color-application)
+ * the FAB button is in the accent color by default. The primary color palette may be used with
+ * the `md-primary` class.
+ *
  * @param {boolean=} md-no-ink If present, disable ripple ink effects.
  * @param {expression=} ng-disabled En/Disable based on the expression
+ * @param {string=} md-ripple-size Overrides the default ripple size logic. Options: `full`, `partial`, `auto`
  * @param {string=} aria-label Adds alternative text to button for accessibility, useful for icon buttons.
  * If no default text is found, a warning will be logged.
  *
@@ -2872,11 +3538,9 @@ function MdButtonDirective($mdInkRipple, $mdTheming, $mdAria) {
   }
   
   function getTemplate(element, attr) {
-    if (isAnchor(attr)) {
-      return '<a class="md-button" ng-transclude></a>';
-    } else {
-      return '<button class="md-button" ng-transclude></button>';
-    }
+    return isAnchor(attr) ?
+           '<a class="md-button" ng-transclude></a>' :
+           '<button class="md-button" ng-transclude></button>';
   }
 
   function postLink(scope, element, attr) {
@@ -2891,7 +3555,7 @@ function MdButtonDirective($mdInkRipple, $mdTheming, $mdAria) {
 
     // For anchor elements, we have to set tabindex manually when the 
     // element is disabled
-    if (isAnchor(attr)) {
+    if (isAnchor(attr) && angular.isDefined(attr.ngDisabled) ) {
       scope.$watch(attr.ngDisabled, function(isDisabled) {
         element.attr('tabindex', isDisabled ? -1 : 0);
       });
@@ -2906,7 +3570,7 @@ MdButtonDirective.$inject = ["$mdInkRipple", "$mdTheming", "$mdAria"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -2965,7 +3629,7 @@ mdCardDirective.$inject = ["$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -2988,6 +3652,10 @@ angular.module('material.components.checkbox', [
  *
  * @description
  * The checkbox directive is used like the normal [angular checkbox](https://docs.angularjs.org/api/ng/input/input%5Bcheckbox%5D).
+ *
+ * As per the [material design spec](http://www.google.com/design/spec/style/color.html#color-ui-color-application)
+ * the checkbox is in the accent color by default. The primary color palette may be used with
+ * the `md-primary` class.
  *
  * @param {string} ng-model Assignable angular expression to data-bind to.
  * @param {string=} name Property name of the form under which the control is published.
@@ -3046,7 +3714,7 @@ function MdCheckboxDirective(inputDirective, $mdInkRipple, $mdAria, $mdConstant,
       var checked = false;
       $mdTheming(element);
 
-      $mdAria.expectWithText(tElement, 'aria-label');
+      $mdAria.expectWithText(element, 'aria-label');
 
       // Reuse the original input[type=checkbox] directive from Angular core.
       // This is a bit hacky as we need our own event listener and own render
@@ -3056,12 +3724,8 @@ function MdCheckboxDirective(inputDirective, $mdInkRipple, $mdAria, $mdConstant,
         0: {}
       }, attr, [ngModelCtrl]);
 
-      // Used by switch. in Switch, we don't want click listeners; we have more granular
-      // touchup/touchdown listening.
-      if (!attr.mdNoClick) {
-        element.on('click', listener);
-      }
-      element.on('keypress', keypressHandler);
+      element.on('click', listener)
+        .on('keypress', keypressHandler);
       ngModelCtrl.$render = render;
 
       function keypressHandler(ev) {
@@ -3099,7 +3763,7 @@ MdCheckboxDirective.$inject = ["inputDirective", "$mdInkRipple", "$mdAria", "$md
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -3138,13 +3802,18 @@ angular.module('material.components.content', [
  * </hljs>
  *
  */
+
 function mdContentDirective($mdTheming) {
   return {
     restrict: 'E',
     controller: ['$scope', '$element', ContentController],
-    link: function($scope, $element, $attr) {
-      $mdTheming($element);
-      $scope.$broadcast('$mdContentLoaded', $element);
+    link: function(scope, element, attr) {
+      var node = element[0];
+
+      $mdTheming(element);
+      scope.$broadcast('$mdContentLoaded', element);
+
+      iosScrollFix(element[0]);
     }
   };
 
@@ -3154,13 +3823,33 @@ function mdContentDirective($mdTheming) {
   }
 }
 mdContentDirective.$inject = ["$mdTheming"];
+
+function iosScrollFix(node) {
+  // IOS FIX:
+  // If we scroll where there is no more room for the webview to scroll,
+  // by default the webview itself will scroll up and down, this looks really
+  // bad.  So if we are scrolling to the very top or bottom, add/subtract one
+  angular.element(node).on('$md.pressdown', function(ev) {
+    // Only touch events
+    if (ev.pointer.type !== 't') return;
+    // Don't let a child content's touchstart ruin it for us.
+    if (ev.$materialScrollFixed) return;
+    ev.$materialScrollFixed = true;
+
+    if (node.scrollTop === 0) {
+      node.scrollTop = 1;
+    } else if (node.scrollHeight === node.scrollTop + node.offsetHeight) {
+      node.scrollTop -= 1;
+    }
+  });
+}
 })();
 
 /*!
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -3208,7 +3897,7 @@ MdDialogDirective.$inject = ["$$rAF", "$mdTheming"];
  *   an element with class `md-actions` for the dialog's actions.
  *
  * @usage
- * ##### HTML
+ * #### HTML
  *
  * <hljs lang="html">
  * <div  ng-app="demoApp" ng-controller="EmployeeController">
@@ -3224,7 +3913,7 @@ MdDialogDirective.$inject = ["$$rAF", "$mdTheming"];
  * </div>
  * </hljs>
  *
- * ##### JavaScript
+ * #### JavaScript
  *
  * <hljs lang="js">
  * (function(angular, undefined){
@@ -3360,14 +4049,16 @@ MdDialogDirective.$inject = ["$$rAF", "$mdTheming"];
  * @description
  * Show a dialog with the specified options.
  *
- * @param {object} optionsOrPreset Either provide an `$mdDialogPreset` returned from `alert()`,
- * `confirm()`, and `build()`, or an options object with the following properties:
+ * @param {object} optionsOrPreset Either provide an `$mdDialogPreset` returned from `alert()`, and
+ * `confirm()`, or an options object with the following properties:
  *   - `templateUrl` - `{string=}`: The url of a template that will be used as the content
  *   of the dialog.
  *   - `template` - `{string=}`: Same as templateUrl, except this is an actual template string.
  *   - `targetEvent` - `{DOMClickEvent=}`: A click's event object. When passed in as an option,
  *     the location of the click will be used as the starting point for the opening animation
  *     of the the dialog.
+ *   - `disableParentScroll` - `{boolean=}`: Whether to disable scrolling while the dialog is open.
+ *     Default true.
  *   - `hasBackdrop` - `{boolean=}`: Whether there should be an opaque backdrop behind the dialog.
  *     Default true.
  *   - `clickOutsideToClose` - `{boolean=}`: Whether the user can click outside the dialog to
@@ -3379,7 +4070,7 @@ MdDialogDirective.$inject = ["$$rAF", "$mdTheming"];
  *   - `locals` - `{object=}`: An object containing key/value pairs. The keys will be used as names
  *     of values to inject into the controller. For example, `locals: {three: 3}` would inject
  *     `three` into the controller, with the value 3. If `bindToController` is true, they will be
- *     coppied to the controller instead.
+ *     copied to the controller instead.
  *   - `bindToController` - `bool`: bind the locals to the controller, instead of passing them in
  *   - `resolve` - `{object=}`: Similar to locals, except it takes promises as values, and the
  *     dialog will not open until all of the promises resolve.
@@ -3421,7 +4112,7 @@ function MdDialogProvider($$interimElementProvider) {
   dialogDefaultOptions.$inject = ["$timeout", "$rootElement", "$compile", "$animate", "$mdAria", "$document", "$mdUtil", "$mdConstant", "$mdTheming", "$$rAF", "$q", "$mdDialog"];
   return $$interimElementProvider('$mdDialog')
     .setDefaults({
-      methods: ['hasBackdrop', 'clickOutsideToClose', 'escapeToClose', 'targetEvent'],
+      methods: ['disableParentScroll', 'hasBackdrop', 'clickOutsideToClose', 'escapeToClose', 'targetEvent'],
       options: dialogDefaultOptions
     })
     .addPreset('alert', {
@@ -3476,10 +4167,12 @@ function MdDialogProvider($$interimElementProvider) {
       clickOutsideToClose: true,
       escapeToClose: true,
       targetEvent: null,
+      disableParentScroll: true,
       transformTemplate: function(template) {
         return '<div class="md-dialog-container">' + template + '</div>';
       }
     };
+
 
     // On show method for dialogs
     function onShow(scope, element, options) {
@@ -3492,15 +4185,22 @@ function MdDialogProvider($$interimElementProvider) {
       configureAria(element.find('md-dialog'));
 
       if (options.hasBackdrop) {
+        var parentOffset = options.parent.prop('scrollTop');
         options.backdrop = angular.element('<md-backdrop class="md-dialog-backdrop md-opaque">');
         $mdTheming.inherit(options.backdrop, options.parent);
         $animate.enter(options.backdrop, options.parent);
+        element.css('top', parentOffset +'px');
+      }
+
+      if (options.disableParentScroll) {
+        options.lastOverflow = options.parent.css('overflow');
+        options.parent.css('overflow', 'hidden');
       }
 
       return dialogPopIn(
         element,
         options.parent,
-        options.popInTarget.length && options.popInTarget
+        options.popInTarget && options.popInTarget.length && options.popInTarget
       )
       .then(function() {
         if (options.escapeToClose) {
@@ -3513,9 +4213,9 @@ function MdDialogProvider($$interimElementProvider) {
         }
 
         if (options.clickOutsideToClose) {
-          options.dialogClickOutsideCallback = function(e) {
+          options.dialogClickOutsideCallback = function(ev) {
             // Only close if we click the flex container outside the backdrop
-            if (e.target === element[0]) {
+            if (ev.target === element[0]) {
               $timeout($mdDialog.cancel);
             }
           };
@@ -3544,6 +4244,10 @@ function MdDialogProvider($$interimElementProvider) {
       if (options.backdrop) {
         $animate.leave(options.backdrop);
       }
+      if (options.disableParentScroll) {
+        options.parent.css('overflow', options.lastOverflow);
+        delete options.lastOverflow;
+      }
       if (options.escapeToClose) {
         $rootElement.off('keyup', options.rootElementKeyupCallback);
       }
@@ -3553,7 +4257,7 @@ function MdDialogProvider($$interimElementProvider) {
       return dialogPopOut(
         element,
         options.parent,
-        options.popInTarget.length && options.popInTarget
+        options.popInTarget && options.popInTarget.length && options.popInTarget
       ).then(function() {
         options.scope.$destroy();
         element.remove();
@@ -3643,7 +4347,7 @@ MdDialogProvider.$inject = ["$$interimElementProvider"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -3692,7 +4396,7 @@ MdDividerDirective.$inject = ["$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -3743,7 +4447,361 @@ function mdIconDirective() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
+ */
+(function() {
+
+/**
+ * @ngdoc module
+ * @name material.components.input
+ */
+
+angular.module('material.components.input', [
+  'material.core'
+])
+  .directive('mdInputContainer', mdInputContainerDirective)
+  .directive('label', labelDirective)
+  .directive('input', inputTextareaDirective)
+  .directive('textarea', inputTextareaDirective)
+  .directive('mdMaxlength', mdMaxlengthDirective)
+  .directive('placeholder', placeholderDirective);
+
+/**
+ * @ngdoc directive
+ * @name mdInputContainer
+ * @module material.components.input
+ *
+ * @restrict E
+ *
+ * @description
+ * `<md-input-container>` is the parent of any input or textarea element.
+ *
+ * Input and textarea elements will not behave properly unless the md-input-container 
+ * parent is provided.
+ *
+ * @param md-is-error {expression=} When the given expression evaluates to true, the input container will go into error state. Defaults to erroring if the input has been touched and is invalid.
+ *
+ * @usage
+ * <hljs lang="html">
+ *
+ * <md-input-container>
+ *   <label>Username</label>
+ *   <input type="text" ng-model="user.name">
+ * </md-input-container>
+ *
+ * <md-input-container>
+ *   <label>Description</label>
+ *   <textarea ng-model="user.description"></textarea>
+ * </md-input-container>
+ *
+ * </hljs>
+ */
+function mdInputContainerDirective($mdTheming, $parse) {
+  ContainerCtrl.$inject = ["$scope", "$element", "$attrs"];
+  return {
+    restrict: 'E',
+    link: postLink,
+    controller: ContainerCtrl
+  };
+
+  function postLink(scope, element, attr) {
+    $mdTheming(element);
+  }
+  function ContainerCtrl($scope, $element, $attrs) {
+    var self = this;
+
+    self.isErrorGetter = $attrs.mdIsError && $parse($attrs.mdIsError);
+
+    self.element = $element;
+    self.setFocused = function(isFocused) {
+      $element.toggleClass('md-input-focused', !!isFocused);
+    };
+    self.setHasValue = function(hasValue) {
+      $element.toggleClass('md-input-has-value', !!hasValue);
+    };
+    self.setInvalid = function(isInvalid) {
+      $element.toggleClass('md-input-invalid', !!isInvalid);
+    };
+    $scope.$watch(function() {
+      return self.label && self.input;
+    }, function(hasLabelAndInput) {
+      if (hasLabelAndInput && !self.label.attr('for')) {
+        self.label.attr('for', self.input.attr('id'));
+      }
+    });
+  }
+}
+mdInputContainerDirective.$inject = ["$mdTheming", "$parse"];
+
+function labelDirective() {
+  return {
+    restrict: 'E',
+    require: '^?mdInputContainer',
+    link: function(scope, element, attr, containerCtrl) {
+      if (!containerCtrl) return;
+
+      containerCtrl.label = element;
+      scope.$on('$destroy', function() {
+        containerCtrl.label = null;
+      });
+    }
+  };
+}
+
+/**
+ * @ngdoc directive
+ * @name input
+ * @restrict E
+ * @module material.components.input
+ *
+ * @description
+ * Must be placed as a child of an `<md-input-container>`. 
+ *
+ * Behaves like the [AngularJS input directive](https://docs.angularjs.org/api/ng/directive/input).
+ *
+ * @usage
+ * <hljs lang="html">
+ * <md-input-container>
+ *   <label>Color</label>
+ *   <input type="text" ng-model="color" required md-maxlength="10">
+ * </md-input-container>
+ * </hljs>
+ * <h3>With Errors (uses [ngMessages](https://docs.angularjs.org/api/ngMessages))</h3>
+ * <hljs lang="html">
+ * <form name="userForm">
+ *   <md-input-container>
+ *     <label>Last Name</label>
+ *     <input name="lastName" ng-model="lastName" required md-maxlength="10" minlength="4">
+ *     <div ng-messages="userForm.lastName.$error" ng-show="userForm.bio.$dirty">
+ *       <div ng-message="required">This is required!</div>
+ *       <div ng-message="md-maxlength">That's too long!</div>
+ *       <div ng-message="minlength">That's too short!</div>
+ *     </div>
+ *   </md-input-container>
+ * </form>
+ * </hljs>
+ *
+ * @param {number=} md-maxlength The maximum number of characters allowed in this input. If this is specified, a character counter will be shown underneath the input.
+ */
+/**
+ * @ngdoc directive
+ * @name textarea
+ * @restrict E
+ * @module material.components.input
+ *
+ * @description
+ * Must be placed as a child of an `<md-input-container>`. 
+ *
+ * Behaves like the [AngularJS input directive](https://docs.angularjs.org/api/ng/directive/textarea).
+ *
+ * @usage
+ * <hljs lang="html">
+ * <md-input-container>
+ *   <label>Description</label>
+ *   <textarea ng-model="description" required minlength="15" md-maxlength="20"></textarea>
+ * </md-input-container>
+ * </hljs>
+ * <h3>With Errors (uses [ngMessages](https://docs.angularjs.org/api/ngMessages))</h3>
+ * <hljs lang="html">
+ * <form name="userForm">
+ *   <md-input-container>
+ *     <label>Biography</label>
+ *     <textarea name="bio" ng-model="biography" required md-maxlength="150"></textarea>
+ *     <div ng-messages="userForm.bio.$error" ng-show="userForm.bio.$dirty">
+ *       <div ng-message="required">This is required!</div>
+ *       <div ng-message="md-maxlength">That's too long!</div>
+ *     </div>
+ *   </md-input-container>
+ * </form>
+ * </hljs>
+ *
+ * @param {number=} md-maxlength The maximum number of characters allowed in this input. If this is specified, a character counter will be shown underneath the input.
+ */
+function inputTextareaDirective($mdUtil, $window, $compile, $animate) {
+  return {
+    restrict: 'E',
+    require: ['^?mdInputContainer', '?ngModel'],
+    link: postLink
+  };
+  
+  function postLink(scope, element, attr, ctrls) {
+
+    var containerCtrl = ctrls[0];
+    var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
+    var isReadonly = angular.isDefined(attr.readonly);
+
+    if ( !containerCtrl ) return;
+    if (containerCtrl.input) {
+      throw new Error("<md-input-container> can only have *one* <input> or <textarea> child element!");
+    }
+    containerCtrl.input = element;
+
+    element.addClass('md-input');
+    if (!element.attr('id')) {
+      element.attr('id', 'input_' + $mdUtil.nextUid());
+    }
+
+    if (element[0].tagName.toLowerCase() === 'textarea') {
+      setupTextarea();
+    }
+
+    function ngModelPipelineCheckValue(arg) {
+      containerCtrl.setHasValue(!ngModelCtrl.$isEmpty(arg));
+      return arg;
+    }
+    function inputCheckValue() {
+      // An input's value counts if its length > 0,
+      // or if the input's validity state says it has bad input (eg string in a number input)
+      containerCtrl.setHasValue(element.val().length > 0 || (element[0].validity||{}).badInput);
+    }
+
+
+    var isErrorGetter = containerCtrl.isErrorGetter || function() {
+      return ngModelCtrl.$invalid && ngModelCtrl.$touched;
+    };
+    scope.$watch(isErrorGetter, containerCtrl.setInvalid);
+      
+    ngModelCtrl.$parsers.push(ngModelPipelineCheckValue);
+    ngModelCtrl.$formatters.push(ngModelPipelineCheckValue);
+
+    element.on('input', inputCheckValue);
+
+    if (!isReadonly) {
+      element
+        .on('focus', function(ev) {
+          containerCtrl.setFocused(true);
+        })
+        .on('blur', function(ev) {
+          containerCtrl.setFocused(false);
+          inputCheckValue();
+        });
+    }
+
+    scope.$on('$destroy', function() {
+      containerCtrl.setFocused(false);
+      containerCtrl.setHasValue(false);
+      containerCtrl.input = null;
+    });
+
+    function setupTextarea() {
+      var node = element[0];
+      var onChangeTextarea = $mdUtil.debounce(growTextarea, 1);
+
+      function pipelineListener(value) {
+        onChangeTextarea();
+        return value;
+      }
+
+      if (ngModelCtrl) {
+        ngModelCtrl.$formatters.push(pipelineListener);
+        ngModelCtrl.$viewChangeListeners.push(pipelineListener);
+      } else {
+        onChangeTextarea();
+      }
+      element.on('keydown input', onChangeTextarea);
+      element.on('scroll', onScroll);
+      angular.element($window).on('resize', onChangeTextarea);
+
+      scope.$on('$destroy', function() {
+        angular.element($window).off('resize', onChangeTextarea);
+      });
+
+      function growTextarea() {
+        node.style.height = "auto";
+        var line = node.scrollHeight - node.offsetHeight;
+        node.scrollTop = 0;
+        var height = node.offsetHeight + (line > 0 ? line : 0);
+        node.style.height = height + 'px';
+      }
+
+      function onScroll(e) {
+        node.scrollTop = 0;
+        // for smooth new line adding
+        var line = node.scrollHeight - node.offsetHeight;
+        var height = node.offsetHeight + line;
+        node.style.height = height + 'px';
+      }
+    }
+  }
+}
+inputTextareaDirective.$inject = ["$mdUtil", "$window", "$compile", "$animate"];
+
+function mdMaxlengthDirective($animate) {
+  return {
+    restrict: 'A',
+    require: ['ngModel', '^mdInputContainer'],
+    link: postLink
+  };
+
+  function postLink(scope, element, attr, ctrls) {
+    var maxlength;
+    var ngModelCtrl = ctrls[0];
+    var containerCtrl = ctrls[1];
+    var charCountEl = angular.element('<div class="md-char-counter">');
+
+    // Stop model from trimming. This makes it so whitespace 
+    // over the maxlength still counts as invalid.
+    attr.$set('ngTrim', 'false');
+    containerCtrl.element.append(charCountEl);
+
+    ngModelCtrl.$formatters.push(renderCharCount);
+    ngModelCtrl.$viewChangeListeners.push(renderCharCount);
+    element.on('input keydown', function() { 
+      renderCharCount(); //make sure it's called with no args
+    });
+
+    scope.$watch(attr.mdMaxlength, function(value) {
+      maxlength = value;
+      if (angular.isNumber(value) && value > 0) {
+        if (!charCountEl.parent().length) {
+          $animate.enter(charCountEl, containerCtrl.element, 
+                         angular.element(containerCtrl.element[0].lastElementChild));
+        }
+        renderCharCount();
+      } else {
+        $animate.leave(charCountEl);
+      }
+    });
+
+    ngModelCtrl.$validators['md-maxlength'] = function(modelValue, viewValue) {
+      if (!angular.isNumber(maxlength) || maxlength < 0) {
+        return true;
+      }
+      return ( modelValue || element.val() || viewValue || '' ).length <= maxlength;
+    };
+
+    function renderCharCount(value) {
+      charCountEl.text( ( element.val() || value || '' ).length + '/' + maxlength );
+      return value;
+    }
+  }
+}
+mdMaxlengthDirective.$inject = ["$animate"];
+
+function placeholderDirective() {
+  return {
+    restrict: 'A',
+    require: '^^?mdInputContainer',
+    link: postLink
+  };
+
+  function postLink(scope, element, attr, inputContainer) {
+    if (!inputContainer) return;
+
+    var placeholderText = attr.placeholder;
+    element.removeAttr('placeholder');
+
+    inputContainer.element.append('<div class="md-placeholder">' + placeholderText + '</div>');
+  }
+}
+
+})();
+
+/*!
+ * Angular Material Design
+ * https://github.com/angular/material
+ * @license MIT
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -3838,7 +4896,7 @@ function mdItemDirective() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -3876,7 +4934,7 @@ angular.module('material.components.progressCircular', [
  *
  * <md-progress-circular md-mode="determinate" ng-value="..."></md-progress-circular>
  *
- * <md-progress-circular md-mode="determinate" value="..." diameter="100"></md-progress-circular>
+ * <md-progress-circular md-mode="determinate" value="..." md-diameter="100"></md-progress-circular>
  *
  * <md-progress-circular md-mode="indeterminate"></md-progress-circular>
  * </hljs>
@@ -3966,7 +5024,7 @@ MdProgressCircularDirective.$inject = ["$$rAF", "$mdConstant", "$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -4095,7 +5153,7 @@ var transforms = (function() {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -4123,6 +5181,10 @@ angular.module('material.components.radioButton', [
  * The `<md-radio-group>` directive identifies a grouping
  * container for the 1..n grouped radio buttons; specified using nested
  * `<md-radio-button>` tags.
+ *
+ * As per the [material design spec](http://www.google.com/design/spec/style/color.html#color-ui-color-application)
+ * the radio button is in the accent color by default. The primary color palette may be used with
+ * the `md-primary` class.
  *
  * Note: `<md-radio-group>` and `<md-radio-button>` handle tabindex differently
  * than the native `<input type='radio'>` controls. Whereas the native controls
@@ -4155,7 +5217,7 @@ function mdRadioGroupDirective($mdUtil, $mdConstant, $mdTheming) {
     restrict: 'E',
     controller: ['$element', RadioGroupController],
     require: ['mdRadioGroup', '?ngModel'],
-    link: linkRadioGroup
+    link: { pre: linkRadioGroup }
   };
 
   function linkRadioGroup(scope, element, attr, ctrls) {
@@ -4164,13 +5226,25 @@ function mdRadioGroupDirective($mdUtil, $mdConstant, $mdTheming) {
     var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
 
     function keydownListener(ev) {
-      if (ev.keyCode === $mdConstant.KEY_CODE.LEFT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.UP_ARROW) {
-        ev.preventDefault();
-        rgCtrl.selectPrevious();
-      }
-      else if (ev.keyCode === $mdConstant.KEY_CODE.RIGHT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.DOWN_ARROW) {
-        ev.preventDefault();
-        rgCtrl.selectNext();
+      switch(ev.keyCode) {
+        case $mdConstant.KEY_CODE.LEFT_ARROW:
+        case $mdConstant.KEY_CODE.UP_ARROW:
+          ev.preventDefault();
+          rgCtrl.selectPrevious();
+          break;
+
+        case $mdConstant.KEY_CODE.RIGHT_ARROW:
+        case $mdConstant.KEY_CODE.DOWN_ARROW:
+          ev.preventDefault();
+          rgCtrl.selectNext();
+          break;
+
+        case $mdConstant.KEY_CODE.ENTER:
+          var form = angular.element($mdUtil.getClosest(element[0], 'form'));
+          if (form.length > 0) {
+            form.triggerHandler('submit');
+          }
+          break;
       }
     }
 
@@ -4334,7 +5408,7 @@ function mdRadioButtonDirective($mdAria, $mdUtil, $mdTheming) {
     }
 
     function render() {
-      var checked = (rgCtrl.getViewValue() === attr.value);
+      var checked = (rgCtrl.getViewValue() == attr.value);
       if (checked === lastChecked) {
         return;
       }
@@ -4380,7 +5454,7 @@ mdRadioButtonDirective.$inject = ["$mdAria", "$mdUtil", "$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -4408,21 +5482,31 @@ angular.module('material.components.sidenav', [
  * @module material.components.sidenav
  *
  * @description
- * $mdSidenav makes it easy to interact with multiple sidenavs
+ * `$mdSidenav` makes it easy to interact with multiple sidenavs
  * in an app.
  *
  * @usage
- *
- * ```javascript
+ * <hljs lang="js">
  * // Toggle the given sidenav
  * $mdSidenav(componentId).toggle();
- *
+ * </hljs>
+ * <hljs lang="js">
  * // Open the given sidenav
  * $mdSidenav(componentId).open();
- *
+ * </hljs>
+ * <hljs lang="js">
  * // Close the given sidenav
  * $mdSidenav(componentId).close();
- * ```
+ * </hljs>
+ * <hljs lang="js">
+ * // Exposes whether given sidenav is set to be open
+ * $mdSidenav(componentId).isOpen();
+ * </hljs>
+ * <hljs lang="js">
+ * // Exposes whether given sidenav is locked open
+ * // If this is true, the sidenav will be open regardless of isOpen()
+ * $mdSidenav(componentId).isLockedOpen();
+ * </hljs>
  */
 function SidenavService($mdComponentRegistry, $q) {
   return function(handle) {
@@ -4437,6 +5521,9 @@ function SidenavService($mdComponentRegistry, $q) {
     return {
       isOpen: function() {
         return instance && instance.isOpen();
+      },
+      isLockedOpen: function() {
+        return instance && instance.isLockedOpen();
       },
       toggle: function() {
         return instance ? instance.toggle() : $q.reject(errorMsg);
@@ -4555,6 +5642,7 @@ function SidenavDirective($timeout, $animate, $parse, $mdMedia, $mdConstant, $co
      * @param isLocked
      */
     function updateIsLocked(isLocked, oldValue) {
+      scope.isLockedOpen = isLocked;
       if (isLocked === oldValue) {
         element.toggleClass('md-locked-open', !!isLocked);
       } else {
@@ -4667,6 +5755,7 @@ function SidenavController($scope, $element, $attrs, $mdComponentRegistry, $q) {
 
   self.$toggleOpen = function() { return $q.when($scope.isOpen); };
   self.isOpen = function() { return !!$scope.isOpen; };
+  self.isLockedOpen = function() { return !!$scope.isLockedOpen; };
   self.open   = function() { return self.$toggleOpen( true );  };
   self.close  = function() { return self.$toggleOpen( false ); };
   self.toggle = function() { return self.$toggleOpen( !$scope.isOpen );  };
@@ -4683,18 +5772,18 @@ SidenavController.$inject = ["$scope", "$element", "$attrs", "$mdComponentRegist
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
-'use strict';
+  'use strict';
 
-/**
- * @ngdoc module
- * @name material.components.slider
- */
-angular.module('material.components.slider', [
-  'material.core'
-])
+  /**
+   * @ngdoc module
+   * @name material.components.slider
+   */
+  angular.module('material.components.slider', [
+    'material.core'
+  ])
   .directive('mdSlider', SliderDirective);
 
 /**
@@ -4705,6 +5794,10 @@ angular.module('material.components.slider', [
  * @description
  * The `<md-slider>` component allows the user to choose from a range of
  * values.
+ *
+ * As per the [material design spec](http://www.google.com/design/spec/style/color.html#color-ui-color-application)
+ * the slider is in the accent color by default. The primary color palette may be used with
+ * the `md-primary` class.
  *
  * It has two modes: 'normal' mode, where the user slides between a wide range
  * of values, and 'discrete' mode, where the user slides between only a few
@@ -4731,32 +5824,31 @@ angular.module('material.components.slider', [
  * @param {number=} min The minimum value the user is allowed to pick. Default 0.
  * @param {number=} max The maximum value the user is allowed to pick. Default 100.
  */
-function SliderDirective($mdTheming) {
+function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdTheming, $mdGesture, $parse) {
   return {
     scope: {},
-    require: ['?ngModel', 'mdSlider'],
-    controller: SliderController,
+    require: '?ngModel',
     template:
       '<div class="md-track-container">' +
-        '<div class="md-track"></div>' +
-        '<div class="md-track md-track-fill"></div>' +
-        '<div class="md-track-ticks"></div>' +
+      '<div class="md-track"></div>' +
+      '<div class="md-track md-track-fill"></div>' +
+      '<div class="md-track-ticks"></div>' +
       '</div>' +
       '<div class="md-thumb-container">' +
-        '<div class="md-thumb"></div>' +
-        '<div class="md-focus-thumb"></div>' +
-        '<div class="md-focus-ring"></div>' +
-        '<div class="md-sign">' +
-          '<span class="md-thumb-text"></span>' +
-        '</div>' +
-        '<div class="md-disabled-thumb"></div>' +
+      '<div class="md-thumb"></div>' +
+      '<div class="md-focus-thumb"></div>' +
+      '<div class="md-focus-ring"></div>' +
+      '<div class="md-sign">' +
+      '<span class="md-thumb-text"></span>' +
+      '</div>' +
+      '<div class="md-disabled-thumb"></div>' +
       '</div>',
     link: postLink
   };
 
-  function postLink(scope, element, attr, ctrls) {
+  function postLink(scope, element, attr, ngModelCtrl) {
     $mdTheming(element);
-    var ngModelCtrl = ctrls[0] || {
+    ngModelCtrl = ngModelCtrl || {
       // Mock ngModelController if it doesn't exist to give us
       // the minimum functionality needed
       $setViewValue: function(val) {
@@ -4768,55 +5860,45 @@ function SliderDirective($mdTheming) {
       $viewChangeListeners: []
     };
 
-    var sliderCtrl = ctrls[1];
-    sliderCtrl.init(ngModelCtrl);
-  }
-}
-SliderDirective.$inject = ["$mdTheming"];
-
-/**
- * We use a controller for all the logic so that we can expose a few
- * things to unit tests
- */
-function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $mdUtil, $mdConstant) {
-
-  this.init = function init(ngModelCtrl) {
-    var thumb = angular.element($element[0].querySelector('.md-thumb'));
-    var thumbText = angular.element($element[0].querySelector('.md-thumb-text'));
+    var isDisabledParsed = attr.ngDisabled && $parse(attr.ngDisabled);
+    var isDisabledGetter = isDisabledParsed ? 
+      function() { return isDisabledParsed(scope.$parent); } :
+      angular.noop;
+    var thumb = angular.element(element[0].querySelector('.md-thumb'));
+    var thumbText = angular.element(element[0].querySelector('.md-thumb-text'));
     var thumbContainer = thumb.parent();
-    var trackContainer = angular.element($element[0].querySelector('.md-track-container'));
-    var activeTrack = angular.element($element[0].querySelector('.md-track-fill'));
-    var tickContainer = angular.element($element[0].querySelector('.md-track-ticks'));
+    var trackContainer = angular.element(element[0].querySelector('.md-track-container'));
+    var activeTrack = angular.element(element[0].querySelector('.md-track-fill'));
+    var tickContainer = angular.element(element[0].querySelector('.md-track-ticks'));
     var throttledRefreshDimensions = $mdUtil.throttle(refreshSliderDimensions, 5000);
 
-    // Default values, overridable by $attrss
-    $attrs.min ? $attrs.$observe('min', updateMin) : updateMin(0);
-    $attrs.max ? $attrs.$observe('max', updateMax) : updateMax(100);
-    $attrs.step ? $attrs.$observe('step', updateStep) : updateStep(1);
+    // Default values, overridable by attrs
+    attr.min ? attr.$observe('min', updateMin) : updateMin(0);
+    attr.max ? attr.$observe('max', updateMax) : updateMax(100);
+    attr.step ? attr.$observe('step', updateStep) : updateStep(1);
 
     // We have to manually stop the $watch on ngDisabled because it exists
-    // on the parent $scope, and won't be automatically destroyed when
+    // on the parent scope, and won't be automatically destroyed when
     // the component is destroyed.
     var stopDisabledWatch = angular.noop;
-    if ($attrs.ngDisabled) {
-      stopDisabledWatch = $scope.$parent.$watch($attrs.ngDisabled, updateAriaDisabled);
+    if (attr.ngDisabled) {
+      stopDisabledWatch = scope.$parent.$watch(attr.ngDisabled, updateAriaDisabled);
     }
 
-    $mdAria.expect($element, 'aria-label');
+    $mdAria.expect(element, 'aria-label');
 
-    $element.attr('tabIndex', 0);
-    $element.attr('role', 'slider');
-    $element.on('keydown', keydownListener);
-
-    var hammertime = new Hammer($element[0], {
-      recognizers: [
-        [Hammer.Pan, { direction: Hammer.DIRECTION_HORIZONTAL }]
-      ]
-    });
-    hammertime.on('hammer.input', onInput);
-    hammertime.on('panstart', onPanStart);
-    hammertime.on('pan', onPan);
-    hammertime.on('panend', onPanEnd);
+    $mdGesture.register(element, 'drag');
+    element
+      .attr({
+        tabIndex: 0,
+        role: 'slider'
+      })
+      .on('keydown', keydownListener)
+      .on('$md.pressdown', onPressDown)
+      .on('$md.pressup', onPressUp)
+      .on('$md.dragstart', onDragStart)
+      .on('$md.drag', onDrag)
+      .on('$md.dragend', onDragEnd);
 
     // On resize, recalculate the slider's dimensions and re-render
     function updateAll() {
@@ -4826,12 +5908,11 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
     }
     setTimeout(updateAll);
 
-    var debouncedUpdateAll = $$rAF.debounce(updateAll);
+    var debouncedUpdateAll = $$rAF.throttle(updateAll);
     angular.element($window).on('resize', debouncedUpdateAll);
 
-    $scope.$on('$destroy', function() {
+    scope.$on('$destroy', function() {
       angular.element($window).off('resize', debouncedUpdateAll);
-      hammertime.destroy();
       stopDisabledWatch();
     });
 
@@ -4848,12 +5929,12 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
     var step;
     function updateMin(value) {
       min = parseFloat(value);
-      $element.attr('aria-valuemin', value);
+      element.attr('aria-valuemin', value);
       updateAll();
     }
     function updateMax(value) {
       max = parseFloat(value);
-      $element.attr('aria-valuemax', value);
+      element.attr('aria-valuemax', value);
       updateAll();
     }
     function updateStep(value) {
@@ -4861,21 +5942,22 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
       redrawTicks();
     }
     function updateAriaDisabled(isDisabled) {
-      $element.attr('aria-disabled', !!isDisabled);
+      element.attr('aria-disabled', !!isDisabled);
     }
 
     // Draw the ticks with canvas.
-    // The alternative to drawing ticks with canvas is to draw one $element for each tick,
+    // The alternative to drawing ticks with canvas is to draw one element for each tick,
     // which could quickly become a performance bottleneck.
     var tickCanvas, tickCtx;
     function redrawTicks() {
-      if (!angular.isDefined($attrs.mdDiscrete)) return;
+      if (!angular.isDefined(attr.mdDiscrete)) return;
 
       var numSteps = Math.floor( (max - min) / step );
       if (!tickCanvas) {
+        var trackTicksStyle = $window.getComputedStyle(tickContainer[0]);
         tickCanvas = angular.element('<canvas style="position:absolute;">');
         tickCtx = tickCanvas[0].getContext('2d');
-        tickCtx.fillStyle = 'black';
+        tickCtx.fillStyle = trackTicksStyle.backgroundColor || 'black';
         tickContainer.append(tickCanvas);
       }
       var dimensions = getSliderDimensions();
@@ -4907,7 +5989,7 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
      * left/right arrow listener
      */
     function keydownListener(ev) {
-      if($element[0].hasAttribute('disabled')) {
+      if(element[0].hasAttribute('disabled')) {
         return;
       }
 
@@ -4923,7 +6005,7 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
         }
         ev.preventDefault();
         ev.stopPropagation();
-        $scope.$evalAsync(function() {
+        scope.$evalAsync(function() {
           setModelValue(ngModelCtrl.$viewValue + changeAmount);
         });
       }
@@ -4936,14 +6018,13 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
       ngModelCtrl.$setViewValue( minMaxValidator(stepValidator(value)) );
     }
     function ngModelRender() {
-
       if (isNaN(ngModelCtrl.$viewValue)) {
         ngModelCtrl.$viewValue = ngModelCtrl.$modelValue;
       }
 
       var percent = (ngModelCtrl.$viewValue - min) / (max - min);
-      $scope.modelValue = ngModelCtrl.$viewValue;
-      $element.attr('aria-valuenow', ngModelCtrl.$viewValue);
+      scope.modelValue = ngModelCtrl.$viewValue;
+      element.attr('aria-valuenow', ngModelCtrl.$viewValue);
       setSliderPercent(percent);
       thumbText.text( ngModelCtrl.$viewValue );
     }
@@ -4966,88 +6047,75 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
       activeTrack.css('width', (percent * 100) + '%');
       thumbContainer.css(
         $mdConstant.CSS.TRANSFORM,
-        'translate3d(' + getSliderDimensions().width * percent + 'px,0,0)'
+        'translate3d(' + (percent * 100) + '%,0,0)'
       );
-      $element.toggleClass('md-min', percent === 0);
+      element.toggleClass('md-min', percent === 0);
     }
 
 
     /**
      * Slide listeners
      */
-    var isSliding = false;
-    var isDiscrete = angular.isDefined($attrs.mdDiscrete);
+    var isDragging = false;
+    var isDiscrete = angular.isDefined(attr.mdDiscrete);
 
-    function onInput(ev) {
-      if (!isSliding && ev.eventType === Hammer.INPUT_START &&
-          !$element[0].hasAttribute('disabled')) {
+    function onPressDown(ev) {
+      if (isDisabledGetter()) return;
 
-        isSliding = true;
+      element.addClass('active');
+      element[0].focus();
+      refreshSliderDimensions();
 
-        $element.addClass('active');
-        $element[0].focus();
-        refreshSliderDimensions();
-
-        onPan(ev);
-
-        ev.srcEvent.stopPropagation();
-
-      } else if (isSliding && ev.eventType === Hammer.INPUT_END) {
-
-        if ( isSliding && isDiscrete ) onPanEnd(ev);
-        isSliding = false;
-
-        $element.removeClass('panning active');
-      }
+      var exactVal = percentToValue( positionToPercent( ev.pointer.x ));
+      var closestVal = minMaxValidator( stepValidator(exactVal) );
+      scope.$apply(function() {
+        setModelValue( closestVal );
+        setSliderPercent( valueToPercent(closestVal));
+      });
     }
-    function onPanStart() {
-      if (!isSliding) return;
-      $element.addClass('panning');
-    }
-    function onPan(ev) {
-      if (!isSliding) return;
+    function onPressUp(ev) {
+      if (isDisabledGetter()) return;
 
+      element.removeClass('dragging active');
+
+      var exactVal = percentToValue( positionToPercent( ev.pointer.x ));
+      var closestVal = minMaxValidator( stepValidator(exactVal) );
+      scope.$apply(function() {
+        setModelValue(closestVal);
+      });
+    }
+    function onDragStart(ev) {
+      if (isDisabledGetter()) return;
+      isDragging = true;
+      ev.stopPropagation();
+
+      element.addClass('dragging');
+      setSliderFromEvent(ev);
+    }
+    function onDrag(ev) {
+      if (!isDragging) return;
+      ev.stopPropagation();
+      setSliderFromEvent(ev);
+    }
+    function onDragEnd(ev) {
+      if (!isDragging) return;
+      ev.stopPropagation();
+      isDragging = false;
+    }
+
+    function setSliderFromEvent(ev) {
       // While panning discrete, update only the
       // visual positioning but not the model value.
-
-      if ( isDiscrete ) adjustThumbPosition( ev.center.x );
-      else              doSlide( ev.center.x );
-
-      ev.preventDefault();
-      ev.srcEvent.stopPropagation();
+      if ( isDiscrete ) adjustThumbPosition( ev.pointer.x );
+      else              doSlide( ev.pointer.x );
     }
-
-    function onPanEnd(ev) {
-      if ( isDiscrete && !$element[0].hasAttribute('disabled') ) {
-        // Convert exact to closest discrete value.
-        // Slide animate the thumb... and then update the model value.
-
-        var exactVal = percentToValue( positionToPercent( ev.center.x ));
-        var closestVal = minMaxValidator( stepValidator(exactVal) );
-
-        setSliderPercent( valueToPercent(closestVal));
-        $$rAF(function(){
-          setModelValue( closestVal );
-        });
-
-        ev.preventDefault();
-        ev.srcEvent.stopPropagation();
-      }
-    }
-
-    /**
-     * Expose for testing
-     */
-    this._onInput = onInput;
-    this._onPanStart = onPanStart;
-    this._onPan = onPan;
 
     /**
      * Slide the UI by changing the model value
      * @param x
      */
     function doSlide( x ) {
-      $scope.$evalAsync( function() {
+      scope.$evalAsync( function() {
         setModelValue( percentToValue( positionToPercent(x) ));
       });
     }
@@ -5084,17 +6152,17 @@ function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $md
     function valueToPercent( val ) {
       return (val - min)/(max - min);
     }
-
-  };
+  }
 }
-SliderController.$inject = ["$scope", "$element", "$attrs", "$$rAF", "$window", "$mdAria", "$mdUtil", "$mdConstant"];
+SliderDirective.$inject = ["$$rAF", "$window", "$mdAria", "$mdUtil", "$mdConstant", "$mdTheming", "$mdGesture", "$parse"];
+
 })();
 
 /*!
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -5163,7 +6231,7 @@ function MdSticky($document, $mdConstant, $compile, $$rAF, $mdUtil) {
 
     // Refresh elements is very expensive, so we use the debounced
     // version when possible.
-    var debouncedRefreshElements = $$rAF.debounce(refreshElements);
+    var debouncedRefreshElements = $$rAF.throttle(refreshElements);
 
     // setupAugmentedScrollEvents gives us `$scrollstart` and `$scroll`,
     // more reliable than `scroll` on android.
@@ -5172,6 +6240,7 @@ function MdSticky($document, $mdConstant, $compile, $$rAF, $mdUtil) {
     contentEl.on('$scroll', onScroll);
 
     var self;
+    var stickyBaseoffset = contentEl.prop('offsetTop');
     return self = {
       prev: null,
       current: null, //the currently stickied item
@@ -5187,6 +6256,7 @@ function MdSticky($document, $mdConstant, $compile, $$rAF, $mdUtil) {
     // Add an element and its sticky clone to this content's sticky collection
     function add(element, stickyClone) {
       stickyClone.addClass('md-sticky-clone');
+      stickyClone.css('top', stickyBaseoffset + 'px');
 
       var item = {
         element: element,
@@ -5404,7 +6474,7 @@ MdSticky.$inject = ["$document", "$mdConstant", "$compile", "$$rAF", "$mdUtil"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -5491,7 +6561,7 @@ MdSubheaderDirective.$inject = ["$mdSticky", "$compile", "$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -5502,105 +6572,6 @@ MdSubheaderDirective.$inject = ["$mdSticky", "$compile", "$mdTheming"];
  * @name material.components.swipe
  * @description Swipe module!
  */
-angular.module('material.components.swipe',[])
-  .factory('$mdSwipe', MdSwipeFactory)
-  .directive('mdSwipeLeft', MdSwipeLeftDirective)
-  .directive('mdSwipeRight', MdSwipeRightDirective);
-
-/*
- * @ngdoc service
- * @module material.components.swipe
- * @name $mdSwipe
- * @description
- * This service allows directives to easily attach swipe and pan listeners to
- * the specified element.
- */
-
-function MdSwipeFactory() {
-  // match expected API functionality
-  var attachNoop = function(){ return angular.noop; };
-
-  /**
-   * SwipeService constructor pre-captures scope and customized event types
-   *
-   * @param scope
-   * @param eventTypes
-   * @returns {*}
-   * @constructor
-   */
-  return function SwipeService(scope, eventTypes) {
-    if ( !eventTypes ) eventTypes = "swipeleft swiperight";
-
-    // publish configureFor() method for specific element instance
-    return function configureFor(element, onSwipeCallback, attachLater ) {
-      var hammertime = new Hammer(element[0], {
-        recognizers : addRecognizers([], eventTypes )
-      });
-
-      // Attach swipe listeners now
-      if ( !attachLater ) attachSwipe();
-
-      // auto-disconnect during destroy
-      scope.$on('$destroy', function() {
-        hammertime.destroy();
-      });
-
-      return attachSwipe;
-
-      // **********************
-      // Internal methods
-      // **********************
-
-      /**
-       * Delegate swipe event to callback function
-       * and ensure $digest is triggered.
-       *
-       * @param ev HammerEvent
-       */
-      function swipeHandler(ev) {
-
-        // Prevent triggering parent hammer listeners
-        ev.srcEvent.stopPropagation();
-
-        if ( angular.isFunction(onSwipeCallback) ) {
-          scope.$apply(function() {
-            onSwipeCallback(ev);
-          });
-        }
-      }
-
-      /**
-       * Enable listeners and return detach() fn
-       */
-      function attachSwipe() {
-        hammertime.on(eventTypes, swipeHandler );
-
-        return function detachSwipe() {
-          hammertime.off( eventTypes );
-        };
-      }
-
-      /**
-       * Add optional recognizers such as panleft, panright
-       */
-      function addRecognizers(list, events) {
-        var hasPanning = (events.indexOf("pan") > -1);
-        var hasSwipe   = (events.indexOf("swipe") > -1);
-
-        if (hasPanning) {
-          list.push([ Hammer.Pan, { direction: Hammer.DIRECTION_HORIZONTAL } ]);
-        }
-        if (hasSwipe) {
-          list.push([ Hammer.Swipe, { direction: Hammer.DIRECTION_HORIZONTAL } ]);
-        }
-
-        return list;
-      }
-
-    };
-  };
-}
-
 /**
  * @ngdoc directive
  * @module material.components.swipe
@@ -5609,31 +6580,14 @@ function MdSwipeFactory() {
  * @restrict A
  *
  * @description
- * The `<div  md-swipe-left="expression">` directive identifies an element on which
- * HammerJS horizontal swipe left and pan left support will be active. The swipe/pan action
- * can result in custom activity trigger by evaluating `expression`.
- *
- * @param {boolean=} mdNoPan Use of attribute indicates flag to disable detection of `panleft` activity
+ * The md-swipe-left directives allows you to specify custom behavior when an element is swiped
+ * left.
  *
  * @usage
  * <hljs lang="html">
- *
- * <div class="animate-switch-container"
- *      ng-switch on="data.selectedIndex"
- *      md-swipe-left="data.selectedIndex+=1;"
- *      md-swipe-right="data.selectedIndex-=1;" >
- *
- * </div>
+ * <div md-swipe-left="onSwipeLeft()">Swipe me left!</div>
  * </hljs>
- *
  */
-function MdSwipeLeftDirective($parse, $mdSwipe) {
-  return {
-    restrict: 'A',
-    link :  swipePostLink( $parse, $mdSwipe, "SwipeLeft" )
-  };
-}
-MdSwipeLeftDirective.$inject = ["$parse", "$mdSwipe"];
 
 /**
  * @ngdoc directive
@@ -5643,61 +6597,41 @@ MdSwipeLeftDirective.$inject = ["$parse", "$mdSwipe"];
  * @restrict A
  *
  * @description
- * The `<div  md-swipe-right="expression">` directive identifies functionality
- * that attaches HammerJS horizontal swipe right and pan right support to an element. The swipe/pan action
- * can result in activity trigger by evaluating `expression`
- *
- * @param {boolean=} mdNoPan Use of attribute indicates flag to disable detection of `panright` activity
+ * The md-swipe-right directives allows you to specify custom behavior when an element is swiped
+ * right.
  *
  * @usage
  * <hljs lang="html">
- *
- * <div class="animate-switch-container"
- *      ng-switch on="data.selectedIndex"
- *      md-swipe-left="data.selectedIndex+=1;"
- *      md-swipe-right="data.selectedIndex-=1;" >
- *
- * </div>
+ * <div md-swipe-right="onSwipeRight()">Swipe me right!</div>
  * </hljs>
- *
  */
-function MdSwipeRightDirective($parse, $mdSwipe) {
-  return {
-    restrict: 'A',
-    link :  swipePostLink( $parse, $mdSwipe, "SwipeRight" )
-  };
-}
-MdSwipeRightDirective.$inject = ["$parse", "$mdSwipe"];
 
-/**
- * Factory to build PostLink function specific to Swipe or Pan direction
- *
- * @param $parse
- * @param $mdSwipe
- * @param name
- * @returns {Function}
- */
-function swipePostLink($parse, $mdSwipe, name ) {
+var module = angular.module('material.components.swipe',[]);
 
-  return function(scope, element, attrs) {
-    var direction = name.toLowerCase();
-    var directiveName= "md" + name;
+['SwipeLeft', 'SwipeRight'].forEach(function(name) {
+  var directiveName = 'md' + name;
+  var eventName = '$md.' + name.toLowerCase();
 
-    var parentGetter = $parse(attrs[directiveName]) || angular.noop;
-    var configureSwipe = $mdSwipe(scope, direction);
-    var requestSwipe = function(locals) {
-      // build function to request scope-specific swipe response
-      parentGetter(scope, locals);
+  module.directive(directiveName, /*@ngInject*/ ["$parse", function($parse) {
+    return {
+      restrict: 'A',
+      link: postLink
     };
 
-    configureSwipe( element, function onHandleSwipe(ev) {
-      if ( ev.type == direction ) {
-        requestSwipe();
-      }
-    });
+    function postLink(scope, element, attr) {
+      var fn = $parse(attr[directiveName]);
 
-  };
-}
+      element.on(eventName, function(ev) {
+        scope.$apply(function() {
+          fn(scope, {
+            $event: ev
+          });
+        });
+      });
+
+    }
+  }]);
+});
 
 })();
 
@@ -5705,7 +6639,7 @@ function swipePostLink($parse, $mdSwipe, name ) {
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -5731,6 +6665,10 @@ angular.module('material.components.switch', [
  *
  * The switch directive is used very much like the normal [angular checkbox](https://docs.angularjs.org/api/ng/input/input%5Bcheckbox%5D).
  *
+ * As per the [material design spec](http://www.google.com/design/spec/style/color.html#color-ui-color-application)
+ * the switch is in the accent color by default. The primary color palette may be used with
+ * the `md-primary` class.
+ *
  * @param {string} ng-model Assignable angular expression to data-bind to.
  * @param {string=} name Property name of the form under which the control is published.
  * @param {expression=} ng-true-value The value to which the expression should be set when selected.
@@ -5755,7 +6693,7 @@ angular.module('material.components.switch', [
  *
  * </hljs>
  */
-function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConstant, $parse, $$rAF) {
+function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConstant, $parse, $$rAF, $mdGesture) {
   var checkboxDirective = mdCheckboxDirective[0];
 
   return {
@@ -5776,6 +6714,8 @@ function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConsta
 
   function compile(element, attr) {
     var checkboxLink = checkboxDirective.compile(element, attr);
+    // no transition on initial load
+    element.addClass('md-dragging');
 
     return function (scope, element, attr, ngModel) {
       ngModel = ngModel || $mdUtil.fakeNgModel();
@@ -5785,62 +6725,82 @@ function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConsta
 
       // no transition on initial load
       $$rAF(function() {
-        element.addClass('transition');
+        element.removeClass('md-dragging');
       });
 
-      // Tell the checkbox we don't want a click listener.
-      // Our drag listener tells us everything, using more granular events.
-      attr.mdNoClick = true;
       checkboxLink(scope, element, attr, ngModel);
 
-      $mdUtil.attachDragBehavior(scope, switchContainer);
+      if (angular.isDefined(attr.ngDisabled)) {
+        scope.$watch(disabledGetter, function(isDisabled) {
+          element.attr('tabindex', isDisabled ? -1 : 0);
+        });
+      }
 
       // These events are triggered by setup drag
-      switchContainer.on('$md.dragstart', onDragStart)
+      $mdGesture.register(switchContainer, 'drag');
+      switchContainer
+        .on('$md.dragstart', onDragStart)
         .on('$md.drag', onDrag)
         .on('$md.dragend', onDragEnd);
 
-      function onDragStart(ev, drag) {
+      var drag;
+      function onDragStart(ev) {
         // Don't go if ng-disabled===true
-        if (disabledGetter(scope)) return ev.preventDefault();
+        if (disabledGetter(scope)) return;
+        ev.stopPropagation();
 
-        drag.width = thumbContainer.prop('offsetWidth');
+        element.addClass('md-dragging');
+        drag = {
+          width: thumbContainer.prop('offsetWidth')
+        };
         element.removeClass('transition');
       }
-      function onDrag(ev, drag) {
-        var percent = drag.distance / drag.width;
+
+      function onDrag(ev) {
+        if (!drag) return;
+        ev.stopPropagation();
+        ev.srcEvent && ev.srcEvent.preventDefault();
+
+        var percent = ev.pointer.distanceX / drag.width;
 
         //if checked, start from right. else, start from left
-        var translate = ngModel.$viewValue ?  1 - percent : -percent;
+        var translate = ngModel.$viewValue ?  1 + percent : percent;
         // Make sure the switch stays inside its bounds, 0-1%
         translate = Math.max(0, Math.min(1, translate));
 
         thumbContainer.css($mdConstant.CSS.TRANSFORM, 'translate3d(' + (100*translate) + '%,0,0)');
         drag.translate = translate;
       }
-      function onDragEnd(ev, drag) {
-        if (disabledGetter(scope)) return false;
 
-        element.addClass('transition');
+      function onDragEnd(ev) {
+        if (!drag) return;
+        ev.stopPropagation();
+
+        element.removeClass('md-dragging');
         thumbContainer.css($mdConstant.CSS.TRANSFORM, '');
 
         // We changed if there is no distance (this is a click a click),
         // or if the drag distance is >50% of the total.
-        var isChanged = Math.abs(drag.distance || 0) < 2 ||
-          (ngModel.$viewValue ? drag.translate < 0.5 : drag.translate > 0.5);
+        var isChanged = ngModel.$viewValue ? drag.translate < 0.5 : drag.translate > 0.5;
         if (isChanged) {
-          scope.$apply(function() {
-            ngModel.$setViewValue(!ngModel.$viewValue);
-            ngModel.$render();
-          });
+          applyModelValue(!ngModel.$viewValue);
         }
+        drag = null;
       }
+
+      function applyModelValue(newValue) {
+        scope.$apply(function() {
+          ngModel.$setViewValue(newValue);
+          ngModel.$render();
+        });
+      }
+
     };
   }
 
 
 }
-MdSwitch.$inject = ["mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document", "$mdConstant", "$parse", "$$rAF"];
+MdSwitch.$inject = ["mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document", "$mdConstant", "$parse", "$$rAF", "$mdGesture"];
 
 })();
 
@@ -5848,7 +6808,7 @@ MdSwitch.$inject = ["mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document",
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -5885,7 +6845,7 @@ angular.module('material.components.tabs', [
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -5904,34 +6864,7 @@ angular.module('material.components.textField', [
   .directive('mdTextFloat', mdTextFloatDirective);
 
 
-
-/**
- * @ngdoc directive
- * @name mdTextFloat
- * @module material.components.textField
- *
- * @restrict E
- *
- * @description
- * Use the `<md-text-float>` directive to quickly construct `Floating Label` text fields
- *
- * @param {string} ng-model Model expression used for two-way data binding with the input value.
- * @param {string} label String value or expression that specifies the input text field label/hint.
- * @param {string=} type Optional value to define the type of input field. Defaults to string.
- * @param {string=} md-fid Optional attribute used for accessibility link pairing between the Label and Input elements
- *
- * @usage
- * <hljs lang="html">
- * <md-text-float label="LastName" ng-model="user.lastName" > </md-text-float>
- *
- * <!-- Specify a read-only input field by using the `disabled` attribute -->
- * <md-text-float label="Company"  ng-model="user.company" ng-disabled="true" > </md-text-float>
- *
- * <!-- Specify an input type if desired. -->
- * <md-text-float label="eMail"    ng-model="user.email" type="email" ></md-text-float>
- * </hljs>
- */
-function mdTextFloatDirective($mdTheming, $mdUtil, $parse) {
+function mdTextFloatDirective($mdTheming, $mdUtil, $parse, $log) {
   return {
     restrict: 'E',
     replace: true,
@@ -5941,6 +6874,9 @@ function mdTextFloatDirective($mdTheming, $mdUtil, $parse) {
       value : '=ngModel'
     },
     compile : function(element, attr) {
+
+      $log.warn('<md-text-float> is deprecated. Please use `<md-input-container>` and `<input>`.' + 
+                'More information at http://material.angularjs.org/#/api/material.components.input/directive/mdInputContainer');
 
       if ( angular.isUndefined(attr.mdFid) ) {
         attr.mdFid = $mdUtil.nextUid();
@@ -5965,30 +6901,15 @@ function mdTextFloatDirective($mdTheming, $mdUtil, $parse) {
     '</md-input-group>'
   };
 }
-mdTextFloatDirective.$inject = ["$mdTheming", "$mdUtil", "$parse"];
+mdTextFloatDirective.$inject = ["$mdTheming", "$mdUtil", "$parse", "$log"];
 
-/*
- * @private
- *
- * @ngdoc directive
- * @name mdInputGroup
- * @module material.components.textField
- * @restrict E
- * @description
- * Use the `<md-input-group>` directive as the grouping parent of a `<md-input>` element.
- *
- * @usage 
- * <hljs lang="html">
- * <md-input-group ng-disabled="isDisabled">
- *   <label for="{{fid}}">{{someLabel}}</label>
- *   <md-input id="{{fid}}" type="text" ng-model="someText"></md-input>
- * </md-input-group>
- * </hljs>
- */
-function mdInputGroupDirective() {
+function mdInputGroupDirective($log) {
   return {
     restrict: 'CE',
     controller: ['$element', function($element) {
+
+      $log.warn('<md-input-group> is deprecated. Please use `<md-input-container>` and `<input>`.' + 
+                'More information at http://material.angularjs.org/#/api/material.components.input/directive/mdInputContainer');
       this.setFocused = function(isFocused) {
         $element.toggleClass('md-input-focused', !!isFocused);
       };
@@ -5999,28 +6920,9 @@ function mdInputGroupDirective() {
   };
 
 }
+mdInputGroupDirective.$inject = ["$log"];
 
-/*
- * @private
- *
- * @ngdoc directive
- * @name mdInput
- * @module material.components.textField
- *
- * @restrict E
- *
- * @description
- * Use the `<md-input>` directive as elements within a `<md-input-group>` container
- *
- * @usage
- * <hljs lang="html">
- * <md-input-group ng-disabled="user.isLocked">
- *   <label for="i1">FirstName</label>
- *   <md-input id="i1" ng-model="user.firstName"></md-input>
- * </md-input-group>
- * </hljs>
- */
-function mdInputDirective($mdUtil) {
+function mdInputDirective($mdUtil, $log) {
   return {
     restrict: 'E',
     replace: true,
@@ -6028,6 +6930,9 @@ function mdInputDirective($mdUtil) {
     require: ['^?mdInputGroup', '?ngModel'],
     link: function(scope, element, attr, ctrls) {
       if ( !ctrls[0] ) return;
+
+      $log.warn('<md-input> is deprecated. Please use `<md-input-container>` and `<input>`.' + 
+                'More information at http://material.angularjs.org/#/api/material.components.input/directive/mdInputContainer');
 
       var inputGroupCtrl = ctrls[0];
       var ngModelCtrl = ctrls[1];
@@ -6076,7 +6981,7 @@ function mdInputDirective($mdUtil) {
     }
   };
 }
-mdInputDirective.$inject = ["$mdUtil"];
+mdInputDirective.$inject = ["$mdUtil", "$log"];
 
 })();
 
@@ -6084,7 +6989,7 @@ mdInputDirective.$inject = ["$mdUtil"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6097,7 +7002,6 @@ mdInputDirective.$inject = ["$mdUtil"];
  */
 angular.module('material.components.toast', [
   'material.core',
-  'material.components.swipe',
   'material.components.button'
 ])
   .directive('mdToast', MdToastDirective)
@@ -6138,9 +7042,22 @@ function MdToastDirective() {
  * app.controller('MyController', function($scope, $mdToast) {
  *   $scope.openToast = function($event) {
  *     $mdToast.show($mdToast.simple().content('Hello!'));
+ *     // Could also do $mdToast.showSimple('Hello');
  *   };
  * });
  * </hljs>
+ */
+
+/**
+ * @ngdoc method
+ * @name $mdToast#showSimple
+ * 
+ * @description
+ * Convenience method which builds and shows a simple toast.
+ *
+ * @returns {promise} A promise that can be resolved with `$mdToast.hide()` or
+ * rejected with `$mdToast.cancel()`.
+ *
  */
 
  /**
@@ -6197,6 +7114,8 @@ function MdToastDirective() {
  *   - `resolve` - `{object=}`: Similar to locals, except it takes promises as values
  *     and the toast will not open until the promises resolve.
  *   - `controllerAs` - `{string=}`: An alias to assign the controller to on the scope.
+ *   - `parent` - `{element=}`: The element to append the toast to. Defaults to appending
+ *     to the root element of the application.
  *
  * @returns {promise} A promise that can be resolved with `$mdToast.hide()` or
  * rejected with `$mdToast.cancel()`.
@@ -6227,7 +7146,7 @@ function MdToastDirective() {
 
 function MdToastProvider($$interimElementProvider) {
 
-  toastDefaultOptions.$inject = ["$timeout", "$animate", "$mdSwipe", "$mdTheming", "$mdToast"];
+  toastDefaultOptions.$inject = ["$timeout", "$animate", "$mdTheming", "$mdToast"];
   return $$interimElementProvider('$mdToast')
     .setDefaults({
       methods: ['position', 'hideDelay', 'capsule'],
@@ -6241,7 +7160,7 @@ function MdToastProvider($$interimElementProvider) {
           template: [
             '<md-toast ng-class="{\'md-capsule\': toast.capsule}">',
               '<span flex>{{ toast.content }}</span>',
-              '<md-button ng-if="toast.action" ng-click="toast.resolve()" ng-class="{\'md-action\': toast.highlightAction}">',
+              '<md-button class="md-action" ng-if="toast.action" ng-click="toast.resolve()" ng-class="{\'md-highlight\': toast.highlightAction}">',
                 '{{ toast.action }}',
               '</md-button>',
             '</md-toast>'
@@ -6258,7 +7177,7 @@ function MdToastProvider($$interimElementProvider) {
     });
 
   /* @ngInject */
-  function toastDefaultOptions($timeout, $animate, $mdSwipe, $mdTheming, $mdToast) {
+  function toastDefaultOptions($timeout, $animate, $mdTheming, $mdToast) {
     return {
       onShow: onShow,
       onRemove: onRemove,
@@ -6274,18 +7193,17 @@ function MdToastProvider($$interimElementProvider) {
       }).join(' '));
       options.parent.addClass(toastOpenClass(options.position));
 
-      var configureSwipe = $mdSwipe(scope, 'swipeleft swiperight');
-      options.detachSwipe = configureSwipe(element, function(ev) {
+      options.onSwipe = function(ev, gesture) {
         //Add swipeleft/swiperight class to element so it can animate correctly
-        element.addClass('md-' + ev.type);
+        element.addClass('md-' + ev.type.replace('$md.',''));
         $timeout($mdToast.cancel);
-      });
-
+      };
+      element.on('$md.swipeleft $md.swiperight', options.onSwipe);
       return $animate.enter(element, options.parent);
     }
 
     function onRemove(scope, element, options) {
-      options.detachSwipe();
+      element.off('$md.swipeleft $md.swiperight', options.onSwipe);
       options.parent.removeClass(toastOpenClass(options.position));
       return $animate.leave(element);
     }
@@ -6305,7 +7223,7 @@ MdToastProvider.$inject = ["$$interimElementProvider"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6390,7 +7308,7 @@ function mdToolbarDirective($$rAF, $mdConstant, $mdUtil, $mdTheming) {
         var toolbarHeight;
         var contentElement;
 
-        var debouncedContentScroll = $$rAF.debounce(onContentScroll);
+        var debouncedContentScroll = $$rAF.throttle(onContentScroll);
         var debouncedUpdateHeight = $mdUtil.debounce(updateToolbarHeight, 5 * 1000);
 
         // Wait for $mdContentLoaded event from mdContent directive.
@@ -6464,7 +7382,7 @@ mdToolbarDirective.$inject = ["$$rAF", "$mdConstant", "$mdUtil", "$mdTheming"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6500,6 +7418,7 @@ angular.module('material.components.tooltip', [
  *
  * @param {expression=} md-visible Boolean bound to whether the tooltip is
  * currently visible.
+ * @param {number=} md-delay How many milliseconds to wait to show the tooltip after the user focuses, hovers, or touches the parent. Defaults to 400ms.
  */
 function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdTheming, $rootElement) {
 
@@ -6513,7 +7432,8 @@ function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdThe
       '<div class="md-background"></div>' +
       '<div class="md-content" ng-transclude></div>',
     scope: {
-      visible: '=?mdVisible'
+      visible: '=?mdVisible',
+      delay: '=?mdDelay'
     },
     link: postLink
   };
@@ -6529,6 +7449,10 @@ function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdThe
       current = current.parentNode;
     }
     var tooltipParent = angular.element(current || document.body);
+
+    if (!angular.isDefined(attr.mdDelay)) {
+      scope.delay = TOOLTIP_SHOW_DELAY;
+    }
 
     // We will re-attach tooltip when visible
     element.detach();
@@ -6549,7 +7473,7 @@ function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdThe
       else hideTooltip();
     });
 
-    var debouncedOnResize = $$rAF.debounce(function windowResize() {
+    var debouncedOnResize = $$rAF.throttle(function windowResize() {
       // Reposition on resize
       if (scope.visible) positionTooltip();
     });
@@ -6566,7 +7490,7 @@ function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdThe
     // Methods
     // *******
 
-    // If setting visible to true, debounce to TOOLTIP_SHOW_DELAY ms
+    // If setting visible to true, debounce to scope.delay ms
     // If setting visible to false and no timeout is active, instantly hide the tooltip.
     function setVisible(value) {
       setVisible.value = !!value;
@@ -6577,7 +7501,7 @@ function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdThe
           $timeout(function() {
             scope.visible = setVisible.value;
             setVisible.queued = false;
-          }, TOOLTIP_SHOW_DELAY);
+          }, scope.delay);
 
         } else {
           $timeout(function() { scope.visible = false; });
@@ -6656,7 +7580,7 @@ MdTooltipDirective.$inject = ["$timeout", "$window", "$$rAF", "$document", "$mdU
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6672,7 +7596,7 @@ angular.module('material.components.whiteframe', []);
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6696,10 +7620,10 @@ function MdTabInkDirective($$rAF) {
   };
 
   function postLink(scope, element, attr, ctrls) {
-    if (ctrls[0]) return;
+    var mdNoBar = !!ctrls[0];
 
     var tabsCtrl = ctrls[1],
-        debouncedUpdateBar = $$rAF.debounce(updateBar);
+        debouncedUpdateBar = $$rAF.throttle(updateBar);
 
     tabsCtrl.inkBarElement = element;
 
@@ -6707,7 +7631,7 @@ function MdTabInkDirective($$rAF) {
 
     function updateBar() {
       var selected = tabsCtrl.getSelectedItem();
-      var hideInkBar = !selected || tabsCtrl.count() < 2;
+      var hideInkBar = !selected || tabsCtrl.count() < 2 || mdNoBar;
 
       element.css('display', hideInkBar ? 'none' : 'block');
 
@@ -6723,7 +7647,7 @@ function MdTabInkDirective($$rAF) {
         element
             .removeClass(classNames.join(' '))
             .addClass(classNames[classIndex])
-            .css({ left: (data.left + 1) + 'px', right: right + 'px' });
+            .css({ left: data.left + 'px', right: right + 'px' });
 
         lastIndex = index;
       }
@@ -6737,7 +7661,7 @@ MdTabInkDirective.$inject = ["$$rAF"];
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6759,13 +7683,14 @@ function TabPaginationDirective($mdConstant, $window, $$rAF, $$q, $timeout, $mdM
   function postLink(scope, element, attr, tabsCtrl) {
 
     var tabs = element[0].getElementsByTagName('md-tab');
-    var debouncedUpdatePagination = $$rAF.debounce(updatePagination);
+    var debouncedUpdatePagination = $$rAF.throttle(updatePagination);
     var tabsParent = element.children();
+    var locked = false;
     var state = scope.pagination = {
       page: -1,
       active: false,
-      clickNext: function() { userChangePage(+1); },
-      clickPrevious: function() { userChangePage(-1); }
+      clickNext: function() { locked || userChangePage(+1); },
+      clickPrevious: function() { locked || userChangePage(-1); }
     };
 
     scope.$on('$mdTabsChanged', debouncedUpdatePagination);
@@ -6788,7 +7713,10 @@ function TabPaginationDirective($mdConstant, $window, $$rAF, $$q, $timeout, $mdM
       } else {
         // Go to the new page, wait for the page transition to end, then focus.
         oldTab && oldTab.element.blur();
-        setPage(pageIndex).then(function() { tab.element.focus(); });
+        setPage(pageIndex).then(function() {
+          locked = false;
+          tab.element.focus();
+        });
       }
     }
 
@@ -6798,6 +7726,7 @@ function TabPaginationDirective($mdConstant, $window, $$rAF, $$q, $timeout, $mdM
       var newPage = Math.max(0, Math.min(sizeData.pages.length - 1, state.page + increment));
       var newTabIndex = sizeData.pages[newPage][ increment > 0 ? 'firstTabIndex' : 'lastTabIndex' ];
       var newTab = tabsCtrl.itemAt(newTabIndex);
+      locked = true;
       onTabFocus(newTab);
     }
 
@@ -6843,7 +7772,9 @@ function TabPaginationDirective($mdConstant, $window, $$rAF, $$q, $timeout, $mdM
             function () {
               $timeout(function () {
                 if (element[0].offsetParent) {
-                  watcher();
+                  if (angular.isFunction(watcher)) {
+                    watcher();
+                  }
                   debouncedUpdatePagination();
                   watcher = null;
                 }
@@ -6989,7 +7920,7 @@ TabPaginationDirective.$inject = ["$mdConstant", "$window", "$$rAF", "$$q", "$ti
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -6998,12 +7929,12 @@ TabPaginationDirective.$inject = ["$mdConstant", "$window", "$$rAF", "$$q", "$ti
 angular.module('material.components.tabs')
   .controller('$mdTab', TabItemController);
 
-function TabItemController($scope, $element, $attrs, $compile, $animate, $mdUtil, $parse) {
+function TabItemController($scope, $element, $attrs, $compile, $animate, $mdUtil, $parse, $timeout) {
   var self = this;
+  var tabsCtrl = $element.controller('mdTabs');
 
   // Properties
   self.contentContainer = angular.element('<div class="md-tab-content ng-hide">');
-  self.hammertime = new Hammer(self.contentContainer[0]);
   self.element = $element;
 
   // Methods
@@ -7022,54 +7953,83 @@ function TabItemController($scope, $element, $attrs, $compile, $animate, $mdUtil
    * Add the tab's content to the DOM container area in the tabs,
    * @param contentArea the contentArea to add the content of the tab to
    */
-  function onAdd(contentArea) {
+  function onAdd(contentArea, shouldDisconnectScope) {
     if (self.content.length) {
       self.contentContainer.append(self.content);
       self.contentScope = $scope.$parent.$new();
       contentArea.append(self.contentContainer);
 
       $compile(self.contentContainer)(self.contentScope);
-      $mdUtil.disconnectScope(self.contentScope);
+      if (shouldDisconnectScope === true) {
+        $timeout(function () {
+          $mdUtil.disconnectScope(self.contentScope);
+        }, 0, false);
+      }
     }
   }
 
   function onRemove() {
-    self.hammertime.destroy();
     $animate.leave(self.contentContainer).then(function() {
       self.contentScope && self.contentScope.$destroy();
       self.contentScope = null;
     });
   }
 
-  function onSelect() {
+  function toggleAnimationClass(rightToLeft) {
+    self.contentContainer[rightToLeft ? 'addClass' : 'removeClass']('md-transition-rtl');
+  }
+
+  function onSelect(rightToLeft) {
     // Resume watchers and events firing when tab is selected
     $mdUtil.reconnectScope(self.contentScope);
-    self.hammertime.on('swipeleft swiperight', $scope.onSwipe);
 
-    $element.addClass('active');
-    $element.attr('aria-selected', true);
-    $element.attr('tabIndex', 0);
+    $element
+      .addClass('active')
+      .attr({
+        'aria-selected': true,
+        'tabIndex': 0
+      })
+      .on('$md.swipeleft $md.swiperight', onSwipe);
+
+    toggleAnimationClass(rightToLeft);
     $animate.removeClass(self.contentContainer, 'ng-hide');
 
     $scope.onSelect();
   }
 
-  function onDeselect() {
+  function onDeselect(rightToLeft) {
     // Stop watchers & events from firing while tab is deselected
     $mdUtil.disconnectScope(self.contentScope);
-    self.hammertime.off('swipeleft swiperight', $scope.onSwipe);
 
-    $element.removeClass('active');
-    $element.attr('aria-selected', false);
-    // Only allow tabbing to the active tab
-    $element.attr('tabIndex', -1);
+    $element
+      .removeClass('active')
+      .attr({
+        'aria-selected': false,
+        'tabIndex': -1
+      })
+      .off('$md.swipeleft $md.swiperight', onSwipe);
+
+    toggleAnimationClass(rightToLeft);
     $animate.addClass(self.contentContainer, 'ng-hide');
 
     $scope.onDeselect();
   }
 
+  ///// Private functions
+
+  function onSwipe(ev) {
+    $scope.$apply(function() {
+      if (/left/.test(ev.type)) {
+        tabsCtrl.select(tabsCtrl.next());
+      } else {
+        tabsCtrl.select(tabsCtrl.previous());
+      }
+    });
+  }
+ 
+
 }
-TabItemController.$inject = ["$scope", "$element", "$attrs", "$compile", "$animate", "$mdUtil", "$parse"];
+TabItemController.$inject = ["$scope", "$element", "$attrs", "$compile", "$animate", "$mdUtil", "$parse", "$timeout"];
 
 })();
 
@@ -7077,7 +8037,7 @@ TabItemController.$inject = ["$scope", "$element", "$attrs", "$compile", "$anima
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -7095,7 +8055,7 @@ angular.module('material.components.tabs')
  * @description
  * `<md-tab>` is the nested directive used [within `<md-tabs>`] to specify each tab with a **label** and optional *view content*.
  *
- * If the `label` attribute is not specified, then an optional `<md-tab-label>` tag can be used to specified more
+ * If the `label` attribute is not specified, then an optional `<md-tab-label>` tag can be used to specify more
  * complex tab header markup. If neither the **label** nor the **md-tab-label** are specified, then the nested
  * markup of the `<md-tab>` is used as the tab header markup.
  *
@@ -7172,6 +8132,8 @@ function MdTabDirective($mdInkRipple, $compile, $mdUtil, $mdConstant, $timeout) 
       var tabItemCtrl = ctrls[0]; // Controller for THIS tabItemCtrl
       var tabsCtrl = ctrls[1]; // Controller for ALL tabs
 
+      $timeout(element.addClass.bind(element, 'md-tab-themed'), 0, false);
+
       scope.$watch(
           function () { return attr.label; },
           function () { $timeout(function () { tabsCtrl.scope.$broadcast('$mdTabsChanged'); }, 0, false); }
@@ -7188,12 +8150,17 @@ function MdTabDirective($mdInkRipple, $compile, $mdUtil, $mdConstant, $timeout) 
         detachRippleFn();
         tabsCtrl.remove(tabItemCtrl);
       });
+      element.on('$destroy', function () {
+        //-- wait for item to be removed from the dom
+        $timeout(function () {
+          tabsCtrl.scope.$broadcast('$mdTabsChanged');
+        }, 0, false);
+      });
 
       if (!angular.isDefined(attr.ngClick)) {
         element.on('click', defaultClickListener);
       }
       element.on('keydown', keydownListener);
-      scope.onSwipe = onSwipe;
 
       if (angular.isNumber(scope.$parent.$index)) {
         watchNgRepeatIndex();
@@ -7235,16 +8202,6 @@ function MdTabDirective($mdInkRipple, $compile, $mdUtil, $mdConstant, $timeout) 
             tabsCtrl.focus(tabsCtrl.next(tabItemCtrl));
           });
         }
-      }
-
-      function onSwipe(ev) {
-        scope.$apply(function() {
-          if (ev.type === 'swipeleft') {
-            tabsCtrl.select(tabsCtrl.next());
-          } else {
-            tabsCtrl.select(tabsCtrl.previous());
-          }
-        });
       }
 
       // If tabItemCtrl is part of an ngRepeat, move the tabItemCtrl in our internal array
@@ -7323,7 +8280,7 @@ MdTabDirective.$inject = ["$mdInkRipple", "$compile", "$mdUtil", "$mdConstant", 
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -7331,7 +8288,7 @@ MdTabDirective.$inject = ["$mdInkRipple", "$compile", "$mdUtil", "$mdConstant", 
 angular.module('material.components.tabs')
   .controller('$mdTabs', MdTabsController);
 
-function MdTabsController($scope, $element, $mdUtil, $$rAF) {
+function MdTabsController($scope, $element, $mdUtil, $timeout) {
 
   var tabsList = $mdUtil.iterator([], false);
   var self = this;
@@ -7340,14 +8297,14 @@ function MdTabsController($scope, $element, $mdUtil, $$rAF) {
   self.$element = $element;
   self.scope = $scope;
   // The section containing the tab content $elements
-  self.contentArea = angular.element($element[0].querySelector('.md-tabs-content'));
+  var contentArea = self.contentArea = angular.element($element[0].querySelector('.md-tabs-content'));
 
   // Methods from iterator
-  self.inRange = tabsList.inRange;
-  self.indexOf = tabsList.indexOf;
-  self.itemAt = tabsList.itemAt;
+  var inRange = self.inRange = tabsList.inRange;
+  var indexOf = self.indexOf = tabsList.indexOf;
+  var itemAt = self.itemAt = tabsList.itemAt;
   self.count = tabsList.count;
-  
+
   self.getSelectedItem = getSelectedItem;
   self.getSelectedIndex = getSelectedIndex;
   self.add = add;
@@ -7361,15 +8318,15 @@ function MdTabsController($scope, $element, $mdUtil, $$rAF) {
   self.previous = previous;
 
   $scope.$on('$destroy', function() {
-    self.deselect(self.getSelectedItem());
+    deselect(getSelectedItem());
     for (var i = tabsList.count() - 1; i >= 0; i--) {
-      self.remove(tabsList[i], true);
+      remove(tabsList[i], true);
     }
   });
 
   // Get the selected tab
   function getSelectedItem() {
-    return self.itemAt($scope.selectedIndex);
+    return itemAt($scope.selectedIndex);
   }
 
   function getSelectedIndex() {
@@ -7380,13 +8337,15 @@ function MdTabsController($scope, $element, $mdUtil, $$rAF) {
   // Returns a method to remove the tab from the list.
   function add(tab, index) {
     tabsList.add(tab, index);
-    tab.onAdd(self.contentArea);
 
     // Select the new tab if we don't have a selectedIndex, or if the
     // selectedIndex we've been waiting for is this tab
-    if ($scope.selectedIndex === -1 || !angular.isNumber($scope.selectedIndex) || 
-        $scope.selectedIndex === self.indexOf(tab)) {
+    if (!angular.isDefined(tab.element.attr('md-active')) && ($scope.selectedIndex === -1 || !angular.isNumber($scope.selectedIndex) ||
+        $scope.selectedIndex === self.indexOf(tab))) {
+      tab.onAdd(self.contentArea, false);
       self.select(tab);
+    } else {
+      tab.onAdd(self.contentArea, true);
     }
 
     $scope.$broadcast('$mdTabsChanged');
@@ -7394,43 +8353,42 @@ function MdTabsController($scope, $element, $mdUtil, $$rAF) {
 
   function remove(tab, noReselect) {
     if (!tabsList.contains(tab)) return;
+    if (noReselect) return;
+    var isSelectedItem = getSelectedItem() === tab,
+        newTab = previous() || next();
 
-    if (noReselect) {
-      // do nothing
-    } else if (self.getSelectedItem() === tab) {
-      if (tabsList.count() > 1) {
-        self.select(self.previous() || self.next());
-      } else {
-        self.deselect(tab);
-      }
-    }
-
+    deselect(tab);
     tabsList.remove(tab);
     tab.onRemove();
 
     $scope.$broadcast('$mdTabsChanged');
+
+    if (isSelectedItem) { select(newTab); }
   }
 
   // Move a tab (used when ng-repeat order changes)
   function move(tab, toIndex) {
-    var isSelected = self.getSelectedItem() === tab;
+    var isSelected = getSelectedItem() === tab;
 
     tabsList.remove(tab);
     tabsList.add(tab, toIndex);
-    if (isSelected) self.select(tab);
+    if (isSelected) select(tab);
 
     $scope.$broadcast('$mdTabsChanged');
   }
 
-  function select(tab) {
+  function select(tab, rightToLeft) {
     if (!tab || tab.isSelected || tab.isDisabled()) return;
     if (!tabsList.contains(tab)) return;
 
-    self.deselect(self.getSelectedItem());
+    if (!angular.isDefined(rightToLeft)) {
+      rightToLeft = indexOf(tab) < $scope.selectedIndex;
+    }
+    deselect(getSelectedItem(), rightToLeft);
 
-    $scope.selectedIndex = self.indexOf(tab);
+    $scope.selectedIndex = indexOf(tab);
     tab.isSelected = true;
-    tab.onSelect();
+    tab.onSelect(rightToLeft);
 
     $scope.$broadcast('$mdTabsChanged');
   }
@@ -7440,20 +8398,20 @@ function MdTabsController($scope, $element, $mdUtil, $$rAF) {
     self.tabToFocus = tab;
   }
 
-  function deselect(tab) {
+  function deselect(tab, rightToLeft) {
     if (!tab || !tab.isSelected) return;
     if (!tabsList.contains(tab)) return;
 
     $scope.selectedIndex = -1;
     tab.isSelected = false;
-    tab.onDeselect();
+    tab.onDeselect(rightToLeft);
   }
 
   function next(tab, filterFn) {
-    return tabsList.next(tab || self.getSelectedItem(), filterFn || isTabEnabled);
+    return tabsList.next(tab || getSelectedItem(), filterFn || isTabEnabled);
   }
   function previous(tab, filterFn) {
-    return tabsList.previous(tab || self.getSelectedItem(), filterFn || isTabEnabled);
+    return tabsList.previous(tab || getSelectedItem(), filterFn || isTabEnabled);
   }
 
   function isTabEnabled(tab) {
@@ -7461,14 +8419,14 @@ function MdTabsController($scope, $element, $mdUtil, $$rAF) {
   }
 
 }
-MdTabsController.$inject = ["$scope", "$element", "$mdUtil", "$$rAF"];
+MdTabsController.$inject = ["$scope", "$element", "$mdUtil", "$timeout"];
 })();
 
 /*!
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.7.0-rc1-master-ff79c91
+ * v0.7.1
  */
 (function() {
 'use strict';
@@ -7537,7 +8495,7 @@ angular.module('material.components.tabs')
  * @param {boolean=} md-no-ink If present, disables ink ripple effects.
  * @param {boolean=} md-no-bar If present, disables the selection ink bar.
  * @param {string=}  md-align-tabs Attribute to indicate position of tab buttons: `bottom` or `top`; default is `top`
- * @param {boolean=} md-stretch-tabs Attribute to indicate whether or not to stretch tabs: `auto`, `always`, or `never`; default is `auto`
+ * @param {string=} md-stretch-tabs Attribute to indicate whether or not to stretch tabs: `auto`, `always`, or `never`; default is `auto`
  *
  * @usage
  * <hljs lang="html">
@@ -7621,16 +8579,18 @@ function TabsDirective($mdTheming) {
 
     function watchSelected() {
       scope.$watch('selectedIndex', function watchSelectedIndex(newIndex, oldIndex) {
-        tabsCtrl.deselect(tabsCtrl.itemAt(oldIndex));
+        if (oldIndex == newIndex) return;
+        var rightToLeft = oldIndex > newIndex;
+        tabsCtrl.deselect(tabsCtrl.itemAt(oldIndex), rightToLeft);
 
         if (tabsCtrl.inRange(newIndex)) {
           var newTab = tabsCtrl.itemAt(newIndex);
           while (newTab && newTab.isDisabled()) {
-            newTab = newIndex > oldIndex
+            newTab = newIndex > oldIndex 
                 ? tabsCtrl.next(newTab)
                 : tabsCtrl.previous(newTab);
           }
-          tabsCtrl.select(newTab);
+          tabsCtrl.select(newTab, rightToLeft);
         }
       });
     }
@@ -7639,4 +8599,4 @@ function TabsDirective($mdTheming) {
 TabsDirective.$inject = ["$mdTheming"];
 })();
 
-angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}';  position: absolute; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%; }  .md-button.md-THEME_NAME-theme.md-raised, .md-button.md-THEME_NAME-theme.md-fab {    color: '{{background-contrast}}';    background-color: '{{background-500-0.185}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{background-500-0.3}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme.md-accent .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: white;  background: white; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-4}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: white; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme[disabled] input, md-input-group.md-THEME_NAME-theme[disabled] textarea {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-action {    color: '{{primary-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-accent {      color: '{{accent-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-warn {      color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }")
+angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}'; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }md-toolbar .md-button.md-THEME_NAME-theme.md-fab {  background-color: white; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%;    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }    .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{accent-A700}}'; }  .md-button.md-THEME_NAME-theme.md-raised {    color: '{{background-contrast}}';    background-color: '{{background-50}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus {      background-color: '{{background-200}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-input-container.md-THEME_NAME-theme .md-input {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}';  text-shadow: '{{foreground-shadow}}'; }  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme label, md-input-container.md-THEME_NAME-theme .md-placeholder {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-has-value label {  color: '{{foreground-2}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused .md-input {  border-color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused label {  color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent .md-input {  border-color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid data-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid x-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid [ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [data-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [x-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid .md-char-counter {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: transparent;  color: '{{foreground-3}}';  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%); }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-track-ticks {  background-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme.md-primary .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: '{{primary-contrast}}';  background: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-4}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: '{{primary-contrast}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }    md-toast.md-THEME_NAME-theme .md-button.md-highlight {      color: '{{primary-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-accent {        color: '{{accent-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-warn {        color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");

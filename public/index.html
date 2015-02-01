@@ -19,13 +19,14 @@
 
   <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
   <!-- extra, overriding theme files -->
-  <link rel="stylesheet" href="bower_components/angular-material/themes/indigo-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/default-theme.css">
+  <!-- <link rel="stylesheet" href="bower_components/angular-material/themes/indigo-theme.css">
   <link rel="stylesheet" href="bower_components/angular-material/themes/green-theme.css">
 
   <link rel="stylesheet" href="bower_components/angular-material/themes/blue-grey-theme.css">
   <link rel="stylesheet" href="bower_components/angular-material/themes/brown-theme.css">
   <link rel="stylesheet" href="bower_components/angular-material/themes/light-green-theme.css">
-  <link rel="stylesheet" href="bower_components/angular-material/themes/teal-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/teal-theme.css" -->
   <link rel="stylesheet" href="bower_components/animate.css/animate.min.css">
 
   <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
@@ -46,7 +47,7 @@
   <md-sidenav layout="vertical" class="md-sidenav-left md-whiteframe-z2 sidenav-contacts" md-theme="teal"
     ng-hide="!isLoggedView()" md-component-id="left" md-is-locked-open="$media('gt-md')" tabindex="-1">
 
-    <md-toolbar class="md-medium-tall md-default-theme">
+    <md-toolbar class="md-tall md-default-theme" style="min-height: 112px; height: 112px;">
       <h1 class="md-toolbar-tools" style="padding-top:25px;">
         <p ng-click="selectTab('profile')" tabindex="0" class="">
           {{user.firstName}} {{ user.lastName }}
@@ -111,7 +112,7 @@
       </md-list>
       
       <!-- List with friends -->
-      <md-toolbar class="md-theme-light">
+      <md-toolbar class="md-default-theme">
         <h1 class="md-toolbar-tools">
           <span><span class="fa fa-users"> </span> Friends</span>
         </h1>
@@ -134,7 +135,7 @@
       </md-list>
 
       <!-- List with recent concersations -->
-      <md-toolbar class="md-theme-light">
+      <md-toolbar class="md-default-theme">
         <h1 class="md-toolbar-tools">
           <span><span class="fa fa-comment"> </span> Recent conversations</span>
         </h1>
@@ -156,13 +157,14 @@
 
   </md-sidenav>
 
-  <div layout="column" layout-fill="" tabindex="-1" role="main" md-theme="indigo">
+  <div layout="column" layout-fill="" tabindex="-1" role="main">
     
-    <md-toolbar class="app-toolbar">
+    <md-toolbar class="app-toolbar" ng-show="user">
 
       <div class="md-toolbar-tools pull-left" tabindex="0">
           <span class="fa fa-reorder" show-phone="" show-tablet="" ng-click="toggleSidenav('left')"></span>
           <span class="fa fa-wechat pull-right" ng-click="createRoom()"></span>
+          <span class="fa fa-user-plus pull-right" ng-click="inviteFriends()"></span>
       </div>
 
       <!-- <div class="md-toolbar-tools api-options-bar with-icon ng-scope">
@@ -177,8 +179,8 @@
 
   </div>
 
-  <md-sidenav class="md-sidenav-right md-whiteframe-z2 sidenav-settings" md-component-id="right" md-theme="teal">
-    <md-toolbar class="md-theme-light">
+  <md-sidenav class="md-sidenav-right md-whiteframe-z2 sidenav-settings" md-component-id="right">
+    <md-toolbar class="md-default-theme">
       <h1 class="md-toolbar-tools">
         <span class="fa fa-user"> </span> Settings 
         <span class="setting-close fa fa-close" ng-click="closeSidenav('right')"></span>
@@ -206,18 +208,20 @@
 
     </md-content>
 
-    <md-toolbar class="md-theme-light">
+    <md-toolbar class="md-default-theme">
       <h1 class="md-toolbar-tools"><span class="fa fa-user"> </span> Your Keys</h1>
     </md-toolbar>
     <md-content class="md-padding">
 
-      <label for="settings-private-key">Private Key</label>
+      Temporary Disabled
+
+      <!-- <label for="settings-private-key">Private Key</label>
       <br />
       <textarea id"settings-private-key" ng-model="profile.privateKey" ng-click="openKeys($event)" readonly="readonly"></textarea>
 
       <label for="settings-public-key">Public Key</label>
       <br />
-      <textarea id="settings-public-key" ng-model="profile.publicKey" readonly="readonly"></textarea>
+      <textarea id="settings-public-key" ng-model="profile.publicKey" readonly="readonly"></textarea> -->
 
     </md-content>
   </md-sidenav>
@@ -275,6 +279,7 @@
   <script src="translations.js"></script>
 
   <script src="bower_components/jsencrypt/bin/jsencrypt.min.js"></script>
+  <script src="libs/cryptico/cryptico.min.js"></script>
   <script src="bower_components/moment/moment.js"></script>
 
 </body>

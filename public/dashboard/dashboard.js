@@ -74,21 +74,37 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     }
 
     $scope.addTab(data.roomId, function(room) {
-      RoomsService.fetchMessages(data.roomId).then(function(response) {
-        room.messages = response.length === 0 ? [] : response;
-
-        // Now let's decode the messages
-        room.messages = room.messages.map(function(message) {
-          message.content = $scope.decodeMessage(message);
-          return message;
-        });
-
-        setTimeout(function() {
-          setMessagesHeight();
-          scrollMessages(room);
-        }, 100);
-      });
+      room.page = 1;
+      $scope.loadMessages(room);
     });
+  };
+
+  $scope.loadMessages = function(room) {
+    if (room.pages && room.page > room.pages)
+      return;
+
+    RoomsService.fetchMessages(room.id, room.page).then(function(response) {
+      room.page++;
+      room.pages = response.data.pages;
+      room.messages = response.data.messages.length === 0 ? [] : room.messages;
+
+      // Now let's decode the messages
+      response.data.messages.forEach(function(message) {
+        message.content = $scope.decodeMessage(message);
+        room.messages.unshift(message);
+      });
+
+      setTimeout(function() {
+        setMessagesHeight();
+        scrollMessages(room);
+      }, 100);
+    });
+  };
+
+  $scope.loadOlderMessages = function(roomId) {
+    console.log(roomId);
+
+    $scope.loadMessages($rootScope.rooms[roomId]);
   };
 
   /* Add tab is preparing and calling addRoom tab to finish the job */
@@ -334,16 +350,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
       participants: room.participants
     };
 
-    var message = {
-      content: messageText,
-      isCrypted: false
-    };
-
-    if ($rootScope.isKeysLoaded) {
-      message.content = CryptoJS.AES.encrypt(messageText, $rootScope.user.passphrase).toString();
-      message.isCrypted = true;
-      message.key = $rootScope.user.passphrase;
-    }
+    var message = $scope.encodeMessage(messageText);
 
     chatSocket.emit('message', room, user, message);
     $scope.message = '';
@@ -402,9 +409,18 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     }
   });
 
-  $scope.encodeMessage = function(message) {
-    var encoded;
+  $scope.encodeMessage = function(content, receiver) {
+    var encoded = {
+      content: content,
+      isCrypted: false
+    };
 
+    if ($rootScope.isKeysLoaded) {
+      encoded.content = CryptoJS.AES.encrypt(content, $rootScope.user.passphrase).toString();
+      encoded.isCrypted = true;
+      encoded.key = $rootScope.user.passphrase;
+    }
+  
     return encoded;
   };
 
@@ -412,9 +428,6 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     var decoded;
 
     if (message.isCrypted) {
-      console.log(message.user);
-      console.log($rootScope.user.id);
-      console.log(message.user === $rootScope.user.id);
       var key = (message.user === $rootScope.user.id) ? $rootScope.user.passphrase : $rootScope.friends[message.user].passphrase;
       decoded = CryptoJS.AES.decrypt(message.content, key).toString(CryptoJS.enc.Utf8);
     }
