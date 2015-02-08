@@ -89,3 +89,17 @@ function InviteFriendsController($rootScope, $scope, $mdDialog) {
   };
 
 }
+
+function StatsController($scope, $mdDialog, stats) {
+  $scope.stats = stats;
+
+
+  $scope.hide = function() {
+    $mdDialog.hide();
+  };
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+
+
+}

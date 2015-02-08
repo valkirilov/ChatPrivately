@@ -6,7 +6,9 @@ angular.module('myApp.message-options', [])
     { name: 'Image', icon: 'fa-image' },
     { name: 'Draw', icon: 'fa-pencil' },
     { name: 'Play', icon: 'fa-gamepad' },
-    { name: 'Customize', icon: 'fa-gears' },
+    { name: 'Stats', icon: 'fa-bar-chart' },
+    { name: 'Gears', icon: 'fa-gears' },
+    { name: 'Block', icon: 'fa-user-times' },
   ];
   $scope.listItemClick = function($index) {
     var clickedItem = $scope.items[$index];

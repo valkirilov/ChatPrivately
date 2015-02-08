@@ -6,7 +6,8 @@ var express = require('express'),
     mongoose = require('mongoose'),
     mongoosePaginate = require('mongoose-paginate'),
     messageSchema = require('./../models/messages.js'),
-    Schema = mongoose.Schema;
+    Schema = mongoose.Schema,
+    moment = require('moment');
 
 messageSchema.plugin(mongoosePaginate);
 var Messages = mongoose.model('messages', messageSchema);
@@ -18,21 +19,70 @@ module.exports = function(database) {
     /******************************************
      * GET methods
      ******************************************/
+    
+    router.get('/stats/:roomId', function(req, res) {
+        var roomId = new ObjectID(req.params.roomId);
+
+        var today = moment();
+        var startOfDay = new Date(today.startOf('day').format()),
+            startOfWeek = new Date(today.startOf('week').format()),
+            startOfMonth = new Date(today.startOf('month').format()),
+            startOfYear = new Date(today.startOf('year').format());
+
+
+        Messages.aggregate([
+            {
+                $match: { 'roomId' : roomId }
+            }, {
+            $group: {
+                _id: { id: '$user', username: '$username' },
+                all: { $sum: 1 },
+                today: {
+                    "$sum": {
+                        "$cond": [ { "$gt": [ "$date", startOfDay ] }, 1, 0 ]
+                    }
+                },
+                week: {
+                    "$sum": {
+                        "$cond": [ { "$gt": [ "$date", startOfWeek ] }, 1, 0 ]
+                    }
+                },
+                month: {
+                    "$sum": {
+                        "$cond": [ { "$gt": [ "$date", startOfMonth ] }, 1, 0 ]
+                    }
+                },
+                year: {
+                    "$sum": {
+                        "$cond": [ { "$gt": [ "$date", startOfYear ] }, 1, 0 ]
+                    }
+                },
+            },
+        }, {
+        $project: {
+            _id   : 1,
+            all: 1,
+            today: 1,
+            week: 1,
+            month: 1,
+            year: 1
+        }
+        }], function(error, response) {
+            if (error) {
+                console.log(error);
+                return res.status(500).send({ 'success': false, 'message': 'Cannot get stats.'});
+            }
+
+            res.json(response);
+        });
+
+    });
+
     router.get('/:roomId/:page', function(req, res) {
-        var roomId = new ObjectID(req.param('roomId'));
-
-        // Messages.find(
-        //     { roomId: roomId },
-        //     function (error, messages) {
-        //         if (error) {
-        //             return res.status(500).send({ 'success': false, 'message': 'Cannot get messages.'});
-        //         }
-
-        //         res.json(messages);
-        //     });
+        var roomId = new ObjectID(req.params.roomId);
 
         var perPage = 10,
-            currentPage = req.param('page') || 1;
+            currentPage = req.params.page || 1;
 
         Messages.paginate(
             { roomId: roomId }, currentPage, perPage, 

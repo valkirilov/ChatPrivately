@@ -30,8 +30,8 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
   // flowFactoryProvider.factory = fustyFlowFactory;
 }])
 
-.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', 'ipCookie',
-  function($scope, $rootScope, $routeParams, $timeout, chatSocket, UserService, RoomsService, PostsService, $mdBottomSheet, ipCookie) {
+.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', 'ipCookie', '$mdDialog',
+  function($scope, $rootScope, $routeParams, $timeout, chatSocket, UserService, RoomsService, PostsService, $mdBottomSheet, ipCookie, $mdDialog) {
 
   $scope.messages = [];
   $scope.tabs = [];
@@ -277,6 +277,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
   $scope.addPost = function() {
     var message = angular.copy($scope.post.message);
 
+    if (message.length === 0 || message === '' || message === 'Type something here..')
+      return;
+
     PostsService.create($rootScope.user.id, message).then(function(response) {
       if (response.data.success) {
         
@@ -330,10 +333,42 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
       controller: 'MessageOptionsCtrl',
       targetEvent: $event
     }).then(function(clickedItem) {
-      $scope.alert = clickedItem.name + ' clicked!';
+      switch(clickedItem.name) {
+        case 'Stats':
+          $scope.showStats();
+          break;
+        default:
+          $rootScope.showToastMessage('This is still not implemented :(');
+          break;
+      }
     });
   };
 
+  /**
+   * Used to show the stats for the current chat
+   * @return {[type]} [description]
+   */
+  $scope.showStats = function() {
+
+    var roomId = $scope.tabs[$scope.selectedIndex].roomId;
+    RoomsService.fetchStats(roomId).then(function(response) {
+      console.log(response);
+
+      if (response.status === 200) {
+        $mdDialog.show({
+          controller: StatsController,
+          templateUrl: 'alerts/alert-room-stats.tmpl.html',
+          locals: {
+            stats: response.data
+          }
+        });
+      }
+      else {
+        $rootScope.showToastMessage(response.message);
+      }
+
+    });
+  };
 
   $scope.send = function($event) {
     if ($event && $event.keyCode !== 13) {
@@ -394,6 +429,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
         user: data.user, 
         username: data.username, 
         content: content, 
+        date: new Date(),
         isCrypted: data.isCrypted });
 
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");

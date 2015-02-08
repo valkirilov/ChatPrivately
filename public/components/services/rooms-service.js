@@ -84,12 +84,26 @@ angular.module('myApp.services.rooms-service', [])
     return result;
   };
 
+  /**
+   * This function is making an AJAX request to the server and 
+   * retruns the response to the controler. It's fetching some stats abaout
+   * the current chat room
+   * @param  {[type]} roomId [description]
+   * @return {[type]}        [description]
+   */
+  var fetchStats = function(roomId) {
+    var response = $http.get('api/messages/stats/'+roomId);
+    
+    return response;
+  };
+
 
   return {
     fetch: fetch,
     fetchOne: fetchOne,
     create: create,
     fetchMessages: fetchMessages,
+    fetchStats: fetchStats,
     getRoomName: getRoomName,
     isRoomInitiated: isRoomInitiated
   };

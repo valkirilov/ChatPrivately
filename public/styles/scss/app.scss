@@ -12,20 +12,32 @@
 // }
 // 
 
+body * {
+  visibility: hidden;
+}
+
+body.loaded * {
+  visibility: visible;
+}
 
 /** The main loading container */
 #loading {
-  display: none;
   width: 100%;
   height: 100%;
-  background: #fbfb33;
   position: fixed;
   z-index: 100;
   top: 0;
   left: 0;
+  opacity: 1;
+  visibility: visible !important;
 
-  &.is-loading {
-    display: block;
+  font-size: 32px;
+  top: 30%;
+  text-align: center;
+
+  &.is-loaded {
+    opacity: 0 !important;
+    display: none;
   }
 }
 
