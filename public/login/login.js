@@ -47,6 +47,12 @@ angular.module('myApp.login', ['ngRoute'])
         //passphareText = angular.copy($scope.input.passphrase);
     
     UserService.login(name, password).then(function(response) {
+
+      if (!response.data.success) {
+        $rootScope.showToastMessage(response.data.message);
+        return;
+      }
+
       $rootScope.user = {
         id: response.data.id,
         username: response.data.username,
@@ -121,6 +127,7 @@ angular.module('myApp.login', ['ngRoute'])
 
   $scope.checkForLogin = function() {
     var rememberedUser = ipCookie('user');
+
     if (rememberedUser) {
       $rootScope.user = rememberedUser;
 
@@ -128,8 +135,8 @@ angular.module('myApp.login', ['ngRoute'])
       $scope.enableCrypt();
 
       $rootScope.profile = angular.copy($rootScope.user);
-
       $rootScope.rooms = RoomsService.fetch($rootScope.user.id);
+      
       $location.path('dashboard');
 
       //console.log($rootScope.user);

@@ -1,5 +1,18 @@
 <md-bottom-sheet class="md-grid message-bottom-sheet" style="z-index: 150;">
   <md-list>
+
+
+    <md-item>
+      <md-button class="md-grid-item-content" aria-label="Image" ng-click="listItemClick()"
+		flow-init
+		flow-file-added="avatarAddedHandle($file, $event)"
+		flow-complete="avatarAddedHandled($file, $message);"
+      	flow-attrs="{accept:'image/*'}" flow-btn>
+        <span class="fa fa-2x fa fa-image"></span>
+        <p class="md-grid-text"> Image </p>
+      </md-button>
+    </md-item>
+
     <md-item ng-repeat="item in items">
       <md-button class="md-grid-item-content" aria-label="{{item.name}}" ng-click="listItemClick($index)">
         <span class="fa fa-2x {{ item.icon }}"></span>

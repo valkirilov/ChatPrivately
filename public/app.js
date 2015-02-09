@@ -242,7 +242,9 @@ config(['$routeProvider', function($routeProvider) {
       $rootScope.showToastMessage(response.data.message);
       $rootScope.user.firstName = $rootScope.profile.firstName;
       $rootScope.user.lastName = $rootScope.profile.lastName;
-      ipCookie('user', $rootScope.user, { expires: 21 });
+      //ipCookie('user', $rootScope.user, { expires: 21 });
+
+      $rootScope.updateCookieUser();
     });
   };
 
@@ -252,12 +254,15 @@ config(['$routeProvider', function($routeProvider) {
     $rootScope.user.passphrase = CryptoJS.MD5($rootScope.profile.passphraseText).toString();
     //$rootScope.user.publicKey = $rootScope.profile.publicKey;
     $rootScope.isKeysLoaded = true;
-    ipCookie($rootScope.username, { 
+  
+    ipCookie($rootScope.user.username, { 
       privateKey: $rootScope.user.privateKey,
       publicKey: $rootScope.user.publicKey,
       passphrase: $rootScope.user.passphrase,
       passphraseText: $rootScope.profile.passphraseText
     }, { expires: 10000 });
+
+    $rootScope.updateCookieUser();
   };
 
   /**************************************
@@ -336,6 +341,23 @@ config(['$routeProvider', function($routeProvider) {
     );
 
     console.error(error);
+
+  };
+
+  $rootScope.updateCookieUser = function() {
+
+    ipCookie('user', {
+      id: $rootScope.user.id,
+      username: $rootScope.user.username,
+      firstName: $rootScope.user.firstName,
+      lastName: $rootScope.user.lastName,
+      passphrase: $rootScope.user.passphrase,
+      publicKey: $rootScope.user.publicKey,
+      passphraseText: $rootScope.user.passphraseText,
+      avatar: $rootScope.user.avatar,
+      access_token: $rootScope.user.access_token,
+      success: true,
+    }, { expires: 21 });
 
   };
 

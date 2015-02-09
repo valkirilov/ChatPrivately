@@ -20,7 +20,7 @@ module.exports = function(database) {
      * GET methods
      ******************************************/
     router.get('/:userId', function(req, res) {
-        var userId = new ObjectID(req.param('userId'));
+        var userId = new ObjectID(req.params.userId);
 
         Friends.find({ userId: userId})
             .select('friendId')
@@ -48,7 +48,7 @@ module.exports = function(database) {
     });
 
     router.get('/my/:userId', function(req, res) {
-        var userId = new ObjectID(req.param('userId'));
+        var userId = new ObjectID(req.params.userId);
 
         Posts.find({ userId: userId })
             .sort({ date: -1})

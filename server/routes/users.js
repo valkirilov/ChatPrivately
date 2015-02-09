@@ -53,7 +53,7 @@ module.exports = function(database) {
     });
 
     router.get('/:name', function(req, res) {
-        var name = req.param('name');
+        var name = req.params.name;
 
         Users.findOne({ $or: [
             { username: name },
@@ -70,7 +70,7 @@ module.exports = function(database) {
     });
 
     router.get('/profile/:username', function(req, res) {
-        var username = req.param('username');
+        var username = req.param.username;
 
         Users.findOne({ 
             username: username 
@@ -129,8 +129,8 @@ module.exports = function(database) {
                 { email: name} 
             ]
         }, function(error, user) {
-            if (error) {
-                return res.status(500).send({ 'success': false, 'message': 'Error in searching for user.'});   
+            if (error || user === null) {
+                return res.status(200).send({ 'success': false, 'message': 'This username is not valid.'});   
             }
 
             var client_id = 'client-id-victoria',
@@ -139,7 +139,7 @@ module.exports = function(database) {
 
             // Check the input password validity
             if (user.password !== password) {
-                return res.status(500).send({'success': false, 'message': 'Incorrect password'});
+                return res.status(200).send({'success': false, 'message': 'Incorrect password'});
             }
 
             // Insert user auth logic here

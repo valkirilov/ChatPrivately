@@ -5,8 +5,7 @@
     flow-file-added="avatarAddedHandle($file)"
     flow-file-success="avatarSuccessHandle($file, $message)"
     flow-attrs="{accept:'image/*'}">
-
-    <img src="avatars/{{ user.avatar }}" flow-img="'avatars/'+user.avatar || $flow.files[0]" class="img img-responsive img-thumbnail" flow-btn />
+    <img src="avatars/{{ user.avatar }}" flow-img="'avatars/'+user.avatar || $flow.files[0]" class="img img-responsive img-thumbnail" style="min-width: 200px; min-height: 200px;" flow-btn />
   </div>
 
   <div class="col-sm-8">

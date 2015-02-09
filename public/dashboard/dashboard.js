@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('myApp.dashboard', ['ngRoute', 'flow'])
+angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
 
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/dashboard', {
@@ -15,9 +15,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
 .config(['flowFactoryProvider', function (flowFactoryProvider) {
   flowFactoryProvider.defaults = {
-    target: '/api/users/upload/avatar',
+    target: '/api/users/upload/avatar/',
     permanentErrors: [404, 500, 501],
-    maxChunkRetries: 1,
+    maxChunkRetries: 3,
     chunkRetryInterval: 5000,
     simultaneousUploads: 4,
     singleFile: true,
@@ -30,8 +30,8 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
   // flowFactoryProvider.factory = fustyFlowFactory;
 }])
 
-.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', 'ipCookie', '$mdDialog',
-  function($scope, $rootScope, $routeParams, $timeout, chatSocket, UserService, RoomsService, PostsService, $mdBottomSheet, ipCookie, $mdDialog) {
+.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket','ipCookie', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', '$mdDialog',
+  function($scope, $rootScope, $routeParams, $timeout, chatSocket, ipCookie, UserService, RoomsService, PostsService, $mdBottomSheet, $mdDialog) {
 
   $scope.messages = [];
   $scope.tabs = [];
@@ -44,6 +44,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
   $scope.newAvatar = null;
 
   $scope.init = function() {
+    console.log('Dashboard');
     $scope.addDashboardTab();
 
     $rootScope.initRooms();
@@ -319,7 +320,10 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
     UserService.saveAvatar($rootScope.user.id, $scope.newAvatar).then(function(response) {
       if (response.data.success) {
         $rootScope.user.avatar = response.data.avatar;
-        ipCookie('user', $rootScope.user, { expires: 21 });
+        $rootScope.profile.avatar = response.data.avatar;
+
+        //ipCookie.remove('user');
+        $rootScope.updateCookieUser();
       }
 
       $rootScope.showToastMessage(response.data.message);
@@ -336,6 +340,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
       switch(clickedItem.name) {
         case 'Stats':
           $scope.showStats();
+          break;
+        case 'Image':
+
           break;
         default:
           $rootScope.showToastMessage('This is still not implemented :(');
@@ -379,6 +386,10 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
         user = $rootScope.user,
         messageText = angular.copy($scope.message);
 
+    if (messageText === '') {
+      return;
+    }
+
     // Filter sending data
     room = {
       id: room.id,
@@ -389,6 +400,15 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow'])
 
     chatSocket.emit('message', room, user, message);
     $scope.message = '';
+  };
+
+  $rootScope.sendImage = function(file, ev) {
+    console.log(file);
+    console.log(ev);
+
+    var reader = new FileReader();
+    var data = reader.readAsDataURL(file);
+    console.log(data);
   };
 
   $scope.$on('socket:broadcast', function(event, data) {

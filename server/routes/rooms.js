@@ -45,7 +45,7 @@ module.exports = function(database) {
     });
 
     router.get('/id/:roomId', function(req, res) {
-        var roomId = new ObjectID(req.param('roomId'));
+        var roomId = new ObjectID(req.params.roomId);
 
         Rooms.findOne({
             _id: ObjectID(roomId),
@@ -60,7 +60,7 @@ module.exports = function(database) {
     });
 
     router.get('/:userId', function(req, res) {
-        var userId = new ObjectID(req.param('userId'));
+        var userId = new ObjectID(req.params.userId);
 
         Rooms.find({
             participants: { $in : [ userId ] },

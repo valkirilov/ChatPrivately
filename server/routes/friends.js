@@ -38,7 +38,7 @@ module.exports = function(database) {
      ******************************************/
 
     router.get('/:userId', function(req, res) {
-        var userId = req.param('userId');
+        var userId = req.params.userId;
 
         Friends.find({ 
             userId: userId,
@@ -66,7 +66,7 @@ module.exports = function(database) {
     });
 
     router.get('/requests/:userId', function(req, res) {
-        var userId = req.param('userId');
+        var userId = req.params.userId;
 
         Friends.find({ 
             userId: userId,
@@ -81,7 +81,7 @@ module.exports = function(database) {
     });
 
     router.get('/recommended/:userId', function(req, res) {
-        var userId = req.param('userId');
+        var userId = req.params.userId;
 
         // First get all of the users
         // Then filter the users that you are already friend with

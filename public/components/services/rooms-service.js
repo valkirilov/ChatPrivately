@@ -45,7 +45,7 @@ angular.module('myApp.services.rooms-service', [])
       
     });
 
-    return names.join();
+    return names.join(', ');
   };
 
   var create = function(participants, user, friends) {
