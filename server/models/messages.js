@@ -5,6 +5,7 @@
 
 var ObjectID = require('mongodb').ObjectID,
     mongoose = require('mongoose'),
+    mongooseFS = require('mongoose-fs'),
     Schema = mongoose.Schema;
 
 var messageSchema = new Schema({
@@ -14,11 +15,13 @@ var messageSchema = new Schema({
         username: String,
     },
     content: String,
+    type: String,
     date: { type: Date, default: Date.now },
     isCrypted: Boolean,
 });
 
 messageSchema.index({ date: -1 }); // schema level
+//messageSchema.plugin(mongooseFS, { keys: ['image.content', 'image.complement'], mongoose: mongoose });
 
 // Ensure virtual fields are serialised.
 messageSchema.set('toJSON', {

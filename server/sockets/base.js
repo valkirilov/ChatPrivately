@@ -17,9 +17,12 @@ module.exports = function (io) {
     /** This socket is responsible for accepting and sending messages */
     socket.on('message', function (room, user, message) {
       console.log('Messege recieve');
+      console.log(message);
       room.participants.forEach(function(item) {
         console.log('Send message to ' + item);
         
+        console.log(message.type);
+
         // Send message to the others
         io.sockets.emit('user'+item, {
           action: 'message',
@@ -28,11 +31,17 @@ module.exports = function (io) {
             id: user.id,
             username: user.username,
           },
+          type: message.type,
           content: message.content,
+          image: message.image,
           isCrypted: message.isCrypted,
           key: message.key
         });
       });
+
+      if (message.type === 'image' || message.type === 'draw') {
+        return;
+      }
 
       // Save the message to the db
       var data = {
@@ -40,6 +49,7 @@ module.exports = function (io) {
           "user": user.id,
           "username": user.username,
           "content": message.content,
+          "type": message.type,
           "isCrypted": message.isCrypted
         },
         dataString = JSON.stringify(data),

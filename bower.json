@@ -28,7 +28,8 @@
     "q": "1.0.1",
     "ng-flow": "~2",
     "cryptojslib": "~3.1.2",
-    "ngAutocomplete": "~1.0.0"
+    "ngAutocomplete": "~1.0.0",
+    "sketch.js-2": "*"
   },
   "resolutions": {
     "angular": "1.3.x",

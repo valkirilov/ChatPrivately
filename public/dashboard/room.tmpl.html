@@ -19,7 +19,8 @@
             <strong>{{ message.user.username }}</strong>
             <strong class="pull-right">{{ message.date | date:'medium' }}</strong>
           </h3>
-          <p>{{ message.content }}</p>
+          <p ng-if="message.type === 'text' ">{{ message.content }}</p>
+          <p ng-if="message.type === 'image' "><img src="{{ message.image.data }}" class="img img-responsive"></p>
           <p class=""></p>
         </div>
       </md-item-content>

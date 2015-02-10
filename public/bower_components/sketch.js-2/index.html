@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Sketch.js - Simple Canvas-based Drawing for jQuery</title>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src='lib/sketch.js'></script>
+    <link href='http://fonts.googleapis.com/css?family=Yellowtail|Open+Sans:400italic,700italic,400,700' rel='stylesheet' type='text/css'/>
+
+    <style type='text/css'>
+      body { font-family: "Open Sans", sans-serif; color: #444; }
+      h1, h2, h3, h4 { font-family: Yellowtail; font-weight: normal; color: #06a; }
+
+      #wrapper { width: 800px; margin: 0 auto; }
+
+      header { text-align: center; }
+      header h1 { font-size: 46px; text-align: center; margin: 15px 10px; }
+
+      article h1 { font-size: 26px; margin: 0 0 15px; }
+
+      article canvas {
+        width: 800px;
+        height: 300px;
+        border: 1px solid #ccc;
+      }
+
+      pre.source {
+        background: #e5eeee;
+        padding: 10px 20px;
+        width: 760px;
+        overflow-x: auto;
+        border: 1px solid #acc;
+      }
+
+      code { background: #cff; }
+
+      .tools { margin-bottom: 10px; }
+      .tools a {
+        border: 1px solid black; height: 30px; line-height: 30px; padding: 0 10px; vertical-align: middle; text-align: center; text-decoration: none; display: inline-block; color: black; font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='wrapper'>
+      <header>
+        <h1>Sketch.js</h1>
+        <p>Sketch.js is an easy-to-use jQuery plugin that allows you to create canvases
+        upon which visitors can draw. The code is partially inspired by <a href='http://www.williammalone.com/articles/create-html5-canvas-javascript-drawing-app/'>William Malone's drawing app tutorial</a>
+        as well as <a href='http://canvaspaint.org'>CanvasPaint</a>.</p>
+      </header>
+
+      <article class='info'>
+        <h1>Installation</h1>
+
+        <p>To use Sketch.js in your project, just grab the latest <a href='http://intridea.github.com/sketch.js/lib/sketch.js'>sketch.js</a>
+         (or <a href='http://intridea.github.com/sketch.js/lib/sketch.min.js'>minified</a>) from GitHub and include it in your project after jQuery.</p>
+
+        <h1>Documentation</h1>
+        
+        <p>To see detailed documentation, take a look at the <a href='docs/sketch.html'>annotated
+        source code</a>.</p>
+      </article>
+
+      <article class='example'>
+        <h1>Simple Example</h1>
+        
+        <p>Click and drag in the box below to draw a simple black line.</p>
+
+        <div class='demo'>
+          <canvas id='simple_sketch' width='800' height='300'></canvas>
+          <script type='text/javascript'>
+            $(function() {
+              $('#simple_sketch').sketch();
+            });
+          </script>
+        </div>
+      </article>
+
+      <article class='example'>
+        <h1>Changing Color/Size, Downloading Image</h1>
+        
+        <p>Sketch.js makes it very easy to create links that function as tool buttons.
+        By default, any link that has a <code>href</code> tag that points to the ID
+        of the converted canvas will automatically be considered a tool link. If the
+        link has a <code>data-color</code> attribute then clicking it will change the color.
+        Similarly, a <code>data-size</code> attribute will change the brush size.</p>
+
+        <p>Setting the <code>data-download</code> on a tool link to <code>jpeg</code> or
+        <code>png</code> will create a download button for the specified format.</p>
+        
+        <div class='demo' id='colors_demo'>
+          <div class='tools'>
+            <a href='#colors_sketch' data-download='png' style='float: right; width: 100px;'>Download</a>
+          </div>
+          <canvas id='colors_sketch' width='800' height='300'></canvas>
+          <script type='text/javascript'>
+            $(function() {
+              $.each(['#f00', '#ff0', '#0f0', '#0ff', '#00f', '#f0f', '#000', '#fff'], function() {
+                $('#colors_demo .tools').append("<a href='#colors_sketch' data-color='" + this + "' style='width: 10px; background: " + this + ";'></a> ");
+              });
+              $.each([3, 5, 10, 15], function() {
+                $('#colors_demo .tools').append("<a href='#colors_sketch' data-size='" + this + "' style='background: #ccc'>" + this + "</a> ");
+              });
+              $('#colors_sketch').sketch();
+            });
+          </script>
+        </div>
+      </article>
+
+      <article class='example' id='tools_demo'>
+        <h1>Tools Example</h1>
+        
+        <p>Click buttons to switch between tools.</p>
+
+        <div class='demo'>
+          <div class='tools'>
+            <a href='#tools_sketch' data-tool='marker'>Marker</a>
+            <a href='#tools_sketch' data-tool='eraser'>Eraser</a>
+          </div>
+          <canvas id='tools_sketch' width='800' height='300' style='background: url(http://farm1.static.flickr.com/91/239595759_3c3626b24a_b.jpg) no-repeat center center;'></canvas>
+          <script type='text/javascript'>
+            $(function() {
+              $('#tools_sketch').sketch({defaultColor: "#ff0"});
+            });
+          </script>
+        </div>
+      </article>
+
+      <article class='info'>
+        <h1>Compatibility</h1>
+
+        <p>Sketch.js has been tested on Chrome (OS X), Firefox (OS X), Safari (OS X),
+        Android Browser (Honeycomb 3.1). It suffers significant performance degradation
+        on mobile browsers due to general HTML5 Canvas performance issues.</p>
+
+        <h1>License</h1>
+        
+        <p>Copyright (C) 2011 by Michael Bleigh and Intridea, Inc.</p>
+
+        <p>Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:</p>
+
+        <p>The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.</p>
+
+        <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+        THE SOFTWARE.</p>
+      </article>
+
+    </div>
+    <script type='text/javascript'>
+      var escapeHTML = function(s) {
+        return s
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      $('article.example').each(function() {
+        $(this).append("<pre class='source'></pre>");
+        var html = $(this).find("div.demo").html().replace(/          /g,"");
+        $(this).find("pre.source").html(escapeHTML(html));
+      });
+    </script>
+  </body>
+</html>
+

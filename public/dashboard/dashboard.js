@@ -337,13 +337,22 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
       controller: 'MessageOptionsCtrl',
       targetEvent: $event
     }).then(function(clickedItem) {
+
       switch(clickedItem.name) {
+        case 'Nothing':
+          break;
+
         case 'Stats':
           $scope.showStats();
           break;
-        case 'Image':
 
+        case 'Image':
           break;
+
+        case 'Draw':
+          $scope.startDraw();
+          break;
+
         default:
           $rootScope.showToastMessage('This is still not implemented :(');
           break;
@@ -377,7 +386,13 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     });
   };
 
-  $scope.send = function($event) {
+  $scope.startDraw = function() {
+
+    //$scope.send({keyCode: 13}, true);
+    
+  };
+
+  $scope.send = function($event, isDrawing) {
     if ($event && $event.keyCode !== 13) {
       return;
     }
@@ -386,7 +401,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
         user = $rootScope.user,
         messageText = angular.copy($scope.message);
 
-    if (messageText === '') {
+    if (messageText === '' && !isDrawing) {
       return;
     }
 
@@ -398,25 +413,40 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
 
     var message = $scope.encodeMessage(messageText);
 
+    if (isDrawing) {
+      message.type = 'draw';
+    }
+
     chatSocket.emit('message', room, user, message);
     $scope.message = '';
   };
 
-  $rootScope.sendImage = function(file, ev) {
-    console.log(file);
-    console.log(ev);
+  $rootScope.sendImage = function(file, fileData) {
+    var room = $scope.tabs[$scope.selectedIndex].room,
+        user = $rootScope.user;
 
-    var reader = new FileReader();
-    var data = reader.readAsDataURL(file);
-    console.log(data);
+    // Filter sending data
+    room = {
+      id: room.id,
+      participants: room.participants
+    };
+
+    var image = {
+      isCrypted: false,
+      image: {
+        file: file,
+        data: fileData,
+      },
+      type: 'image'
+    };
+
+    chatSocket.emit('message', room, user, image);
   };
 
   $scope.$on('socket:broadcast', function(event, data) {
     if (!data.content) {
       return;
     }
-
-    //console.log(data);
 
     $scope.messages.push(data);
   });
@@ -437,7 +467,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     }
     else if (data.action === 'message') {
       // console.log('Message received');
-      // console.log(data);
+      console.log(data);
 
       var room = $rootScope.rooms[data.roomId];
       if (room.messages === undefined) {
@@ -451,7 +481,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
           id: data.user.id, 
           username: data.user.username, 
         },
-        content: content, 
+        content: content,
+        type: data.type,
+        image: data.image,
         date: new Date(),
         isCrypted: data.isCrypted });
 
@@ -461,7 +493,6 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
       else {
         SoundService.msgReceived();  
       }
-      
 
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
       scrollMessages(room);
@@ -488,7 +519,8 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
   $scope.encodeMessage = function(content, receiver) {
     var encoded = {
       content: content,
-      isCrypted: false
+      isCrypted: false,
+      type: 'text'
     };
 
     if ($rootScope.isKeysLoaded) {

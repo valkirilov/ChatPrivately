@@ -1,0 +1,29 @@
+{
+  "name": "sketch.js-2",
+  "homepage": "https://github.com/valkirilov/sketch.js",
+  "authors": [
+    "Michael Bleigh"
+  ],
+  "description": "Sketch.js is an easy-to-use jQuery plugin that allows you to create canvases upon which visitors can draw.",
+  "keywords": [
+    "sketch.js"
+  ],
+  "license": "Copyright (C) 2011 by Michael Bleigh and Intridea, Inc.",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "198ebbc43c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "198ebbc43c993e29f131c19fcd65537acd4f4e78"
+  },
+  "_source": "git://github.com/valkirilov/sketch.js.git",
+  "_target": "*",
+  "_originalSource": "sketch.js-2",
+  "_direct": true
+}

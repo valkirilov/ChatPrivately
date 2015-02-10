@@ -10,13 +10,29 @@ angular.module('myApp.message-options', [])
     { name: 'Block', icon: 'fa-user-times' },
   ];
   $scope.listItemClick = function($index) {
-    $index = $index || 0;
+
     var clickedItem = $scope.items[$index];
-    $mdBottomSheet.hide(clickedItem);
+    if ($index !== undefined) {
+      $mdBottomSheet.hide(clickedItem);
+    }
+    else {
+      $mdBottomSheet.hide('Nothing');
+    }
   };
 
   $scope.avatarAddedHandle = function($file, $event) {
-    $rootScope.sendImage($file, $event);
+    var file = $file.file;
+    var reader = new FileReader();
+    
+    reader.onload = (function(theFile) {
+      return function(e) {
+        $rootScope.sendImage($file.file, e.target.result);
+      };
+    })(file);
+
+    // Read in the image file as a data URL.
+    reader.readAsDataURL(file);
   }; 
+
 
 });

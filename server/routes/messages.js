@@ -29,7 +29,6 @@ module.exports = function(database) {
             startOfMonth = new Date(today.startOf('month').format()),
             startOfYear = new Date(today.startOf('year').format());
 
-
         Messages.aggregate([
             {
                 $match: { 'roomId' : roomId }
@@ -114,6 +113,7 @@ module.exports = function(database) {
                 username: message.username,
             },
             content: message.content,
+            type: message.type,
             isCrypted: message.isCrypted
         });
 
