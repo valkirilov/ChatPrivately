@@ -24,8 +24,10 @@ module.exports = function (io) {
         io.sockets.emit('user'+item, {
           action: 'message',
           roomId: room.id,
-          user: user.id,
-          username: user.username,
+          user: {
+            id: user.id,
+            username: user.username,
+          },
           content: message.content,
           isCrypted: message.isCrypted,
           key: message.key

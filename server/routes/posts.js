@@ -22,14 +22,17 @@ module.exports = function(database) {
     router.get('/:userId', function(req, res) {
         var userId = new ObjectID(req.params.userId);
 
-        Friends.find({ userId: userId})
-            .select('friendId')
+        Friends.find({ userId: userId })
+            .select('friendId isAccepted')
             .exec(function(error, friends) {
                 if (error) {
                     return res.status(500).send({ 'success': false, 'message': 'Cannot get posts.'});
                 }
 
                 var friendsList = friends.map(function(friend) {
+                    if (friend.isAccepted === false)
+                        return null;
+
                     return friend.friendId;
                 });
                 friendsList.push(userId);

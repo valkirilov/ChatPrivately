@@ -9,12 +9,16 @@ var ObjectID = require('mongodb').ObjectID,
 
 var messageSchema = new Schema({
     roomId: Schema.ObjectId,
-    user: Schema.ObjectId,
-    username: String,
+    user: { 
+        id: Schema.ObjectId,
+        username: String,
+    },
     content: String,
     date: { type: Date, default: Date.now },
     isCrypted: Boolean,
 });
+
+messageSchema.index({ date: -1 }); // schema level
 
 // Ensure virtual fields are serialised.
 messageSchema.set('toJSON', {

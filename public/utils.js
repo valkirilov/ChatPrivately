@@ -44,7 +44,9 @@ function CreateRoomController($rootScope, $scope, $mdDialog) {
     });
 
     $mdDialog.hide(function() {
-      $rootScope.chatFriends(participants);
+      if (participants.length > 0) {
+        $rootScope.chatFriends(participants);        
+      }
     });
   };
 

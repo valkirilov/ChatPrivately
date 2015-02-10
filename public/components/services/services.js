@@ -5,4 +5,5 @@ angular.module('myApp.services', [
   'myApp.services.user-service',
   'myApp.services.rooms-service',
   'myApp.services.posts-service',
+  'myApp.services.sound-service',
 ]);

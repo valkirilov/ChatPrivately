@@ -35,7 +35,7 @@ module.exports = function(database) {
                 $match: { 'roomId' : roomId }
             }, {
             $group: {
-                _id: { id: '$user', username: '$username' },
+                _id: { id: '$user.id', username: '$user.username' },
                 all: { $sum: 1 },
                 today: {
                     "$sum": {
@@ -109,8 +109,10 @@ module.exports = function(database) {
 
         var newMessage = new Messages({
             roomId: message.roomId,
-            user: message.userId,
-            username: message.username,
+            user: { 
+                id: message.userId,
+                username: message.username,
+            },
             content: message.content,
             isCrypted: message.isCrypted
         });

@@ -2,7 +2,7 @@
   <md-content>
     <md-subheader class="md-sticky-no-effect text-center">Create a New chat room</md-subheader>
 
-    <input type="text" id="input-friend-invite" ng-model="selected" ng-keyup="addParticipant($event)" typeahead="friend as friend.username for friend in friends | limitTo:8" class="form-control" style="width: 500px;">
+    <input type="text" id="input-friend-invite" ng-model="selected" ng-keyup="addParticipant($event)" typeahead="friend as friend.username for friend in friends | limitTo:8" class="form-control" style="width: 500px;" placeholder="Type friend username.." >
     <br />
 
     <md-toolbar class="md-theme-light">

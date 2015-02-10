@@ -30,8 +30,8 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
   // flowFactoryProvider.factory = fustyFlowFactory;
 }])
 
-.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket','ipCookie', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', '$mdDialog',
-  function($scope, $rootScope, $routeParams, $timeout, chatSocket, ipCookie, UserService, RoomsService, PostsService, $mdBottomSheet, $mdDialog) {
+.controller('DashboardCtrl', ['$scope', '$rootScope', '$routeParams', '$timeout', 'chatSocket','ipCookie', 'UserService', 'RoomsService', 'PostsService', '$mdBottomSheet', '$mdDialog', 'SoundService', 
+  function($scope, $rootScope, $routeParams, $timeout, chatSocket, ipCookie, UserService, RoomsService, PostsService, $mdBottomSheet, $mdDialog, SoundService) {
 
   $scope.messages = [];
   $scope.tabs = [];
@@ -433,6 +433,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     if (data.action === 'chatOpen') {
       //$rootScope.initRooms();
       $scope.chatOpenHandle(data);
+      SoundService.chatOpen();
     }
     else if (data.action === 'message') {
       // console.log('Message received');
@@ -446,21 +447,40 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
       var content = $scope.decodeMessage(data);
 
       room.messages.push({ 
-        user: data.user, 
-        username: data.username, 
+        user: {
+          id: data.user.id, 
+          username: data.user.username, 
+        },
         content: content, 
         date: new Date(),
         isCrypted: data.isCrypted });
 
+      if ($rootScope.user.id === data.user.id) {
+        SoundService.msgSend();
+      }
+      else {
+        SoundService.msgReceived();  
+      }
+      
+
       //room.contentElement.animate({ scrollTop: room.contentElement.find('md-item:last').offset().top }, "slow");
       scrollMessages(room);
+
+      // Check if we have to show notification
+      if ($scope.tabs[$scope.selectedIndex].roomId !== data.roomId) {
+        $rootScope.showToastMessage(data.user.username +' is writting you');
+      }
     }
     else if (data.action === 'notification') {
-      console.log('Notification received');
+      //console.log('Notification received');
       $rootScope.showToastMessage(data.message);
 
       if (data.type === 'friend') {
         $scope.fetchFriends();
+        SoundService.notification();
+      }
+      else {
+        SoundService.friendRequest();
       }
     }
   });
@@ -484,7 +504,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     var decoded;
 
     if (message.isCrypted) {
-      var key = (message.user === $rootScope.user.id) ? $rootScope.user.passphrase : $rootScope.friends[message.user].passphrase;
+      var key = (message.user.id === $rootScope.user.id) ? $rootScope.user.passphrase : $rootScope.friends[message.user.id].passphrase;
       decoded = CryptoJS.AES.decrypt(message.content, key).toString(CryptoJS.enc.Utf8);
     }
     else {
@@ -501,7 +521,10 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
       room.contentElement = angular.element('#room-'+room.id);
     }
 
-    room.contentElement.animate({ scrollTop: room.contentElement.find('.bottom').get(0).offsetTop+'px' }, "slow");
+    // If the user is at the bottom
+    if (room.contentElement.find('.bottom').get(0).offsetTop - room.contentElement.scrollTop() <= $(window).height()) {
+      room.contentElement.animate({ scrollTop: room.contentElement.find('.bottom').get(0).offsetTop+'px' }, "slow");
+    }
   }
 
   function setMessagesHeight() {

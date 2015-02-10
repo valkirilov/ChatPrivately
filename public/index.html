@@ -38,7 +38,11 @@
 </head>
 <body ng-controller="GlobalController" layout="row" class="{{ isLoaded ? 'loaded' : '' }}">
 
-<div id="loading" class="{{ isLoaded ? 'is-loaded' : '' }}">Welcome to <br />ChatPrivately!</div>
+<div id="loading" class="{{ isLoaded ? 'is-loaded' : '' }}">
+  Welcome to <br />
+  ChatPrivately!
+  <img src="/avatars/default.png" class="img img-responsive" style="margin: 0 auto;">
+</div>
 
   <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
@@ -263,6 +267,7 @@
   <script src="components/services/user-service.js"></script>
   <script src="components/services/rooms-service.js"></script>
   <script src="components/services/posts-service.js"></script>
+  <script src="components/services/sound-service.js"></script>
   <script src="components/directives/directives.js"></script>
   <script src="components/directives/logo-directive.js"></script>
   <script src="components/version/version.js"></script>

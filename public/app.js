@@ -24,8 +24,8 @@ angular.module('myApp', [
 config(['$routeProvider', function($routeProvider) {
   $routeProvider.otherwise({redirectTo: '/dashboard'});
 }])
-.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket', 'ipCookie', '$http', 
-  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket, ipCookie, $http) {
+.controller('GlobalController', ['$scope', '$rootScope', '$location', 'gettextCatalog', 'UserService', 'RoomsService', '$timeout', '$mdSidenav', '$mdDialog', '$mdToast', 'chatSocket', 'ipCookie', '$http', 'SoundService',  
+  function($scope, $rootScope, $location, gettextCatalog, UserService, RoomsService, $timeout, $mdSidenav, $mdDialog, $mdToast, chatSocket, ipCookie, $http, SoundService) {
 
   /***********************************************
    * Init variables
@@ -158,9 +158,10 @@ config(['$routeProvider', function($routeProvider) {
   };
 
   $rootScope.sendInvitation = function(friends) {
-    console.log(friends);
+    if (friends.length === 0) 
+      return;
+
     $http.post('/api/users/invite', { friends: friends }).then(function(response) {
-      console.log(response);
       if (response.data.success) {
         $rootScope.showToastMessage('Your friends are invited!');
       }
