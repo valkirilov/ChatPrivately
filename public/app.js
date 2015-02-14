@@ -199,6 +199,11 @@ config(['$routeProvider', function($routeProvider) {
     }
   };
 
+  /**
+   * This function is used to create a new chat room with multiple firends
+   * @param  {[type]} friends [description]
+   * @return {[type]}         [description]
+   */
   $rootScope.chatFriends = function(friends) {
     var participants = friends;
     participants.push($scope.user.id);
@@ -342,7 +347,6 @@ config(['$routeProvider', function($routeProvider) {
     );
 
     console.error(error);
-
   };
 
   $rootScope.updateCookieUser = function() {

@@ -43,6 +43,10 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
 
   $scope.newAvatar = null;
 
+  /**
+   * Init function, that setups the main stuff for this controller
+   * @return {[type]} [description]
+   */
   $scope.init = function() {
     console.log('Dashboard');
     $scope.addDashboardTab();
@@ -65,6 +69,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     }
   };
 
+  /**
+   * This function is opening a new chat tab, when this command is handled
+   * @param  {[type]} data [description]
+   * @return {[type]}      [description]
+   */
   $scope.chatOpenHandle = function(data) {
     if ($rootScope.getItemFromArray($scope.tabs, data.roomId, { isIndex: true, id: 'roomId' }) !== null) {
       //$scope.selectTab('room', data.roomId);
@@ -80,6 +89,12 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     });
   };
 
+  /**
+   * Loading messages for a specific room from the DB with the RoomsService
+   * Loading messages on pages
+   * @param  {[type]} room [description]
+   * @return {[type]}      [description]
+   */
   $scope.loadMessages = function(room) {
     if (room.pages && room.page > room.pages)
       return;
@@ -95,7 +110,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
         room.messages.unshift(message);
       });
 
-      setTimeout(function() {
+      $timeout(function() {
         setMessagesHeight();
         scrollMessages(room);
       }, 100);
@@ -103,10 +118,13 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
   };
 
   $scope.loadOlderMessages = function(roomId) {
-    console.log(roomId);
-
+    //console.log(roomId);
     $scope.loadMessages($rootScope.rooms[roomId]);
   };
+
+  /**
+   * Here are ome function which are operating on opening different tabs
+   */
 
   /* Add tab is preparing and calling addRoom tab to finish the job */
   $scope.addTab = function (roomId, callback) {
@@ -134,7 +152,6 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     }, 100);
     callback(room);
   };
-
   $scope.addDashboardTab = function() {
     $scope.tabs.push({ template: "dashboard/dashboard.tmpl.html", title: 'Dashboard', type: 'dashboard' });
     $timeout(function() {
@@ -275,6 +292,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     });
   };
 
+  /**
+   * Used to create a new post and add it to the db
+   */
   $scope.addPost = function() {
     var message = angular.copy($scope.post.message);
 
@@ -298,6 +318,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     });
   };
 
+  /**
+   * Check the added image for an avatars and validate it
+   * @param  {[type]} $file [description]
+   * @return {[type]}       [description]
+   */
   $scope.avatarAddedHandle = function($file) {
     if ($file.getExtension().match(/(^jpg$)|(^jpeg$)|(^gif$)|(^png$)/gi) === null) {
       $rootScope.showError("Only images are allowed");
@@ -312,10 +337,21 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
 
     return true;
   };
+  /**
+   * Avatar uploading is successfull, 
+   * call the update avatar function, to update it in the db
+   * @param  {[type]} $file    [description]
+   * @param  {[type]} $message [description]
+   * @return {[type]}          [description]
+   */
   $scope.avatarSuccessHandle = function($file, $message) {
     $scope.newAvatar = JSON.parse($message).path;
     $scope.updateAvatar();
   };
+  /**
+   * Update the avatar in the db
+   * @return {[type]} [description]
+   */
   $scope.updateAvatar = function() {
     UserService.saveAvatar($rootScope.user.id, $scope.newAvatar).then(function(response) {
       if (response.data.success) {
@@ -330,6 +366,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     });
   };
 
+  /**
+   * Opening the bottom options sheet for the messages
+   * @param  {[type]} $event [description]
+   * @return {[type]}        [description]
+   */
   $scope.showGridBottomSheet = function($event) {
     $scope.alert = '';
     $mdBottomSheet.show({
@@ -349,9 +390,9 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
         case 'Image':
           break;
 
-        case 'Draw':
-          $scope.startDraw();
-          break;
+        // case 'Draw':
+        //   $scope.startDraw();
+        //   break;
 
         default:
           $rootScope.showToastMessage('This is still not implemented :(');
@@ -368,7 +409,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
 
     var roomId = $scope.tabs[$scope.selectedIndex].roomId;
     RoomsService.fetchStats(roomId).then(function(response) {
-      console.log(response);
+      //console.log(response);
 
       if (response.status === 200) {
         $mdDialog.show({
@@ -386,13 +427,20 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     });
   };
 
+  /**
+   * This function is used to start a drawing connversation
+   * @return {[type]} [description]
+   */
   $scope.startDraw = function() {
-
     //$scope.send({keyCode: 13}, true);
-    
   };
 
-  $scope.send = function($event, isDrawing) {
+  /**
+   * This function is used to send a specific message in the current opened room
+   * @param  {[type]}  $event    [description]
+   * @return {[type]}            [description]
+   */
+  $scope.send = function($event) {
     if ($event && $event.keyCode !== 13) {
       return;
     }
@@ -401,7 +449,7 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
         user = $rootScope.user,
         messageText = angular.copy($scope.message);
 
-    if (messageText === '' && !isDrawing) {
+    if (messageText === '') {
       return;
     }
 
@@ -413,14 +461,17 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
 
     var message = $scope.encodeMessage(messageText);
 
-    if (isDrawing) {
-      message.type = 'draw';
-    }
-
     chatSocket.emit('message', room, user, message);
     $scope.message = '';
   };
 
+  /**
+   * This function is used to send a message to a specific chat room.
+   * For now, the images are nly sending, we don't keep it
+   * @param  {[type]} file     [description]
+   * @param  {[type]} fileData [description]
+   * @return {[type]}          [description]
+   */
   $rootScope.sendImage = function(file, fileData) {
     var room = $scope.tabs[$scope.selectedIndex].room,
         user = $rootScope.user;
@@ -455,6 +506,12 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     $scope.addSpecialTab(type, title, template);
   });
 
+  /**
+   * Here is the soccket handle for a specific user
+   * This is the point that the user receives different commands
+   * @param  {[type]} data) {               if (!data.action) {      return;    }        if (data.action [description]
+   * @return {[type]}       [description]
+   */
   chatSocket.on('user'+$rootScope.user.id, function(data) {
     if (!data.action) {
       return;
@@ -516,6 +573,12 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     }
   });
 
+  /**
+   * Encoding a message with a specific passphrase
+   * @param  {[type]} content  [description]
+   * @param  {[type]} receiver [description]
+   * @return {[type]}          [description]
+   */
   $scope.encodeMessage = function(content, receiver) {
     var encoded = {
       content: content,
@@ -532,6 +595,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     return encoded;
   };
 
+  /**
+   * Decoding a message with a specific passphrase
+   * @param  {[type]} message [description]
+   * @return {[type]}         [description]
+   */
   $scope.decodeMessage = function(message) {
     var decoded;
 
@@ -546,6 +614,11 @@ angular.module('myApp.dashboard', ['ngRoute', 'flow', 'ipCookie'])
     return decoded;
   };
 
+  /**
+   * Helper function used to scroll the messages
+   * @param  {[type]} room [description]
+   * @return {[type]}      [description]
+   */
   function scrollMessages(room) {
     if (!room.contentElement || room.contentElement.length === 0) {
       // console.log('Attach');
