@@ -12,10 +12,16 @@ For now the project is under dev.
 
 # Run
 
+You can run it with one simple task, it will start the server and the client
+
+	grunt    
+    
+Or you can run them separately
+
     node server
   > Express server listening on port 9999 / or 9999
 
-    grunt
+    grunt old
 	> Running "nggettext_extract:pot" (nggettext_extract) task
 
 	> Running "nggettext_compile:all" (nggettext_compile) task
