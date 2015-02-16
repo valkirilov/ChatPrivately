@@ -10,6 +10,17 @@ For now the project is under dev.
     npm install
     bower install
 
+Create file `local.js` inside `server/config` and put yur own settings. If you want to make a settings file for a production server name the file `live.js`
+```
+var SETTINGS = {
+	DB_ADDRESS: 'mongodb://localhost/chatprivately',
+	MAIL_USER: ' ',
+	MAIL_PASS: ' '
+};
+
+module.exports = SETTINGS;
+```
+
 # Run
 
 You can run it with one simple task, it will start the server and the client
